@@ -39,7 +39,8 @@ class SamsungFUSClient:
     FUS_SERVERS = {
         'primary': 'http://fus2.shop.v-cdn.net/FUS2',
         'neofus': 'https://neofussvr.sslcs.cdngc.net',
-        'china': 'https://cnfussvr.sslcs.cdngc.net'
+        'china': 'https://cnfussvr.sslcs.cdngc.net',
+        'fota': 'https://fota-cloud-dn.ospserver.net'  # Servidor FOTA que funciona para verificación
     }
     
     # Claves de encriptación de libdprw.so
@@ -133,46 +134,71 @@ class SamsungFUSClient:
     def get_nonce(self) -> Tuple[bool, str]:
         """
         Paso 1: Obtener nonce del servidor
-        Endpoint: /NF_DownloadGenerateNonce.do (inferido)
+        Endpoint: /NF_DownloadGenerateNonce.do o variantes
         """
-        endpoint = f"{self.server_url}/NF_DownloadGenerateNonce.do"
+        # Intentar diferentes endpoints y métodos
+        endpoints = [
+            '/NF_DownloadGenerateNonce.do',
+            '/GenerateNonce.do',
+            '/generateNonce',
+        ]
         
         params = {
             'xml': '1'
         }
         
-        try:
-            response = self.session.get(endpoint, params=params, timeout=30)
+        for endpoint in endpoints:
+            url = f"{self.server_url}{endpoint}"
             
-            if response.status_code == 200:
-                # Parsear respuesta XML
-                root = ET.fromstring(response.content)
-                nonce_elem = root.find('.//nonce')
-                
-                if nonce_elem is not None:
-                    return True, nonce_elem.text
-                else:
-                    # Generar nonce localmente si el servidor no responde
-                    return True, self._generate_nonce()
-            else:
-                # Fallback a nonce local
-                return True, self._generate_nonce()
-        except Exception as e:
-            print(f"⚠️  Error obteniendo nonce, usando local: {e}")
-            return True, self._generate_nonce()
+            # Intentar POST primero, luego GET
+            for method in ['POST', 'GET']:
+                try:
+                    if method == 'POST':
+                        response = self.session.post(url, data=params, timeout=30)
+                    else:
+                        response = self.session.get(url, params=params, timeout=30)
+                    
+                    if response.status_code == 200:
+                        # Parsear respuesta XML
+                        try:
+                            root = ET.fromstring(response.content)
+                            nonce_elem = root.find('.//nonce')
+                            
+                            if nonce_elem is not None and nonce_elem.text:
+                                print(f"   Endpoint: {method} {endpoint}")
+                                return True, nonce_elem.text
+                        except:
+                            pass
+                except Exception:
+                    continue
+        
+        # Generar nonce localmente
+        print("   Usando nonce generado localmente")
+        return True, self._generate_nonce()
     
     def get_binary_info(self, nonce: str) -> Tuple[bool, Optional[Dict]]:
         """
         Paso 2: Obtener información del binario disponible
-        Endpoint: /NF_DownloadBinaryInform.do (inferido)
+        Endpoints posibles descubiertos en análisis
         """
-        endpoint = f"{self.server_url}/NF_DownloadBinaryInform.do"
+        # Si es servidor FOTA, usar método directo de version.xml
+        if 'fota-cloud-dn.ospserver.net' in self.server_url:
+            return self._get_firmware_from_fota()
+        
+        # Diferentes endpoints a intentar para FUS/NeoFUS
+        endpoints = [
+            '/NF_DownloadBinaryInform.do',
+            '/DownloadBinaryInform.do',
+            '/BinaryInform.do',
+            '/downloadBinaryInform',
+        ]
         
         # Crear header de autorización
         auth_header = self._create_auth_header(nonce)
         
         headers = {
-            'Authorization': auth_header
+            'Authorization': auth_header,
+            'Content-Type': 'application/x-www-form-urlencoded'
         }
         
         # Parámetros del request
@@ -183,34 +209,100 @@ class SamsungFUSClient:
             'csc': self.region,
             'imei': self.imei,
             'logic_check': self.model,
-            'version': ''  # Versión actual (vacío para obtener última)
+            'version': '',  # Versión actual (vacío para obtener última)
+            'nonce': nonce
         }
         
+        for endpoint in endpoints:
+            url = f"{self.server_url}{endpoint}"
+            
+            # Intentar POST y GET
+            for method in ['POST', 'GET']:
+                try:
+                    if method == 'POST':
+                        response = self.session.post(url, data=params, headers=headers, timeout=30)
+                    else:
+                        response = self.session.get(url, params=params, headers=headers, timeout=30)
+                    
+                    if response.status_code == 200:
+                        print(f"   ✅ Endpoint funcional: {method} {endpoint}")
+                        
+                        # Parsear respuesta XML
+                        try:
+                            root = ET.fromstring(response.content)
+                            
+                            # Extraer información del firmware
+                            firmware_info = {
+                                'version': self._get_xml_text(root, './/version/latest'),
+                                'firmware': self._get_xml_text(root, './/firmware/version'),
+                                'os_version': self._get_xml_text(root, './/firmware/os'),
+                                'size': self._get_xml_text(root, './/size'),
+                                'display_name': self._get_xml_text(root, './/firmware/display_name'),
+                                'model_path': self._get_xml_text(root, './/firmware/model_path'),
+                                'description': self._get_xml_text(root, './/description'),
+                                'path': self._get_xml_text(root, './/path')
+                            }
+                            
+                            return True, firmware_info
+                        except Exception as parse_error:
+                            print(f"   ⚠️  Respuesta no es XML válido: {parse_error}")
+                            continue
+                    elif response.status_code != 404:
+                        print(f"   ⚠️  {method} {endpoint}: {response.status_code}")
+                except Exception as e:
+                    continue
+        
+        print(f"❌ Ningún endpoint respondió correctamente")
+        return False, None
+    
+    def _get_firmware_from_fota(self) -> Tuple[bool, Optional[Dict]]:
+        """
+        Método alternativo: Obtener firmware del servidor FOTA directo
+        Usado cuando server='fota'
+        """
+        # URL del version.xml (descubierto en análisis de FotaAgent)
+        version_url = f"{self.server_url}/firmware/{self.region}/{self.model}/version.xml"
+        
         try:
-            response = self.session.get(endpoint, params=params, headers=headers, timeout=30)
+            print(f"   Intentando: {version_url}")
+            response = self.session.get(version_url, timeout=30)
             
             if response.status_code == 200:
-                # Parsear respuesta XML
+                # Parsear XML
                 root = ET.fromstring(response.content)
                 
-                # Extraer información del firmware
+                # Estructura real del version.xml de FOTA
+                latest_elem = root.find('.//version/latest')
+                model_elem = root.find('.//firmware/model')
+                cc_elem = root.find('.//firmware/cc')
+                url_elem = root.find('.//url')
+                
+                # Obtener la última versión
+                version_str = latest_elem.text.strip() if latest_elem is not None and latest_elem.text else ''
+                oneui_version = latest_elem.get('o', '') if latest_elem is not None else ''
+                
+                # Obtener primera actualización para info de tamaño
+                first_upgrade = root.find('.//version/upgrade/value')
+                size_bytes = first_upgrade.get('fwsize', '0') if first_upgrade is not None else '0'
+                
                 firmware_info = {
-                    'version': self._get_xml_text(root, './/version/latest'),
-                    'firmware': self._get_xml_text(root, './/firmware/version'),
-                    'os_version': self._get_xml_text(root, './/firmware/os'),
-                    'size': self._get_xml_text(root, './/size'),
-                    'display_name': self._get_xml_text(root, './/firmware/display_name'),
-                    'model_path': self._get_xml_text(root, './/firmware/model_path'),
-                    'description': self._get_xml_text(root, './/description'),
-                    'path': self._get_xml_text(root, './/path')
+                    'version': version_str,
+                    'firmware': version_str.split('/')[0] if '/' in version_str else version_str,
+                    'os_version': f"OneUI {oneui_version}" if oneui_version else '',
+                    'size': size_bytes,
+                    'display_name': f"Samsung {self.model}",
+                    'model_path': f"{self.region}/{self.model}",
+                    'description': f"Firmware for {self.model} ({cc_elem.text if cc_elem is not None else self.region})",
+                    'path': f"{url_elem.text}{self.region}/{self.model}/" if url_elem is not None and url_elem.text else ''
                 }
                 
+                print(f"   ✅ version.xml parseado correctamente")
                 return True, firmware_info
             else:
-                print(f"❌ Error {response.status_code}: {response.text[:200]}")
+                print(f"   ❌ Error {response.status_code}")
                 return False, None
         except Exception as e:
-            print(f"❌ Error obteniendo información del binario: {e}")
+            print(f"   ❌ Error: {e}")
             return False, None
     
     def _get_xml_text(self, root: ET.Element, xpath: str) -> str:
@@ -371,9 +463,9 @@ CSC soportados: Todos los códigos de región
                        help='IMEI del dispositivo (opcional, se genera si no se proporciona)')
     parser.add_argument('-o', '--output', default='./firmware',
                        help='Directorio de salida (default: ./firmware)')
-    parser.add_argument('--server', choices=['primary', 'neofus', 'china'],
-                       default='primary',
-                       help='Servidor FUS a usar (default: primary)')
+    parser.add_argument('--server', choices=['primary', 'neofus', 'china', 'fota'],
+                       default='fota',
+                       help='Servidor FUS a usar (default: fota)')
     parser.add_argument('--check-only', action='store_true',
                        help='Solo verificar firmware disponible, no descargar')
     
