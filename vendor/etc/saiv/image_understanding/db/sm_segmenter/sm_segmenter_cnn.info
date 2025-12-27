@@ -1,0 +1,9 @@
+{
+    "version_id": "v1",
+    "tag" : "1.9",
+    "model_type" : "dsp",
+    "precision" : "float16",
+    "compiler" : "",
+    "model_path" : "/vendor/etc/saiv/image_understanding/db/sm_segmenter/sm_segmenter_cnn.dlc"
+}
+

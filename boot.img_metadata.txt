@@ -1,0 +1,5 @@
+partition_size=100663296
+os_version=13.0.0
+os_patch_level=2025-12
+header_version=4
+cmdline=

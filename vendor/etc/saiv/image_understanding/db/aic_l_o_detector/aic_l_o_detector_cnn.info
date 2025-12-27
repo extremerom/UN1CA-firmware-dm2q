@@ -1,0 +1,9 @@
+{
+	"version_id": "V1",
+	"tag" : "1.26.1_strip",
+	"model_type" : "dsp",
+	"precision" : "qasymm8",
+	"latency" : "0",
+	"compiler" : "snpe2.10",
+	"model_path" : "/vendor/etc/saiv/image_understanding/db/aic_l_o_detector/aic_l_o_detector_cnn.dlc"
+}

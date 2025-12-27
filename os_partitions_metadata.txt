@@ -1,0 +1,5 @@
+use_dynamic_partitions=true
+super_partition_size=12664700928
+super_partition_group=qti_dynamic_partitions
+super_qti_dynamic_partitions_group_size=12660506624
+super_qti_dynamic_partitions_partition_list=system odm product system_dlkm system_ext vendor vendor_dlkm
