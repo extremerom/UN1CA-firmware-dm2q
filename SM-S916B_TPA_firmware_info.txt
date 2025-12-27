@@ -1,0 +1,16 @@
+Samsung Firmware Information
+==================================================
+
+Model: SM-S916B
+Region (CSC): TPA
+Firmware Version: S916BXXS8EYK5/S916BOWO8EYK5/S916BXXU8EYI5
+Android Version: 16
+PDA: S916BXXS8EYK5
+CSC: S916BOWO8EYK5
+Modem: S916BXXU8EYI5
+
+==================================================
+Download this firmware using:
+- Samsung Smart Switch
+- Samsung Kies
+- OTA update on device

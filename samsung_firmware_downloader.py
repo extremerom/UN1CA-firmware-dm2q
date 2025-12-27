@@ -1,34 +1,536 @@
 #!/usr/bin/env python3
 """
-Samsung Firmware Downloader
-============================
-This script downloads Samsung firmware (update.bin) from Samsung's FOTA servers.
+Samsung Firmware Downloader - Complete Implementation
+======================================================
+Downloads Samsung firmware directly from official FOTA servers.
+Uses the complete Samsung FUS (Firmware Update Server) protocol.
 
-Based on analysis of Samsung's FotaAgent and firmware update protocol.
-Uses the official Samsung firmware download API to retrieve firmware files.
+Based on reverse engineering of:
+- FotaAgent.apk from system/system/priv-app/FotaAgent/
+- Samsung FUS protocol analysis
+- Device info: SM-S916B, TPA region, Serial: CE0523757243B468157E
 
-Author: Generated from firmware analysis
+This implementation uses external dependencies for cryptography and HTTP requests
+to properly implement the Samsung authentication protocol.
+
+Author: Analyzed from firmware binaries, APKs and protocol reverse engineering
 License: MIT
 """
 
 import argparse
+import base64
 import hashlib
-import hmac
 import os
-import random
 import sys
 import xml.etree.ElementTree as ET
-from typing import Optional, Dict, Tuple
-from urllib.parse import urljoin
+from typing import Optional, Dict
 
 try:
     import requests
 except ImportError:
-    print("Error: 'requests' library is required. Install it with: pip install requests")
+    print("Error: 'requests' library is required.")
+    print("Install it with: pip install requests")
     sys.exit(1)
 
+try:
+    from Cryptodome.Cipher import AES
+except ImportError:
+    try:
+        from Crypto.Cipher import AES
+    except ImportError:
+        print("Error: 'pycryptodome' library is required.")
+        print("Install it with: pip install pycryptodome")
+        sys.exit(1)
 
-class SamsungFirmwareDownloader:
+
+# Samsung FUS Authentication Keys (extracted from FotaAgent.apk analysis)
+KEY_1 = "hqzdurufm2c8mf6bsjezu1qgveouv7c7"  # Primary key for NONCE decryption
+KEY_2 = "w13r4cvf4hctaujv"                  # Secondary key for auth signature
+
+
+def pkcs7_unpad(data: bytes) -> bytes:
+    """Remove PKCS#7 padding"""
+    pad_len = data[-1]
+    return data[:-pad_len]
+
+
+def pkcs7_pad(data: bytes) -> bytes:
+    """Add PKCS#7 padding"""
+    pad_len = 16 - (len(data) % 16)
+    return data + bytes([pad_len]) * pad_len
+
+
+def aes_encrypt(data: bytes, key: bytes) -> bytes:
+    """Perform AES-CBC encryption"""
+    iv = key[:16]  # IV is first 16 bytes of key
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    return cipher.encrypt(pkcs7_pad(data))
+
+
+def aes_decrypt(data: bytes, key: bytes) -> bytes:
+    """Perform AES-CBC decryption"""
+    iv = key[:16]  # IV is first 16 bytes of key
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    return pkcs7_unpad(cipher.decrypt(data))
+
+
+def derive_key(nonce: str) -> bytes:
+    """Calculate the AES key from the FUS input nonce"""
+    key = ""
+    # First 16 bytes are offsets into KEY_1
+    for i in range(16):
+        key += KEY_1[ord(nonce[i]) % 16]
+    # Last 16 bytes are static KEY_2
+    key += KEY_2
+    return key.encode()
+
+
+def get_auth_signature(nonce: str) -> str:
+    """Calculate the auth signature from a given nonce"""
+    nkey = derive_key(nonce)
+    auth_data = aes_encrypt(nonce.encode(), nkey)
+    return base64.b64encode(auth_data).decode()
+
+
+def decrypt_nonce(encrypted_nonce: str) -> str:
+    """Decrypt the nonce returned by the server"""
+    data = base64.b64decode(encrypted_nonce)
+    nonce = aes_decrypt(data, KEY_1.encode()).decode()
+    return nonce
+
+
+class SamsungFUSClient:
+    """
+    Samsung FUS (Firmware Update Server) Client
+    Implements the complete authentication and download protocol
+    """
+    
+    # Samsung FUS Server URLs
+    FUS_SERVER = "https://neofussvr.sslcs.cdngc.net"
+    FUS_CLOUD_SERVER = "http://cloud-neofussvr.sslcs.cdngc.net"
+    FOTA_CLOUD_SERVER = "https://fota-cloud-dn.ospserver.net/firmware"
+    
+    def __init__(self, model: str, region: str):
+        """
+        Initialize FUS client
+        
+        Args:
+            model: Device model (e.g., SM-S916B)
+            region: CSC region code (e.g., TPA, OXM)
+        """
+        self.model = model.upper()
+        self.region = region.upper()
+        self.auth = ""
+        self.sessid = ""
+        self.nonce = ""
+        self.encnonce = ""
+        
+        # Initialize session
+        self.session = requests.Session()
+        self.session.headers.update({
+            'User-Agent': 'Kies2.0_FUS',
+            'Cache-Control': 'no-cache'
+        })
+        
+        print("[*] Initializing FUS client...")
+        self._init_nonce()
+    
+    def _init_nonce(self):
+        """Initialize NONCE from FUS server"""
+        try:
+            print("[*] Requesting NONCE from FUS server...")
+            self._makereq("NF_DownloadGenerateNonce.do")
+            if self.nonce and len(self.nonce) >= 16:
+                print(f"[+] NONCE initialized successfully")
+                print(f"[*] Session ID: {self.sessid[:20]}..." if self.sessid else "[*] No session ID")
+            else:
+                print(f"[!] Warning: NONCE not properly initialized (len={len(self.nonce) if self.nonce else 0})")
+                print("[*] Will try FOTA cloud method instead")
+        except Exception as e:
+            print(f"[!] Error initializing NONCE: {e}")
+            print("[*] FUS server authentication failed")
+            print("[*] Will use FOTA cloud for firmware check (no download)")
+    
+    def _makereq(self, path: str, data: str = "") -> str:
+        """
+        Make a FUS request to given endpoint
+        
+        Args:
+            path: API endpoint path
+            data: Request body data
+            
+        Returns:
+            Response text
+        """
+        # Build authorization header
+        authv = f'FUS nonce="", signature="{self.auth}", nc="", type="", realm="", newauth="1"'
+        
+        url = f"{self.FUS_SERVER}/{path}"
+        headers = {
+            "Authorization": authv,
+            "User-Agent": "Kies2.0_FUS"
+        }
+        
+        cookies = {}
+        if self.sessid:
+            cookies["JSESSIONID"] = self.sessid
+        
+        try:
+            req = self.session.post(url, data=data, headers=headers, cookies=cookies, timeout=30)
+            
+            # Update NONCE if present
+            if "NONCE" in req.headers:
+                self.encnonce = req.headers["NONCE"]
+                if self.encnonce:
+                    try:
+                        self.nonce = decrypt_nonce(self.encnonce)
+                        if self.nonce and len(self.nonce) >= 16:
+                            self.auth = get_auth_signature(self.nonce)
+                            print(f"[*] Updated NONCE and auth signature")
+                    except Exception as e:
+                        print(f"[!] Error processing NONCE: {e}")
+            
+            # Update session cookie
+            if "JSESSIONID" in req.cookies:
+                self.sessid = req.cookies["JSESSIONID"]
+            
+            req.raise_for_status()
+            return req.text
+            
+        except requests.exceptions.RequestException as e:
+            print(f"[!] Request error: {e}")
+            raise
+    
+    def check_firmware_fota(self) -> Optional[Dict[str, str]]:
+        """
+        Check firmware using FOTA cloud server (simple HTTP/XML)
+        This is faster and doesn't require FUS authentication
+        
+        Returns:
+            Firmware information dictionary
+        """
+        print(f"\n[*] Checking firmware via FOTA cloud for {self.model} ({self.region})...")
+        
+        url = f"{self.FOTA_CLOUD_SERVER}/{self.region}/{self.model}/version.xml"
+        print(f"[*] URL: {url}")
+        
+        try:
+            response = self.session.get(url, timeout=10)
+            
+            if response.status_code != 200:
+                print(f"[!] FOTA cloud returned status {response.status_code}")
+                return None
+            
+            # Parse XML
+            root = ET.fromstring(response.content)
+            latest = root.find('.//latest')
+            
+            if latest is None:
+                print("[!] No firmware version found")
+                return None
+            
+            firmware_version = latest.text
+            android_version = latest.get('o', 'Unknown')
+            
+            # Parse version string
+            parts = firmware_version.split('/')
+            pda = parts[0] if len(parts) > 0 else ''
+            csc = parts[1] if len(parts) > 1 else ''
+            modem = parts[2] if len(parts) > 2 else ''
+            
+            firmware_info = {
+                'version': firmware_version,
+                'pda': pda,
+                'csc': csc,
+                'modem': modem,
+                'android': android_version,
+                'model': self.model,
+                'region': self.region
+            }
+            
+            print(f"[+] Firmware found: {firmware_version}")
+            print(f"[*] Android version: {android_version}")
+            
+            return firmware_info
+            
+        except Exception as e:
+            print(f"[!] Error checking FOTA cloud: {e}")
+            return None
+    
+    def get_binary_info(self, firmware_version: str) -> Optional[Dict[str, str]]:
+        """
+        Get binary download information from FUS server
+        
+        Args:
+            firmware_version: Firmware version string (PDA/CSC/MODEM)
+            
+        Returns:
+            Binary information dictionary
+        """
+        print(f"\n[*] Getting binary info from FUS server...")
+        print(f"[*] Firmware version: {firmware_version}")
+        
+        # Parse firmware version
+        parts = firmware_version.split('/')
+        if len(parts) < 1:
+            print("[!] Invalid firmware version format")
+            return None
+        
+        # Build request XML
+        xml_data = f"""<?xml version="1.0" encoding="utf-8"?>
+<FUSMsg>
+  <FUSHdr>
+    <ProtoVer>1.0</ProtoVer>
+  </FUSHdr>
+  <FUSBody>
+    <Put>
+      <ACCESS_MODE><Data>2</Data></ACCESS_MODE>
+      <BINARY_NATURE><Data>1</Data></BINARY_NATURE>
+      <CLIENT_PRODUCT><Data>Smart Switch</Data></CLIENT_PRODUCT>
+      <DEVICE_FW_VERSION><Data>{firmware_version}</Data></DEVICE_FW_VERSION>
+      <DEVICE_LOCAL_CODE><Data>{self.region}</Data></DEVICE_LOCAL_CODE>
+      <DEVICE_MODEL_NAME><Data>{self.model}</Data></DEVICE_MODEL_NAME>
+      <LOGIC_CHECK><Data>Y</Data></LOGIC_CHECK>
+    </Put>
+  </FUSBody>
+</FUSMsg>"""
+        
+        try:
+            response = self._makereq("NF_DownloadBinaryInform.do", xml_data)
+            
+            # Parse response XML
+            root = ET.fromstring(response)
+            
+            # Extract binary information
+            binary_name = self._get_xml_value(root, 'BINARY_NAME')
+            binary_size = self._get_xml_value(root, 'BINARY_SIZE')
+            filename = self._get_xml_value(root, 'BINARY_CRC')
+            path = self._get_xml_value(root, 'MODEL_PATH')
+            logic_value = self._get_xml_value(root, 'LOGIC_VALUE_FACTORY')
+            
+            if not binary_name:
+                print("[!] No binary name in response")
+                print(f"[*] Response: {response[:500]}")
+                return None
+            
+            binary_info = {
+                'filename': binary_name,
+                'size': binary_size,
+                'path': path,
+                'crc': filename,
+                'logic_value': logic_value,
+                'version': firmware_version
+            }
+            
+            size_mb = int(binary_size) / (1024 * 1024) if binary_size.isdigit() else 0
+            print(f"[+] Binary found: {binary_name}")
+            print(f"[*] Size: {size_mb:.2f} MB")
+            print(f"[*] Path: {path}")
+            
+            return binary_info
+            
+        except Exception as e:
+            print(f"[!] Error getting binary info: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+    
+    def _get_xml_value(self, root: ET.Element, tag: str) -> str:
+        """Extract value from FUS XML response"""
+        elem = root.find(f".//{tag}/Data")
+        return elem.text if elem is not None and elem.text else ""
+    
+    def download_binary(self, binary_info: Dict[str, str], output_dir: str = ".") -> bool:
+        """
+        Download binary file from FUS cloud server
+        
+        Args:
+            binary_info: Binary information from get_binary_info()
+            output_dir: Output directory
+            
+        Returns:
+            True if successful
+        """
+        filename = binary_info.get('filename', '')
+        path = binary_info.get('path', '')
+        size = binary_info.get('size', '0')
+        
+        if not filename:
+            print("[!] No filename provided")
+            return False
+        
+        output_file = os.path.join(output_dir, filename)
+        total_size = int(size) if size.isdigit() else 0
+        
+        print(f"\n[*] Downloading: {filename}")
+        print(f"[*] Output: {output_file}")
+        print(f"[*] Size: {total_size / (1024*1024):.2f} MB")
+        
+        # Initialize download
+        print("[*] Initializing download...")
+        init_xml = f"""<?xml version="1.0" encoding="utf-8"?>
+<FUSMsg>
+  <FUSHdr>
+    <ProtoVer>1.0</ProtoVer>
+  </FUSHdr>
+  <FUSBody>
+    <Put>
+      <BINARY_FILE_NAME><Data>{filename}</Data></BINARY_FILE_NAME>
+      <LOGIC_CHECK><Data>Y</Data></LOGIC_CHECK>
+    </Put>
+  </FUSBody>
+</FUSMsg>"""
+        
+        try:
+            self._makereq("NF_DownloadBinaryInitForMass.do", init_xml)
+            print("[+] Download initialized")
+        except Exception as e:
+            print(f"[!] Error initializing download: {e}")
+            return False
+        
+        # Download file
+        download_url = f"{self.FUS_CLOUD_SERVER}/NF_DownloadBinaryForMass.do?file={path}/{filename}"
+        print(f"[*] Download URL: {download_url[:80]}...")
+        
+        # Build authorization for cloud download
+        authv = f'FUS nonce="{self.encnonce}", signature="{self.auth}", nc="", type="", realm="", newauth="1"'
+        headers = {
+            "Authorization": authv,
+            "User-Agent": "Kies2.0_FUS"
+        }
+        
+        try:
+            print("[*] Starting download...")
+            response = self.session.get(download_url, headers=headers, stream=True, timeout=60)
+            response.raise_for_status()
+            
+            downloaded = 0
+            with open(output_file, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+                        downloaded += len(chunk)
+                        if total_size > 0:
+                            progress = (downloaded / total_size) * 100
+                            print(f"\r[*] Progress: {progress:.1f}% ({downloaded / (1024*1024):.2f} MB)", end='', flush=True)
+            
+            print(f"\n[+] Download completed: {output_file}")
+            
+            # Verify size
+            actual_size = os.path.getsize(output_file)
+            if total_size > 0 and actual_size != total_size:
+                print(f"[!] Warning: Size mismatch. Expected: {total_size}, Got: {actual_size}")
+            
+            return True
+            
+        except Exception as e:
+            print(f"\n[!] Download error: {e}")
+            if os.path.exists(output_file):
+                os.remove(output_file)
+            return False
+
+
+def main():
+    """Main entry point"""
+    parser = argparse.ArgumentParser(
+        description='Samsung Firmware Downloader - Complete FUS Protocol Implementation',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog='''
+Examples:
+  # Check and download firmware for SM-S916B (TPA region - Caribbean)
+  python3 %(prog)s -m SM-S916B -r TPA
+  
+  # Download to specific directory
+  python3 %(prog)s -m SM-S916B -r TPA -o ./firmwares
+  
+  # Check only (no download)
+  python3 %(prog)s -m SM-S916B -r TPA --check-only
+
+Device Information (from system analysis):
+  Model: SM-S916B
+  Region: TPA (Caribbean - Flow/Digicel)
+  Serial: CE0523757243B468157E
+  Boot ID: 8df0c594-9852-48ff-a649-4d6824eb9fbb
+  
+Common CSC Codes:
+  TPA - Caribbean (Flow, Digicel)
+  OXM - Open Europe
+  BTU - United Kingdom
+  DBT - Germany
+  XEF - France
+        '''
+    )
+    
+    parser.add_argument('-m', '--model', required=True,
+                        help='Device model (e.g., SM-S916B)')
+    parser.add_argument('-r', '--region', required=True,
+                        help='CSC region code (e.g., TPA, OXM)')
+    parser.add_argument('-o', '--output', default='.',
+                        help='Output directory (default: current directory)')
+    parser.add_argument('--check-only', action='store_true',
+                        help='Only check firmware, do not download')
+    
+    args = parser.parse_args()
+    
+    print("=" * 70)
+    print("Samsung FUS Firmware Downloader")
+    print("Complete Protocol Implementation with Dependencies")
+    print("=" * 70)
+    print(f"Model: {args.model}")
+    print(f"Region: {args.region}")
+    print(f"Output: {args.output}")
+    print("=" * 70)
+    
+    # Create output directory
+    if not os.path.exists(args.output):
+        os.makedirs(args.output)
+    
+    try:
+        # Initialize FUS client
+        client = SamsungFUSClient(args.model, args.region)
+        
+        # Check firmware via FOTA cloud (fast)
+        firmware_info = client.check_firmware_fota()
+        
+        if not firmware_info:
+            print("\n[!] No firmware found")
+            return 1
+        
+        if args.check_only:
+            print("\n[*] Check-only mode. Not downloading.")
+            return 0
+        
+        # Get binary info via FUS
+        binary_info = client.get_binary_info(firmware_info['version'])
+        
+        if not binary_info:
+            print("\n[!] Could not get binary download information")
+            print("[*] Firmware exists but download may not be available via FUS")
+            return 1
+        
+        # Download firmware
+        success = client.download_binary(binary_info, args.output)
+        
+        if success:
+            print("\n[+] Firmware downloaded successfully!")
+            return 0
+        else:
+            print("\n[!] Download failed")
+            return 1
+            
+    except KeyboardInterrupt:
+        print("\n\n[!] Interrupted by user")
+        return 1
+    except Exception as e:
+        print(f"\n[!] Error: {e}")
+        import traceback
+        traceback.print_exc()
+        return 1
+
+
+if __name__ == '__main__':
+    sys.exit(main())
+
     """Samsung Firmware Downloader using official FOTA API"""
     
     # Samsung FOTA Server URLs
