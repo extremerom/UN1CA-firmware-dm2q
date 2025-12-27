@@ -38,10 +38,13 @@ jobs:
           echo "===== Total Disk Space After Cleanup in GB ====="
           df -BG
           
+      - name: Checkout repo
+        uses: actions/checkout@v6
+        with:
+          submodules: false
+          
       - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'  # See 'Supported distributions' for available options
           java-version: '17'
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.13'
+      
