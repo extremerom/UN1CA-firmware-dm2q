@@ -85,7 +85,8 @@ class SamsungFirmwareDownloader:
     }
     
     def __init__(self, model: str, region: str, imei: Optional[str] = None,
-                 boot_id: Optional[str] = None, ufs_un: Optional[str] = None):
+                 boot_id: Optional[str] = None, ufs_un: Optional[str] = None,
+                 akamai_token: Optional[str] = None):
         """
         Inicializa el downloader con información del dispositivo
         
@@ -95,12 +96,14 @@ class SamsungFirmwareDownloader:
             imei: IMEI 15 dígitos (opcional)
             boot_id: Boot ID del dispositivo (opcional)
             ufs_un: UFS Unique Number (opcional)
+            akamai_token: Token de Akamai capturado manualmente (opcional)
         """
         self.model = model
         self.region = region
         self.imei = imei or "000000000000000"
         self.boot_id = boot_id or self._generate_boot_id()
         self.ufs_un = ufs_un or "0" * 20
+        self.akamai_token = akamai_token
         
         # Configurar sesión HTTP con retry
         self.session = self._create_session()
@@ -414,6 +417,11 @@ class SamsungFirmwareDownloader:
             selected_path = possible_paths[0]
             
             download_url = f"{self.FOTA_SERVER}/firmware{selected_path}"
+            
+            # Si tenemos token de Akamai, agregarlo
+            if self.akamai_token:
+                download_url += f"?__token__={self.akamai_token}"
+                print(f"   🔐 Usando token Akamai proporcionado")
         
         output_path = os.path.join(output_dir, filename)
         
@@ -508,6 +516,7 @@ Requiere:
     parser.add_argument('-i', '--imei', help='IMEI 15 dígitos')
     parser.add_argument('--boot-id', help='Boot ID del dispositivo')
     parser.add_argument('--ufs-un', help='UFS Unique Number')
+    parser.add_argument('--akamai-token', help='Token de Akamai (capturado manualmente)')
     parser.add_argument('-o', '--output-dir', default='.', help='Directorio de salida')
     parser.add_argument('-c', '--check-only', action='store_true', help='Solo verificar versión')
     parser.add_argument('--use-fus', action='store_true', help='Usar servidor FUS (más completo)')
@@ -540,7 +549,8 @@ Requiere:
             region=args.region,
             imei=args.imei,
             boot_id=args.boot_id,
-            ufs_un=args.ufs_un
+            ufs_un=args.ufs_un,
+            akamai_token=args.akamai_token
         )
         
         # Obtener información de firmware
