@@ -274,37 +274,62 @@ class SamsungFirmwareDownloader:
             response = self.session.get(url, headers=self.headers, timeout=30)
             response.raise_for_status()
             
-            # Parsear XML
-            root = ET.fromstring(response.text)
+            # Parsear XML - usar bytes para lxml
+            try:
+                root = ET.fromstring(response.content)
+            except:
+                # Fallback a xml.etree si lxml falla
+                import xml.etree.ElementTree as XMLET
+                root = XMLET.fromstring(response.text)
             
             info = {}
-            firmware_node = root.find('.//firmware') or root.find('.//versioninfo/firmware')
+            
+            # Buscar nodo firmware
+            firmware_node = root.find('.//firmware')
+            if firmware_node is None:
+                firmware_node = root.find('.//versioninfo/firmware')
             
             if firmware_node is not None:
-                version_node = (firmware_node.find('.//version/latest') or
-                               firmware_node.find('.//version') or
-                               firmware_node.find('.//upgrade/value'))
+                # Extraer modelo y CSC
+                model_node = firmware_node.find('.//model')
+                info['model'] = model_node.text if model_node is not None else self.model
                 
-                if version_node is not None:
-                    info['version'] = version_node.text
+                cc_node = firmware_node.find('.//cc')
+                info['csc'] = cc_node.text if cc_node is not None else self.region
                 
-                info['model'] = firmware_node.find('.//model').text if firmware_node.find('.//model') is not None else self.model
-                info['csc'] = firmware_node.find('.//csc').text if firmware_node.find('.//csc') is not None else self.region
+                # Extraer versión más reciente
+                latest_node = firmware_node.find('.//version/latest')
+                if latest_node is not None:
+                    # El texto puede tener formato: S916BXXS8EYK5/S916BOWO8EYK5/S916BXXU8EYI5
+                    version_text = latest_node.text.strip() if latest_node.text else ""
+                    info['version'] = version_text
+                    
+                    # También guardar el atributo 'o' (OneUI version) si existe
+                    if 'o' in latest_node.attrib:
+                        info['oneui_version'] = latest_node.attrib['o']
                 
-                # Información adicional
-                size_node = firmware_node.find('.//size')
-                if size_node is not None:
-                    info['size'] = size_node.text
-                
-                filename_node = firmware_node.find('.//filename')
-                if filename_node is not None:
-                    info['filename'] = filename_node.text
-                
-                path_node = firmware_node.find('.//path')
-                if path_node is not None:
-                    info['path'] = path_node.text
+                # Buscar información de upgrade
+                upgrade_values = firmware_node.findall('.//version/upgrade/value')
+                if upgrade_values:
+                    # El primer value suele ser el más reciente
+                    first_upgrade = upgrade_values[0]
+                    if 'fwsize' in first_upgrade.attrib:
+                        info['size'] = first_upgrade.attrib['fwsize']
+                    if 'rcount' in first_upgrade.attrib:
+                        info['rcount'] = first_upgrade.attrib['rcount']
+            else:
+                # Si no encontramos la estructura esperada, intentar otras formas
+                latest = root.find('.//latest')
+                if latest is not None:
+                    info['version'] = latest.text.strip() if latest.text else "Unknown"
             
             print(f"   ✅ Versión: {info.get('version', 'Unknown')}")
+            if 'oneui_version' in info:
+                print(f"   📱 OneUI: {info['oneui_version']}")
+            if 'size' in info:
+                size_gb = int(info['size']) / (1024*1024*1024)
+                print(f"   📦 Tamaño: {size_gb:.2f} GB")
+            
             return info
             
         except Exception as e:
@@ -359,36 +384,62 @@ class SamsungFirmwareDownloader:
             download_url = f"{self.FUS_SERVER}/getBinaryFile?file={file_path}/{filename}"
         else:
             # Usar FOTA directo
-            if 'filename' in firmware_info and 'path' in firmware_info:
-                filename = firmware_info['filename']
-                download_url = f"{self.FOTA_SERVER}/firmware{firmware_info['path']}/{filename}"
-            else:
-                filename = f"{self.model}_{firmware_info['version']}_OTA_{self.region}.zip"
-                download_url = f"{self.FOTA_SERVER}/firmware/{self.region}/{self.model}/{filename}"
+            # Construir nombre del archivo basado en la versión
+            # Formato típico: SM-S916B_1_yyyymmddhhmmss_xxxx_fac.zip.enc4
+            version_parts = firmware_info['version'].split('/')
+            pda_version = version_parts[0] if version_parts else firmware_info['version']
             
+            # Intentar diferentes formatos de nombre
+            # El archivo OTA típicamente se llama update.zip o tiene un formato específico
+            possible_filenames = [
+                f"update.zip",
+                f"{self.model}_{pda_version}.zip",
+                f"{self.model}_{pda_version}_OTA.zip",
+                f"{self.model}_1_{pda_version}_fac.zip.enc4",
+            ]
+            
+            # Intentar construir la ruta basada en el modelo y región
+            # Formato típico: /TPA/SM-S916B/update.zip o /TPA/SM-S916B/nspx/xxxx.zip
+            possible_paths = [
+                f"/{self.region}/{self.model}/update.zip",
+                f"/{self.region}/{self.model}/{pda_version}.zip",
+                f"/{self.region}/{self.model}/nspx/update.zip",
+            ]
+            
+            # Usar el tamaño si está disponible
             file_size = int(firmware_info.get('size', 0))
+            
+            # Seleccionar el primer path y filename
+            filename = possible_filenames[0]
+            selected_path = possible_paths[0]
+            
+            download_url = f"{self.FOTA_SERVER}/firmware{selected_path}"
         
         output_path = os.path.join(output_dir, filename)
         
         print(f"\n⬇️  Descargando firmware...")
         print(f"   Archivo: {filename}")
         if file_size > 0:
-            print(f"   Tamaño: {file_size / (1024*1024):.2f} MB")
+            print(f"   Tamaño: {file_size / (1024*1024):.2f} MB ({file_size / (1024*1024*1024):.2f} GB)")
         print(f"   URL: {download_url}")
         print()
         
         try:
             # Descargar con streaming
+            print(f"   🔗 Conectando al servidor...")
             response = self.session.get(download_url, headers=self.headers, stream=True, timeout=60)
             response.raise_for_status()
             
             # Obtener tamaño si no lo tenemos
             if file_size == 0:
                 file_size = int(response.headers.get('Content-Length', 0))
+                if file_size > 0:
+                    print(f"   📦 Tamaño detectado: {file_size / (1024*1024):.2f} MB")
             
             downloaded = 0
             start_time = time.time()
             
+            print(f"   💾 Descargando...")
             with open(output_path, 'wb') as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
@@ -396,16 +447,23 @@ class SamsungFirmwareDownloader:
                         downloaded += len(chunk)
                         
                         # Mostrar progreso
+                        elapsed = time.time() - start_time + 0.001
+                        speed = downloaded / elapsed / 1024 / 1024
+                        
                         if file_size > 0:
                             progress = (downloaded / file_size) * 100
-                            speed = downloaded / (time.time() - start_time + 0.001) / 1024 / 1024
-                            print(f"\r   ⏳ {progress:.1f}% - {downloaded/(1024*1024):.1f}/{file_size/(1024*1024):.1f} MB - {speed:.2f} MB/s", end='', flush=True)
+                            eta = (file_size - downloaded) / (downloaded / elapsed) if downloaded > 0 else 0
+                            print(f"\r   ⏳ {progress:.1f}% | {downloaded/(1024*1024):.1f}/{file_size/(1024*1024):.1f} MB | {speed:.2f} MB/s | ETA: {int(eta)}s", end='', flush=True)
                         else:
-                            print(f"\r   ⏳ {downloaded/(1024*1024):.1f} MB descargados", end='', flush=True)
+                            print(f"\r   ⏳ {downloaded/(1024*1024):.1f} MB | {speed:.2f} MB/s", end='', flush=True)
             
             print()
             print(f"   ✅ Descarga completada!")
             print(f"   📁 Guardado en: {os.path.abspath(output_path)}")
+            
+            # Verificar tamaño del archivo
+            actual_size = os.path.getsize(output_path)
+            print(f"   📊 Tamaño del archivo: {actual_size / (1024*1024):.2f} MB")
             
             return output_path
             
