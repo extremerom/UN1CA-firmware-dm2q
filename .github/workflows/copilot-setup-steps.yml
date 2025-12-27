@@ -40,15 +40,6 @@ jobs:
           sudo docker image prune --all --force
           sudo docker builder prune -a
 
-      - name: Free disk space (3/4)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-
-      - name: Free disk space (4/4)
-        uses: rokibhasansagar/slimhub_actions@main
-        with:
-          retain: 'compiler_cmake'
           
       - name: Check Disk Space After Cleanup
         run: |
@@ -62,7 +53,3 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
-      - name: Setup Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: '22'
