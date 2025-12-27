@@ -33,6 +33,9 @@ jobs:
           sudo apt-get remove -y google-cloud-sdk --fix-missing 
           sudo apt-get remove -y google-cloud-cli --fix-missing
           sudo apt-get remove -y '^mysql-.*' --fix-missing
+          sudo apt-get remove -y azure-cli google-chrome-stable firefox powershell mono-devel libgl1-mesa-dri --fix-missing
+          sudo apt-get remove -y '^dotnet-.*' --fix-missing
+          sudo apt-get remove -y '^aspnetcore-.*' --fix-missing
           sudo apt-get autoremove -y 
 
       - name: Check Disk Space After Cleanup
