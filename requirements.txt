@@ -1,0 +1,14 @@
+# Samsung Firmware Downloader - Dependencias
+# Instalar con: pip install -r requirements.txt
+
+# HTTP requests con retry automático
+requests>=2.31.0
+
+# Criptografía (HMAC, AES, etc.)
+cryptography>=41.0.0
+
+# Parser XML mejorado
+lxml>=4.9.0
+
+# Utilidades opcionales
+urllib3>=2.0.0
