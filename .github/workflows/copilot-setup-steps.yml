@@ -28,11 +28,6 @@ jobs:
           echo "===== Initial Total Disk Space in GB ====="
           df -BG
 
-      - name: Free disk space (2/3)
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          
       - name: Check Disk Space After Cleanup
         run: |
           echo "===== Total Disk Space After Cleanup in GB ====="
