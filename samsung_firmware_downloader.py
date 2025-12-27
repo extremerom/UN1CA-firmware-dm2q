@@ -15,6 +15,7 @@ import argparse
 import hashlib
 import hmac
 import os
+import random
 import sys
 import xml.etree.ElementTree as ET
 from typing import Optional, Dict, Tuple
@@ -37,6 +38,8 @@ class SamsungFirmwareDownloader:
     FOTA_DOWNLOAD_URL = "http://cloud-neofussvr.sslcs.cdngc.net/NF_DownloadBinaryForMass"
     
     # Nonce generation key for authentication
+    # NOTE: This is a public key extracted from Samsung's FotaAgent.apk
+    # It is not a secret and is the same across all Samsung devices
     NONCE_KEY = "hqzdurufm2c8mf6bsjezu1qgveouv7c7"
     
     def __init__(self, model: str, region: str, imei: str = None):
@@ -62,7 +65,6 @@ class SamsungFirmwareDownloader:
         # Generate a valid IMEI with proper check digit
         imei_base = "35999900"  # TAC for Samsung
         # Add random serial number
-        import random
         serial = str(random.randint(100000, 999999))
         imei_without_check = imei_base + serial
         
@@ -208,7 +210,25 @@ class SamsungFirmwareDownloader:
                 else:
                     print(f"[!] Server returned status: {status}")
                     return None
+            elif response.status_code == 404:
+                print(f"[!] Firmware not found (404). Please verify model ({self.model}) and region ({self.region}).")
+                return None
+            elif response.status_code == 401:
+                print("[!] Authentication failed (401). The IMEI or authentication may be invalid.")
+                return None
+            elif response.status_code >= 500:
+                print(f"[!] Server error ({response.status_code}). Samsung servers may be down. Try again later.")
+                return None
+            else:
+                print(f"[!] Unexpected response status: {response.status_code}")
+                return None
                     
+        except requests.exceptions.Timeout:
+            print("[!] Request timed out. Check your internet connection or try again later.")
+        except requests.exceptions.ConnectionError:
+            print("[!] Connection error. Check your internet connection.")
+        except ET.ParseError as e:
+            print(f"[!] Error parsing XML response: {e}")
         except Exception as e:
             print(f"[!] Error querying firmware info: {e}")
             
