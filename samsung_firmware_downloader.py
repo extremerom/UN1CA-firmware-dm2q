@@ -284,15 +284,17 @@ class SamsungFUSClient:
     def download_firmware(self, binary_info: Dict[str, str], output_dir: str = ".", 
                          chunk_size: int = 8192) -> str:
         """
-        Download firmware binary file
+        Descarga archivo binario de firmware (sin dependencias externas)
+        
+        Usa urllib.request para descarga con barra de progreso
         
         Args:
-            binary_info: Binary information dictionary from get_binary_info()
-            output_dir: Output directory for downloaded file
-            chunk_size: Download chunk size in bytes
+            binary_info: Diccionario de información binaria de get_binary_info()
+            output_dir: Directorio de salida para el archivo descargado
+            chunk_size: Tamaño de chunk de descarga en bytes
             
         Returns:
-            Path to downloaded file
+            Ruta al archivo descargado
         """
         filename = binary_info['filename']
         file_path = binary_info['path']
@@ -300,32 +302,46 @@ class SamsungFUSClient:
         
         output_path = os.path.join(output_dir, filename)
         
-        # Construct download URL
+        # Construir URL de descarga
         download_url = f"{self.BINARY_FILE_URL}?file={file_path}/{filename}"
         
-        print(f"Downloading: {filename}")
-        print(f"Size: {file_size / (1024*1024*1024):.2f} GB")
+        print(f"Descargando: {filename}")
+        print(f"Tamaño: {file_size / (1024*1024*1024):.2f} GB")
         print(f"URL: {download_url}")
         
         try:
-            response = self.session.get(download_url, stream=True, timeout=60)
-            response.raise_for_status()
+            # Crear petición con headers
+            req = urllib.request.Request(download_url, headers=self.headers)
             
             downloaded = 0
-            with open(output_path, 'wb') as f:
-                for chunk in response.iter_content(chunk_size=chunk_size):
-                    if chunk:
+            with urllib.request.urlopen(req, timeout=60) as response:
+                with open(output_path, 'wb') as f:
+                    while True:
+                        chunk = response.read(chunk_size)
+                        if not chunk:
+                            break
+                        
                         f.write(chunk)
                         downloaded += len(chunk)
                         
-                        # Progress indicator
+                        # Indicador de progreso
                         progress = (downloaded / file_size) * 100
-                        print(f"\rProgress: {progress:.2f}% ({downloaded / (1024*1024):.2f} MB / {file_size / (1024*1024):.2f} MB)", end='')
+                        downloaded_mb = downloaded / (1024*1024)
+                        total_mb = file_size / (1024*1024)
+                        print(f"\rProgreso: {progress:.2f}% ({downloaded_mb:.2f} MB / {total_mb:.2f} MB)", end='')
             
-            print("\nDownload completed!")
+            print("\n¡Descarga completada!")
             return output_path
             
-        except requests.RequestException as e:
+        except urllib.error.HTTPError as e:
+            if os.path.exists(output_path):
+                os.remove(output_path)
+            raise Exception(f"HTTP Error {e.code}: {e.reason}")
+        except urllib.error.URLError as e:
+            if os.path.exists(output_path):
+                os.remove(output_path)
+            raise Exception(f"URL Error: {e.reason}")
+        except Exception as e:
             if os.path.exists(output_path):
                 os.remove(output_path)
             raise Exception(f"Download failed: {e}")
@@ -333,135 +349,161 @@ class SamsungFUSClient:
     def decrypt_firmware(self, encrypted_file: str, output_file: str, 
                         firmware_version: str) -> str:
         """
-        Decrypt encrypted firmware file
+        Desencripta archivo de firmware encriptado
         
-        Note: This is a placeholder. Actual decryption requires the specific
-        encryption key and algorithm used by Samsung (typically AES).
+        NOTA: Esta es una función placeholder. La desencriptación real requiere
+        claves propietarias de Samsung y algoritmos específicos (AES).
+        
+        Los archivos .enc2 y .enc4 están encriptados con claves que no son
+        públicas. Se recomienda usar herramientas oficiales:
+        - Samsung Smart Switch
+        - Samsung Kies
+        - Herramientas comunitarias con claves extraídas
         
         Args:
-            encrypted_file: Path to encrypted firmware file
-            output_file: Path for decrypted output
-            firmware_version: Firmware version for key derivation
+            encrypted_file: Ruta al archivo de firmware encriptado
+            output_file: Ruta para salida desencriptada
+            firmware_version: Versión del firmware para derivación de clave
             
         Returns:
-            Path to decrypted file
+            Ruta al archivo desencriptado
         """
-        print("Warning: Firmware decryption not yet implemented.")
-        print("Samsung firmware files may be encrypted with proprietary keys.")
-        print("Use official tools like Smart Switch or SamFirm for decryption.")
+        print("ADVERTENCIA: Desencriptación de firmware no implementada.")
+        print("Los archivos de firmware Samsung están encriptados con claves propietarias.")
+        print("Use herramientas oficiales como Samsung Smart Switch o SamFirm para desencriptar.")
         return encrypted_file
 
 
 def main():
-    """Main entry point"""
+    """Función principal"""
     parser = argparse.ArgumentParser(
-        description="Samsung Firmware Downloader - Download official Samsung firmware",
+        description="Samsung Firmware Downloader - Descarga firmware oficial de Samsung",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Examples:
-  # Check latest firmware for SM-S916B (Galaxy S23) in OXM region
+Ejemplos de Uso:
+  # Verificar última versión de firmware para SM-S916B (Galaxy S23) en región OXM
   %(prog)s -m SM-S916B -r OXM --check-only
   
-  # Download latest firmware
-  %(prog)s -m SM-S916B -r OXM -o /path/to/download
+  # Descargar última versión de firmware
+  %(prog)s -m SM-S916B -r OXM -o /ruta/descarga
   
-  # Use specific IMEI
+  # Usar IMEI específico
   %(prog)s -m SM-S916B -r OXM -i 123456789012345
 
-Common Samsung Models:
-  - SM-S916B: Galaxy S23 (International)
+Modelos Samsung Comunes:
+  - SM-S916B: Galaxy S23 (Internacional)
   - SM-S918B: Galaxy S23 Ultra
   - SM-G990B: Galaxy S21 FE
   - SM-A536B: Galaxy A53 5G
   
-Common CSC Codes:
-  - OXM: Open European (Multi-CSC)
-  - DBT: Germany
-  - BTU: United Kingdom
-  - XAA: USA Unlocked
-  - XEF: France
+Códigos CSC Comunes:
+  - OXM: Europa Open (Multi-CSC)
+  - DBT: Alemania
+  - BTU: Reino Unido
+  - XAA: USA Desbloqueado
+  - XEF: Francia
+
+Información del Análisis:
+  Este script fue creado mediante análisis de:
+  - FotaAgent.apk: Agente FOTA de Samsung
+  - libdprw.so: Biblioteca nativa con funciones de encriptación
+  - KnoxCore, KnoxGuard, KnoxPushManager: Apps de seguridad Knox
+  - SmartSwitchAssistant: Asistente de Smart Switch
+  - SecDownloadProvider: Proveedor de descargas seguras
+  
+  Ver ANALISIS_FIRMWARE.md para detalles completos del análisis.
         """
     )
     
     parser.add_argument('-m', '--model', required=True,
-                       help='Device model code (e.g., SM-S916B)')
+                       help='Código de modelo del dispositivo (ej: SM-S916B)')
     parser.add_argument('-r', '--region', required=True,
-                       help='CSC region code (e.g., OXM, DBT, XAA)')
+                       help='Código CSC de región (ej: OXM, DBT, XAA)')
     parser.add_argument('-i', '--imei', 
-                       help='Device IMEI (15 digits, optional)')
+                       help='IMEI del dispositivo (15 dígitos, opcional)')
     parser.add_argument('-o', '--output-dir', default='.',
-                       help='Output directory for downloaded firmware (default: current directory)')
+                       help='Directorio de salida para firmware descargado (por defecto: directorio actual)')
     parser.add_argument('-c', '--check-only', action='store_true',
-                       help='Only check for firmware updates without downloading')
+                       help='Solo verificar actualizaciones de firmware sin descargar')
     parser.add_argument('-v', '--verbose', action='store_true',
-                       help='Verbose output')
+                       help='Salida detallada')
     
     args = parser.parse_args()
     
-    # Validate IMEI if provided
+    # Validar IMEI si se proporciona
     if args.imei:
         if not args.imei.isdigit() or len(args.imei) != 15:
-            print("Error: IMEI must be 15 digits")
+            print("Error: IMEI debe tener 15 dígitos")
             sys.exit(1)
     
-    # Create output directory if it doesn't exist
+    # Crear directorio de salida si no existe
     if not args.check_only:
         os.makedirs(args.output_dir, exist_ok=True)
     
     try:
-        # Initialize client
+        # Inicializar cliente
         print(f"Samsung Firmware Downloader")
         print(f"=" * 50)
-        print(f"Model: {args.model}")
-        print(f"Region: {args.region}")
+        print(f"Basado en análisis de FotaAgent y aplicaciones Samsung/Knox")
+        print(f"=" * 50)
+        print(f"Modelo: {args.model}")
+        print(f"Región: {args.region}")
         if args.imei:
             print(f"IMEI: {args.imei}")
         print()
         
         client = SamsungFUSClient(args.model, args.region, args.imei)
         
-        # Check for latest firmware
-        print("Checking for latest firmware...")
+        # Verificar última versión de firmware
+        print("Verificando última versión de firmware...")
         firmware_info = client.get_latest_firmware()
         
-        print(f"\nLatest Firmware Information:")
-        print(f"  Version: {firmware_info['version']}")
-        print(f"  Model: {firmware_info['model']}")
+        print(f"\nInformación de Firmware Más Reciente:")
+        print(f"  Versión: {firmware_info['version']}")
+        print(f"  Modelo: {firmware_info['model']}")
         print(f"  CSC: {firmware_info['csc']}")
         
         if args.check_only:
-            print("\nCheck complete.")
+            print("\nVerificación completa.")
             return 0
         
-        # Get binary information
-        print("\nGetting firmware download information...")
+        # Obtener información del binario
+        print("\nObteniendo información de descarga del firmware...")
         binary_info = client.get_binary_info(firmware_info['version'])
         
-        print(f"\nFirmware Details:")
-        print(f"  Filename: {binary_info['filename']}")
-        print(f"  Size: {int(binary_info['size']) / (1024*1024*1024):.2f} GB")
-        print(f"  Path: {binary_info['path']}")
+        print(f"\nDetalles del Firmware:")
+        print(f"  Nombre de archivo: {binary_info['filename']}")
+        print(f"  Tamaño: {int(binary_info['size']) / (1024*1024*1024):.2f} GB")
+        print(f"  Ruta: {binary_info['path']}")
         if binary_info['crc']:
             print(f"  CRC: {binary_info['crc']}")
         if binary_info['encrypted'] == '1':
-            print(f"  Encrypted: Yes")
+            print(f"  Encriptado: Sí (requiere desencriptación)")
         
-        # Download firmware
-        print(f"\nStarting download to: {args.output_dir}")
+        # Descargar firmware
+        print(f"\nIniciando descarga en: {args.output_dir}")
         downloaded_file = client.download_firmware(binary_info, args.output_dir)
         
         print(f"\n{'=' * 50}")
-        print(f"Download Complete!")
-        print(f"File saved to: {downloaded_file}")
+        print(f"¡Descarga Completa!")
+        print(f"Archivo guardado en: {downloaded_file}")
         
         if binary_info['encrypted'] == '1':
-            print("\nNote: This firmware file is encrypted.")
-            print("Use Samsung Smart Switch or similar tools to decrypt.")
+            print("\nNOTA: Este archivo de firmware está encriptado.")
+            print("Use Samsung Smart Switch o herramientas similares para desencriptar.")
+            print("\nFormatos de encriptación Samsung:")
+            print("  - .enc2: Encriptación versión 2")
+            print("  - .enc4: Encriptación versión 4 (más reciente)")
+        
+        print(f"\nPara flashear este firmware:")
+        print(f"1. Desencriptar el archivo usando Smart Switch o SamFirm")
+        print(f"2. Extraer el archivo .zip")
+        print(f"3. Usar Odin para flashear los archivos .tar.md5")
         
         return 0
         
     except KeyboardInterrupt:
-        print("\n\nDownload cancelled by user.")
+        print("\n\nDescarga cancelada por el usuario.")
         return 1
     except Exception as e:
         print(f"\nError: {e}")

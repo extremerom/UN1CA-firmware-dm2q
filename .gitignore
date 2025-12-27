@@ -1,0 +1,49 @@
+# Archivos de firmware descargados
+*.zip
+*.enc2
+*.enc4
+*.tar
+*.tar.md5
+*.bin
+
+# Directorios de descarga
+downloads/
+firmware/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Archivos temporales
+*.tmp
+*.temp
+/tmp/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
