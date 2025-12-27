@@ -1,0 +1,7 @@
+# Dependencias requeridas para Samsung Firmware Downloader
+
+# HTTP requests library
+requests>=2.31.0
+
+# Cryptography library for AES encryption/decryption
+pycryptodome>=3.18.0
