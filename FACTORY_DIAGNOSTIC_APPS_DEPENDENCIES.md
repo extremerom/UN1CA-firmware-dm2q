@@ -2,6 +2,23 @@
 
 Este documento lista todas las dependencias (XML, binarios, librerías, etc.) para las aplicaciones de fábrica y diagnóstico del firmware UN1CA-firmware-dm2q.
 
+## Resumen Rápido
+
+| # | Aplicación | Paquete | Ubicación | Tipo |
+|---|-----------|---------|-----------|------|
+| 1 | ModemServiceMode | com.sec.android.RilServiceModeApp | /system/priv-app/ | Privilegiada |
+| 2 | SecFactoryPhoneTest | - | /system/priv-app/ | Privilegiada |
+| 3 | DiagMonAgent95 | com.sec.android.diagmonagent | /system/priv-app/ | Privilegiada |
+| 4 | DeviceDiagnostics | - | /system/priv-app/ | Privilegiada |
+| 5 | NetworkDiagnostic | com.samsung.android.networkdiagnostic | /system/priv-app/ | Privilegiada |
+| 6 | SEMFactoryApp | com.sem.factoryapp | /system/priv-app/ | Privilegiada |
+| 7 | SmartEpdgTestApp | com.sec.epdgtestapp | /system/priv-app/ | Privilegiada |
+| 8 | FactoryTestProvider | com.samsung.android.providers.factory | /system/priv-app/ | Privilegiada |
+| 9 | FactoryCameraFB | - | /system/app/ | Sistema |
+| 10 | FactoryAirCommandManager | - | /system/app/ | Sistema |
+| 11 | UwbTest | com.sec.android.app.uwbtest | /system/app/ | Sistema |
+| 12 | WlanTest | - | /system/app/ | Sistema |
+
 ---
 
 ## 1. ModemServiceMode (Modo de Servicio del Módem)
