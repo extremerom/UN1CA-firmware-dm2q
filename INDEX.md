@@ -42,6 +42,47 @@ Este repositorio contiene el análisis completo del firmware UN1CA para Samsung 
 
 ---
 
+### 🔬 [DEEP_TECHNICAL_ANALYSIS.md](DEEP_TECHNICAL_ANALYSIS.md) **NUEVO**
+**Análisis Técnico Profundo** - Decompilación y análisis de código fuente
+- ⏱️ Lectura: 45-60 minutos
+- 📄 Tamaño: 26 KB
+- 🎯 Contenido:
+  - **Decompilación de APKs** con apktool y jadx
+  - **Análisis de código fuente Java** (1,402 clases extraídas)
+  - Estructura interna de ServiceModeApp
+  - SecKeyStringBroadcastReceiver analizado
+  - **Comandos AT identificados**
+  - **Scripts de activación con root**
+  - Mecanismos de seguridad encontrados
+  - Arquitectura del sistema RIL
+  - Matriz de permisos detallada
+  - Casos de uso avanzados
+
+**Ideal para**: Desarrolladores e investigadores técnicos
+
+---
+
+### 📊 [DIAGRAMS_AND_WORKFLOWS.md](DIAGRAMS_AND_WORKFLOWS.md) **NUEVO**
+**Diagramas y Flujos de Trabajo** - Visualización del sistema
+- ⏱️ Lectura: 30-40 minutos
+- 📄 Tamaño: 45 KB
+- 🎯 Contenido:
+  - **7 diagramas técnicos detallados**:
+    1. Flujo de activación de códigos secretos
+    2. Arquitectura del sistema RIL (Radio Interface Layer)
+    3. Proceso de comunicación con modem
+    4. Flujo de permisos y seguridad
+    5. Diagrama de estados de ServiceModeApp
+    6. Flujo de logging y diagnóstico
+    7. Interacción entre componentes
+  - Diagramas ASCII art profesionales
+  - Secuencias de comandos AT
+  - Pipeline de logging completo
+
+**Ideal para**: Comprender el flujo del sistema visualmente
+
+---
+
 ### 📊 [README_ANALYSIS.md](README_ANALYSIS.md)
 **Documentación del Análisis** - Metodología y contexto
 - ⏱️ Lectura: 15-20 minutos
