@@ -28,7 +28,7 @@ Se ha realizado un análisis exhaustivo del firmware que incluye:
 
 ### 📚 Documentación Generada
 
-Este análisis incluye **7 documentos completos** (~90 KB):
+Este análisis incluye **8 documentos completos** (~101 KB):
 
 #### Documentación Principal
 1. **[EXECUTIVE_SUMMARY.md](EXECUTIVE_SUMMARY.md)** - Resumen ejecutivo del análisis
@@ -39,9 +39,25 @@ Este análisis incluye **7 documentos completos** (~90 KB):
 #### Documentación Adicional
 5. **[PRACTICAL_EXAMPLES.md](PRACTICAL_EXAMPLES.md)** - Ejemplos prácticos de uso de funcionalidades
 6. **[SECURITY_VULNERABILITIES.md](SECURITY_VULNERABILITIES.md)** - ⚠️ Análisis de vulnerabilidades y seguridad
-7. **[README.md](README.md)** - Este documento (navegación y overview)
+7. **[CSC_CHANGE_GUIDE_TPA_TO_OWO.md](CSC_CHANGE_GUIDE_TPA_TO_OWO.md)** - 🔧 Guía para cambiar CSC de TPA a OWO (con root)
+8. **[README.md](README.md)** - Este documento (navegación y overview)
 
 ## 🚀 Inicio Rápido
+
+### Cambiar CSC de TPA a OWO (Con Root)
+
+```bash
+# Método rápido con root
+adb shell
+su
+echo "OWO" > /efs/imei/mps_code.dat
+echo "OWO" > /efs/FactoryApp/csc_data
+reboot
+
+# O marca en el dialer: *#272*[TU_IMEI]# y selecciona OWO
+```
+
+Ver **[CSC_CHANGE_GUIDE_TPA_TO_OWO.md](CSC_CHANGE_GUIDE_TPA_TO_OWO.md)** para guía completa con 5 métodos.
 
 ### Códigos Secretos Principales
 
@@ -186,6 +202,15 @@ Análisis de seguridad completo:
 - Análisis de protecciones activas
 - Guía de divulgación responsable
 
+### [CSC_CHANGE_GUIDE_TPA_TO_OWO.md](CSC_CHANGE_GUIDE_TPA_TO_OWO.md) 🔧
+Guía completa para cambiar CSC (con root):
+- 5 métodos diferentes para cambiar CSC
+- Scripts automatizados
+- Troubleshooting completo
+- Verificación post-cambio
+- Uso de vulnerabilidades identificadas
+- Comandos shell para modificación permanente
+
 ## 🔐 Seguridad
 
 ### ⚠️ Análisis de Vulnerabilidades Completado
@@ -299,6 +324,7 @@ ro.security.knoxmatrix=true
 ├── QUICK_REFERENCE_GUIDE.md      # ⭐ Guía rápida
 ├── PRACTICAL_EXAMPLES.md         # ⭐ Ejemplos prácticos
 ├── SECURITY_VULNERABILITIES.md   # ⭐ Análisis de seguridad
+├── CSC_CHANGE_GUIDE_TPA_TO_OWO.md # ⭐ Cambio de CSC (root)
 └── README.md                     # Este archivo
 ```
 
