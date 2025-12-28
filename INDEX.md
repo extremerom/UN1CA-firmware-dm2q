@@ -108,6 +108,36 @@ Este repositorio contiene el análisis completo del firmware UN1CA para Samsung 
 
 ---
 
+### 🔧 [AT_COMMANDS_EXECUTION_GUIDE.md](AT_COMMANDS_EXECUTION_GUIDE.md) **NUEVO**
+**Guía Práctica de Ejecución de Comandos AT** - Cómo ejecutar desde celular con root
+- ⏱️ Lectura: 35-45 minutos
+- 📄 Tamaño: 18 KB
+- 🎯 Contenido:
+  - **130+ comandos AT únicos** extraídos del modem firmware
+  - **6 métodos de ejecución** documentados:
+    1. Via ADB desde PC (recomendado)
+    2. Script automatizado ADB
+    3. Directamente en dispositivo (Termux)
+    4. Script Bash en dispositivo
+    5. Aplicación Android con root (código Java completo)
+    6. Código nativo C/C++ (con ejemplo compilable)
+  - **Comandos propietarios Samsung** categorizados:
+    - Prueba y diagnóstico (AT+TESTMODE, AT+GPSSTEST, etc.)
+    - Configuración de red (AT+BANSELCT, AT+NETMODEC, etc.)
+    - Seguridad y bloqueo (AT+LVOFLOCK, AT+SIMLOCKU, etc.)
+    - IMEI y certificación (AT+IMEISIGN, AT+IMEICERT, etc.)
+    - Calibración RF (AT+READRSSI, AT+MAXPOWER, etc.)
+  - **Comandos estándar 3GPP**: AT+CFUN, AT+COPS, AT+CGATT, etc.
+  - **Ejemplos prácticos** con salidas esperadas
+  - **Precauciones críticas** y comandos peligrosos
+  - **Backup de EFS/NVRAM** antes de experimentar
+  - **Troubleshooting** completo
+  - **Monitoreo de comandos AT** del sistema
+
+**Ideal para**: Usuarios con root que quieren ejecutar comandos AT
+
+---
+
 ### 📊 [README_ANALYSIS.md](README_ANALYSIS.md)
 **Documentación del Análisis** - Metodología y contexto
 - ⏱️ Lectura: 15-20 minutos
