@@ -13,7 +13,7 @@ Este repositorio contiene el análisis completo del firmware UN1CA para el Samsu
 - **Build**: BP2A.250605.031.A3
 - **Versión de Firmware**: S916BXXS8EYK5
 - **Firmware Base**: UN1CA
-- **Fecha de Build**: 28 de Noviembre de 2024 (KST)
+- **Fecha de compilación del firmware**: 28 de Noviembre de 2024 (KST)
 
 ## 📚 Documentación Generada
 

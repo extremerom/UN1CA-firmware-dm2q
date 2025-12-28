@@ -65,7 +65,7 @@ Este repositorio contiene el análisis completo del firmware UN1CA para Samsung 
 ### 📊 [DIAGRAMS_AND_WORKFLOWS.md](DIAGRAMS_AND_WORKFLOWS.md) **NUEVO**
 **Diagramas y Flujos de Trabajo** - Visualización del sistema
 - ⏱️ Lectura: 30-40 minutos
-- 📄 Tamaño: 45 KB
+- 📄 Tamaño: 68 KB
 - 🎯 Contenido:
   - **7 diagramas técnicos detallados**:
     1. Flujo de activación de códigos secretos
@@ -80,6 +80,31 @@ Este repositorio contiene el análisis completo del firmware UN1CA para Samsung 
   - Pipeline de logging completo
 
 **Ideal para**: Comprender el flujo del sistema visualmente
+
+---
+
+### 🔍 [EXTENDED_AT_COMMANDS_ANALYSIS.md](EXTENDED_AT_COMMANDS_ANALYSIS.md) **NUEVO**
+**Análisis Extendido de Comandos AT** - Decompilación completa y comandos AT
+- ⏱️ Lectura: 40-50 minutos
+- 📄 Tamaño: 19 KB
+- 🎯 Contenido:
+  - **Análisis de 6+ APKs adicionales**:
+    - SecFactoryPhoneTest, TelephonyUI, PhoneErrService
+    - EpdgService, PhoneNumberService
+  - **50+ Frameworks identificados** (Qualcomm IMS, Data, Satellite)
+  - **30+ Binarios del sistema** analizados
+  - **30+ APEX modules** catalogados
+  - **7 comandos AT únicos** extraídos del firmware:
+    - AT+ANTENA=, AT+CFUN=0, AT+OEMHWID=
+    - AT+RSSI=3, AT+STACKMODE=10, AT+ENGMODES=
+  - **30+ comandos AT estándar** documentados
+  - **Métodos de acceso**: ADB, código nativo, Java/Kotlin
+  - **Ejemplos de código** para enviar comandos AT
+  - Arquitectura RIL completa identificada
+  - Análisis de libsec-ril.so
+  - Recomendaciones para análisis dinámico
+
+**Ideal para**: Investigadores avanzados y desarrollo con modem
 
 ---
 
