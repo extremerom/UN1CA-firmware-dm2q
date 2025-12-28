@@ -1,0 +1,397 @@
+name: Upload FotaAgent and Dependencies Artifacts
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - copilot/list-apps-dependencies
+    paths:
+      - 'system/system/priv-app/FotaAgent/**'
+      - 'system/system/priv-app/OmaCP/**'
+      - 'system/system/priv-app/AppUpdateCenter/**'
+      - 'system/system/priv-app/MCFDeviceSync/**'
+      - 'system/system/priv-app/NSDSWebApp/**'
+      - 'system/system/priv-app/SmartSwitchAssistant/**'
+      - 'system/system/etc/permissions/privapp-permissions-com.wsomacp.xml'
+      - 'system/system/etc/permissions/privapp-permissions-com.wssyncmldm.xml'
+      - 'system/system/etc/permissions/privapp-permissions-com.samsung.android.app.updatecenter.xml'
+      - 'system/system/etc/permissions/privapp-permissions-com.samsung.android.smartswitchassistant.xml'
+      - 'system/system/etc/default-permissions/default-permissions-com.wsomacp.xml'
+  pull_request:
+    paths:
+      - 'system/system/priv-app/FotaAgent/**'
+      - 'system/system/priv-app/OmaCP/**'
+      - 'system/system/priv-app/AppUpdateCenter/**'
+      - 'system/system/priv-app/MCFDeviceSync/**'
+      - 'system/system/priv-app/NSDSWebApp/**'
+      - 'system/system/priv-app/SmartSwitchAssistant/**'
+      - 'system/system/etc/permissions/privapp-permissions-com.wsomacp.xml'
+      - 'system/system/etc/permissions/privapp-permissions-com.wssyncmldm.xml'
+      - 'system/system/etc/permissions/privapp-permissions-com.samsung.android.app.updatecenter.xml'
+      - 'system/system/etc/permissions/privapp-permissions-com.samsung.android.smartswitchassistant.xml'
+      - 'system/system/etc/default-permissions/default-permissions-com.wsomacp.xml'
+
+jobs:
+  collect-and-upload-fota-artifacts:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create artifact directory structure
+        run: |
+          mkdir -p artifact_output/system/system/priv-app
+          mkdir -p artifact_output/system/system/etc/permissions
+          mkdir -p artifact_output/system/system/etc/default-permissions
+          mkdir -p artifact_output/system/system/framework
+          mkdir -p artifact_output/docs
+
+      - name: Copy FotaAgent application
+        run: |
+          echo "Copying FotaAgent..."
+          if [ -d "system/system/priv-app/FotaAgent" ]; then
+            cp -r "system/system/priv-app/FotaAgent" artifact_output/system/system/priv-app/
+            echo "✓ FotaAgent copied"
+          else
+            echo "⚠ FotaAgent not found"
+          fi
+
+      - name: Copy OmaCP application
+        run: |
+          echo "Copying OmaCP (OMA Client Provisioning)..."
+          if [ -d "system/system/priv-app/OmaCP" ]; then
+            cp -r "system/system/priv-app/OmaCP" artifact_output/system/system/priv-app/
+            echo "✓ OmaCP copied"
+          else
+            echo "⚠ OmaCP not found"
+          fi
+
+      - name: Copy AppUpdateCenter application
+        run: |
+          echo "Copying AppUpdateCenter..."
+          if [ -d "system/system/priv-app/AppUpdateCenter" ]; then
+            cp -r "system/system/priv-app/AppUpdateCenter" artifact_output/system/system/priv-app/
+            echo "✓ AppUpdateCenter copied"
+          else
+            echo "⚠ AppUpdateCenter not found"
+          fi
+
+      - name: Copy MCFDeviceSync application
+        run: |
+          echo "Copying MCFDeviceSync (Multi-Connect Framework)..."
+          if [ -d "system/system/priv-app/MCFDeviceSync" ]; then
+            cp -r "system/system/priv-app/MCFDeviceSync" artifact_output/system/system/priv-app/
+            echo "✓ MCFDeviceSync copied"
+          else
+            echo "⚠ MCFDeviceSync not found"
+          fi
+
+      - name: Copy NSDSWebApp application
+        run: |
+          echo "Copying NSDSWebApp (Network Service Discovery)..."
+          if [ -d "system/system/priv-app/NSDSWebApp" ]; then
+            cp -r "system/system/priv-app/NSDSWebApp" artifact_output/system/system/priv-app/
+            echo "✓ NSDSWebApp copied"
+          else
+            echo "⚠ NSDSWebApp not found"
+          fi
+
+      - name: Copy SmartSwitchAssistant application
+        run: |
+          echo "Copying SmartSwitchAssistant..."
+          if [ -d "system/system/priv-app/SmartSwitchAssistant" ]; then
+            cp -r "system/system/priv-app/SmartSwitchAssistant" artifact_output/system/system/priv-app/
+            echo "✓ SmartSwitchAssistant copied"
+          else
+            echo "⚠ SmartSwitchAssistant not found"
+          fi
+
+      - name: Copy permission XML files
+        run: |
+          echo "Copying permission files..."
+          # Copy FOTA-related permission files
+          if [ -f "system/system/etc/permissions/privapp-permissions-com.wsomacp.xml" ]; then
+            cp "system/system/etc/permissions/privapp-permissions-com.wsomacp.xml" artifact_output/system/system/etc/permissions/
+            echo "✓ privapp-permissions-com.wsomacp.xml copied"
+          fi
+          
+          if [ -f "system/system/etc/permissions/privapp-permissions-com.wssyncmldm.xml" ]; then
+            cp "system/system/etc/permissions/privapp-permissions-com.wssyncmldm.xml" artifact_output/system/system/etc/permissions/
+            echo "✓ privapp-permissions-com.wssyncmldm.xml copied"
+          fi
+          
+          if [ -f "system/system/etc/permissions/privapp-permissions-com.samsung.android.app.updatecenter.xml" ]; then
+            cp "system/system/etc/permissions/privapp-permissions-com.samsung.android.app.updatecenter.xml" artifact_output/system/system/etc/permissions/
+            echo "✓ privapp-permissions-com.samsung.android.app.updatecenter.xml copied"
+          fi
+          
+          if [ -f "system/system/etc/permissions/privapp-permissions-com.samsung.android.smartswitchassistant.xml" ]; then
+            cp "system/system/etc/permissions/privapp-permissions-com.samsung.android.smartswitchassistant.xml" artifact_output/system/system/etc/permissions/
+            echo "✓ privapp-permissions-com.samsung.android.smartswitchassistant.xml copied"
+          fi
+
+      - name: Copy default permissions
+        run: |
+          echo "Copying default permissions..."
+          if [ -f "system/system/etc/default-permissions/default-permissions-com.wsomacp.xml" ]; then
+            cp "system/system/etc/default-permissions/default-permissions-com.wsomacp.xml" artifact_output/system/system/etc/default-permissions/
+            echo "✓ default-permissions-com.wsomacp.xml copied"
+          fi
+
+      - name: Copy related framework JARs
+        run: |
+          echo "Copying framework dependencies..."
+          # Copy telephony and framework JARs that FotaAgent depends on
+          for jar in telephony-common.jar framework.jar services.jar; do
+            if [ -f "system/system/framework/$jar" ]; then
+              cp "system/system/framework/$jar" artifact_output/system/system/framework/
+              echo "✓ $jar copied"
+            fi
+          done
+
+      - name: Create documentation
+        run: |
+          echo "Creating documentation..."
+          cat > artifact_output/docs/FOTA_AGENT_DEPENDENCIES.md << 'EOF'
+          # FotaAgent Dependencies
+          
+          Este documento lista todas las dependencias para FotaAgent (Firmware Over-The-Air Agent).
+          
+          ## Información de FotaAgent
+          
+          - **Ubicación**: `/system/priv-app/FotaAgent/FotaAgent.apk`
+          - **Paquete**: `com.wsomacp`
+          - **Tipo**: Aplicación privilegiada del sistema
+          - **Función**: Gestión de actualizaciones de firmware OTA
+          
+          ## Archivos de la Aplicación
+          
+          ### FotaAgent
+          - `/system/priv-app/FotaAgent/FotaAgent.apk` - APK principal
+          - `/system/priv-app/FotaAgent/oat/arm64/FotaAgent.odex` - Código optimizado
+          - `/system/priv-app/FotaAgent/oat/arm64/FotaAgent.vdex` - Datos de verificación
+          
+          ### OmaCP (OMA Client Provisioning)
+          - `/system/priv-app/OmaCP/OmaCP.apk` - APK de provisión OMA-CP
+          - `/system/priv-app/OmaCP/oat/arm64/OmaCP.odex` - Código optimizado
+          - `/system/priv-app/OmaCP/oat/arm64/OmaCP.vdex` - Datos de verificación
+          
+          ### AppUpdateCenter
+          - `/system/priv-app/AppUpdateCenter/AppUpdateCenter.apk` - Centro de actualizaciones de aplicaciones
+          - `/system/priv-app/AppUpdateCenter/oat/arm64/AppUpdateCenter.odex` - Código optimizado
+          - `/system/priv-app/AppUpdateCenter/oat/arm64/AppUpdateCenter.vdex` - Datos de verificación
+          
+          ### MCFDeviceSync (Multi-Connect Framework)
+          - `/system/priv-app/MCFDeviceSync/MCFDeviceSync.apk` - Sincronización de dispositivos MCF
+          - `/system/priv-app/MCFDeviceSync/oat/arm64/MCFDeviceSync.odex` - Código optimizado
+          - `/system/priv-app/MCFDeviceSync/oat/arm64/MCFDeviceSync.vdex` - Datos de verificación
+          
+          ### NSDSWebApp (Network Service Discovery)
+          - `/system/priv-app/NSDSWebApp/NSDSWebApp.apk` - Descubrimiento de servicios de red
+          - `/system/priv-app/NSDSWebApp/oat/arm64/NSDSWebApp.odex` - Código optimizado
+          - `/system/priv-app/NSDSWebApp/oat/arm64/NSDSWebApp.vdex` - Datos de verificación
+          
+          ### SmartSwitchAssistant
+          - `/system/priv-app/SmartSwitchAssistant/SmartSwitchAssistant.apk` - Asistente de Smart Switch
+          - `/system/priv-app/SmartSwitchAssistant/oat/arm64/SmartSwitchAssistant.odex` - Código optimizado
+          - `/system/priv-app/SmartSwitchAssistant/oat/arm64/SmartSwitchAssistant.vdex` - Datos de verificación
+          
+          ## Permisos XML
+          
+          ### privapp-permissions-com.wsomacp.xml
+          Permisos privilegiados para FotaAgent:
+          - `android.permission.READ_PRIVILEGED_PHONE_STATE` - Acceso al estado privilegiado del teléfono
+          - `android.permission.REAL_GET_TASKS` - Acceso a tareas del sistema
+          - `android.permission.WRITE_APN_SETTINGS` - Escritura de configuración APN
+          - `com.sec.android.fotaclient.permission.FOTA` - Permiso específico de FOTA
+          - `android.permission.RECEIVE_SMS` - Recepción de SMS
+          - `android.permission.READ_SMS` - Lectura de SMS
+          - `android.permission.RECEIVE_WAP_PUSH` - Recepción de mensajes WAP Push
+          - `android.permission.RECEIVE_MMS` - Recepción de MMS
+          - `android.permission.READ_CELL_BROADCASTS` - Lectura de difusiones celulares
+          - `android.permission.POST_NOTIFICATIONS` - Publicación de notificaciones
+          
+          ### privapp-permissions-com.wssyncmldm.xml
+          Permisos para SyncML DM (Device Management):
+          - `android.permission.ACCESS_CACHE_FILESYSTEM` - Acceso al sistema de archivos de caché
+          - `android.permission.BATTERY_STATS` - Estadísticas de batería
+          - `android.permission.CHANGE_CONFIGURATION` - Cambio de configuración
+          - `android.permission.CRYPT_KEEPER` - Gestor de cifrado
+          - `android.permission.DELETE_CACHE_FILES` - Eliminación de archivos de caché
+          - `android.permission.MODIFY_PHONE_STATE` - Modificación del estado del teléfono
+          - `android.permission.REBOOT` - Reinicio del sistema
+          - `android.permission.WRITE_APN_SETTINGS` - Escritura de configuración APN
+          - `android.permission.WRITE_MEDIA_STORAGE` - Escritura en almacenamiento multimedia
+          - `android.permission.RECOVERY` - Modo de recuperación
+          - `com.samsung.android.settings.permission.ACCESS_EPISODE` - Acceso a episodios de configuración
+          - `com.sec.android.fota.permission.PUSH` - Permiso de push FOTA
+          - `com.sec.android.fotaclient.permission.FOTA` - Permiso de cliente FOTA
+          - `com.sec.android.diagmonagent.permission.DIAGMON` - Permiso de agente de diagnóstico
+          - `com.sec.android.diagmonagent.permission.PROVIDER` - Proveedor de diagnóstico
+          - `com.samsung.android.security.permission.SAMSUNG_KEYSTORE_PERMISSION` - Permiso de keystore Samsung
+          - `android.permission.NOTIFY_PENDING_SYSTEM_UPDATE` - Notificación de actualización del sistema pendiente
+          - `android.permission.READ_PRIVILEGED_PHONE_STATE` - Lectura del estado privilegiado del teléfono
+          - `android.permission.CLEAR_APP_CACHE` - Limpieza de caché de aplicaciones
+          - `android.permission.ACCESS_COARSE_LOCATION` - Acceso a ubicación aproximada
+          - `android.permission.POST_NOTIFICATIONS` - Publicación de notificaciones
+          - `android.permission.SCHEDULE_EXACT_ALARM` - Programación de alarmas exactas
+          
+          ### privapp-permissions-com.samsung.android.app.updatecenter.xml
+          Permisos para AppUpdateCenter:
+          - `android.permission.INSTALL_PACKAGE_UPDATES` - Instalación de actualizaciones de paquetes
+          - `android.permission.QUERY_ALL_PACKAGES` - Consulta de todos los paquetes
+          - `android.permission.RECEIVE_BOOT_COMPLETED` - Recepción de arranque completado
+          - `android.permission.INTERNET` - Acceso a internet
+          - `android.permission.READ_PRIVILEGED_PHONE_STATE` - Lectura del estado privilegiado del teléfono
+          - `android.permission.ACCESS_NETWORK_STATE` - Acceso al estado de red
+          - `android.permission.ACCESS_WIFI_STATE` - Acceso al estado WiFi
+          - `android.permission.POST_NOTIFICATIONS` - Publicación de notificaciones
+          - `com.samsung.android.sdm.config.provider.READ_OMC_CONFIG` - Lectura de configuración OMC
+          - `com.samsung.android.permission.SEM_APP_RESTRICTION` - Restricción de aplicaciones SEM
+          
+          ### privapp-permissions-com.samsung.android.smartswitchassistant.xml
+          Permisos para SmartSwitchAssistant (aplicación relacionada con transferencia de datos).
+          
+          ## Permisos por Defecto
+          
+          ### default-permissions-com.wsomacp.xml
+          Permisos predeterminados otorgados en tiempo de instalación:
+          - `android.permission.RECEIVE_SMS` (no fijo)
+          - `android.permission.READ_SMS` (no fijo)
+          - `android.permission.RECEIVE_WAP_PUSH` (no fijo)
+          - `android.permission.RECEIVE_MMS` (no fijo)
+          - `android.permission.READ_CELL_BROADCASTS` (no fijo)
+          - `android.permission.POST_NOTIFICATIONS` (no fijo)
+          
+          ## Dependencias Framework
+          
+          FotaAgent depende de los siguientes componentes del framework Android:
+          - `telephony-common.jar` - APIs de telefonía
+          - `framework.jar` - Framework principal de Android
+          - `services.jar` - Servicios del sistema
+          
+          ## Configuración del Sistema
+          
+          - Listado en `/system/etc/apks_count_list.txt`
+          - Listado en `/system/etc/irremovable_list.txt` (aplicación protegida contra eliminación)
+          - Permisos en lista irremovible: archivos XML de permisos incluidos
+          
+          ## Contextos SELinux
+          
+          Todos los archivos tienen el contexto SELinux `u:object_r:system_file:s0` definido en `file_context-system`.
+          
+          ## Notas Importantes
+          
+          1. **Aplicación Irremovible**: FotaAgent está protegida contra la eliminación por el sistema.
+          
+          2. **OMA-CP y OMA-DM**: El sistema usa los estándares Open Mobile Alliance:
+             - OMA-CP (Client Provisioning) para configuración de dispositivos
+             - OMA-DM (Device Management) para gestión remota de dispositivos
+          
+          3. **Protocolo FOTA**: 
+             - Usa WAP Push y SMS para notificaciones de actualización
+             - Requiere permisos de red y telefonía para descargar actualizaciones
+             - Necesita permisos de reinicio y recuperación para instalar actualizaciones
+          
+          4. **Integración con DiagMonAgent**: FotaAgent se integra con el agente de diagnóstico para reportar estado de actualizaciones.
+          
+          5. **Seguridad**: 
+             - Requiere acceso al Samsung Keystore para verificación de firma
+             - Usa permisos privilegiados para operaciones de sistema críticas
+             - Todos los permisos SMS/MMS son para recibir notificaciones de actualización OTA
+          
+          EOF
+          
+          # Create README for artifact
+          cat > artifact_output/README.md << 'EOF'
+          # FotaAgent Artifact Package
+          
+          This package contains FotaAgent (Firmware Over-The-Air Agent) and all its dependencies from the UN1CA-firmware-dm2q repository.
+          
+          ## Contents
+          
+          - **system/system/priv-app/FotaAgent/** - FotaAgent application
+          - **system/system/priv-app/OmaCP/** - OMA Client Provisioning application
+          - **system/system/priv-app/AppUpdateCenter/** - App Update Center application
+          - **system/system/priv-app/MCFDeviceSync/** - Multi-Connect Framework sync application
+          - **system/system/priv-app/NSDSWebApp/** - Network Service Discovery web app
+          - **system/system/priv-app/SmartSwitchAssistant/** - Smart Switch assistant application
+          - **system/system/etc/permissions/** - Permission XML files
+          - **system/system/etc/default-permissions/** - Default permission files
+          - **system/system/framework/** - Framework JARs dependencies
+          - **docs/** - Documentation
+          
+          ## Applications Included
+          
+          1. **FotaAgent** (com.wsomacp) - OTA update management
+          2. **OmaCP** - OMA Client Provisioning for device configuration
+          3. **AppUpdateCenter** (com.samsung.android.app.updatecenter) - Application updates management
+          4. **MCFDeviceSync** - Multi-Connect Framework device synchronization
+          5. **NSDSWebApp** - Network Service Discovery web application
+          6. **SmartSwitchAssistant** (com.samsung.android.smartswitchassistant) - Smart Switch data transfer
+          3. **AppUpdateCenter** (com.samsung.android.app.updatecenter) - App updates center
+          4. **MCFDeviceSync** - Multi-Connect Framework device synchronization
+          5. **NSDSWebApp** - Network Service Discovery web application
+          6. **SmartSwitchAssistant** (com.samsung.android.smartswitchassistant) - Smart Switch data transfer assistant
+          
+          ## Key Features
+          
+          - Firmware Over-The-Air (FOTA) update management
+          - OMA-CP/OMA-DM standards compliance
+          - WAP Push and SMS notification support
+          - System update installation capabilities
+          - Integration with Samsung diagnostic and keystore services
+          
+          For detailed dependency information, see docs/FOTA_AGENT_DEPENDENCIES.md
+          EOF
+
+      - name: Generate artifact manifest
+        run: |
+          echo "Generating artifact manifest..."
+          cd artifact_output
+          find . -type f | sort > MANIFEST.txt
+          echo "Total files: $(wc -l < MANIFEST.txt)"
+          echo ""
+          echo "=== Manifest Content ==="
+          cat MANIFEST.txt
+
+      - name: Upload FotaAgent artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: fota-agent-dependencies-${{ github.sha }}
+          path: artifact_output/
+          retention-days: 90
+          compression-level: 9
+
+      - name: Create artifact summary
+        run: |
+          echo "## FotaAgent and Dependencies Artifact" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Package Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Artifact Name**: fota-agent-dependencies-${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Files**: $(wc -l < artifact_output/MANIFEST.txt)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Applications Included" >> $GITHUB_STEP_SUMMARY
+          echo "1. **FotaAgent** (com.wsomacp) - OTA update management" >> $GITHUB_STEP_SUMMARY
+          echo "2. **OmaCP** - OMA Client Provisioning" >> $GITHUB_STEP_SUMMARY
+          echo "3. **AppUpdateCenter** (com.samsung.android.app.updatecenter) - App updates" >> $GITHUB_STEP_SUMMARY
+          echo "4. **MCFDeviceSync** - Multi-Connect Framework sync" >> $GITHUB_STEP_SUMMARY
+          echo "5. **NSDSWebApp** - Network Service Discovery" >> $GITHUB_STEP_SUMMARY
+          echo "6. **SmartSwitchAssistant** (com.samsung.android.smartswitchassistant) - Data transfer" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Directory Structure" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cd artifact_output && tree -L 4 -d || find . -type d | sort | sed 's|^\./||' | grep -v '^\.$'
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Files Included" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat artifact_output/MANIFEST.txt
+          echo '```' >> $GITHUB_STEP_SUMMARY
