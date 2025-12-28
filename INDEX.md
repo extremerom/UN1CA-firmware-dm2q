@@ -138,6 +138,73 @@ Este repositorio contiene el análisis completo del firmware UN1CA para Samsung 
 
 ---
 
+### 🔧 [TROUBLESHOOTING_RIL_SOCKET.md](TROUBLESHOOTING_RIL_SOCKET.md) **NUEVO**
+**Troubleshooting: Socket RIL No Encontrado** - Soluciones alternativas
+- ⏱️ Lectura: 25-35 minutos
+- 📄 Tamaño: 11 KB
+- 🎯 Contenido:
+  - **Diagnóstico del problema**: Por qué /dev/socket/rild no existe
+  - **Identificar socket correcto** en tu dispositivo
+  - **5 métodos alternativos** para ejecutar comandos AT:
+    1. Via QMI (Qualcomm MSM Interface)
+    2. Via Service Call (Telephony Manager)
+    3. Via ATFWD-daemon
+    4. Via ModemServiceMode app
+    5. Via Content Provider
+  - **Herramientas QMI**: Instalación de libqmi y qmicli
+  - **Knox bloqueando acceso**: Verificación y soluciones
+  - **Script de búsqueda automática** de sockets RIL
+  - **Solución específica para dispositivos Qualcomm**
+  - **Crear socket RIL manualmente** (avanzado, peligroso)
+  - **Métodos de diagnóstico alternativos**: USSD/MMI codes
+  - **Bypass de Knox** para acceso a sockets
+  - **Plan B y C** si métodos principales fallan
+
+**Ideal para**: Usuarios que no encuentran /dev/socket/rild
+
+---
+
+### 🔐 [KNOX_ANALYSIS.md](KNOX_ANALYSIS.md) **NUEVO**
+**Análisis de Samsung Knox** - Ingeniería inversa y bypass
+- ⏱️ Lectura: 40-50 minutos
+- 📄 Tamaño: 13 KB
+- 🎯 Contenido:
+  - **Arquitectura completa de Knox**:
+    - TrustZone (ARM Trusted Execution Environment)
+    - TIMA (Integrity Measurement Architecture)
+    - RKP (Real-time Kernel Protection)
+    - Secure Boot, DM-Verity, Knox Container
+  - **Apps Knox identificadas** en firmware
+  - **Análisis de componentes**:
+    - Knox Bootloader y verificación
+    - Knox TrustZone (Normal vs Secure World)
+    - Knox TIMA (PKM, Defex, LKMAUTH)
+    - Knox RKP (protección de kernel)
+    - Knox DM-Verity (verificación de particiones)
+  - **Ingeniería inversa de apps Knox**:
+    - Decompilación con jadx
+    - Análisis de librerías nativas
+    - Interceptación con Frida
+    - Scripts de hooking incluidos
+  - **5 métodos de bypass de Knox** (educativo):
+    1. Desactivar Knox Counter (pre-root)
+    2. Ocultar root de Knox (Magisk)
+    3. Desactivar servicios Knox
+    4. Parchear Knox en ROM custom
+    5. SELinux Permissive
+  - **Análisis de apps específicas**:
+    - Knox Analytics Uploader
+    - Knox Attestation Agent
+    - Knox Container Agent
+  - **Protecciones anti-RE**: Ofuscación, native code, anti-debugging
+  - **Herramientas de análisis**: jadx, Ghidra, Frida, strace
+  - **Comparación**: Knox vs Root
+  - **Script de análisis de Knox** incluido
+
+**Ideal para**: Investigadores de seguridad y bypass de Knox
+
+---
+
 ### 📊 [README_ANALYSIS.md](README_ANALYSIS.md)
 **Documentación del Análisis** - Metodología y contexto
 - ⏱️ Lectura: 15-20 minutos
