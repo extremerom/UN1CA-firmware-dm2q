@@ -1,0 +1,311 @@
+{
+  "security_xml_files": {
+    "ADP.xml": {
+      "location": "/system/etc/ADP.xml",
+      "purpose": "Application Data Protection - Validates application integrity using SHA256 hashes",
+      "purpose_es": "Protección de Datos de Aplicaciones - Valida la integridad de aplicaciones usando hashes SHA256",
+      "structure": {
+        "root": "ADP",
+        "version_attribute": "VERSION",
+        "main_elements": ["HASHVALUE", "pattern", "hashCode", "versionType", "format"]
+      },
+      "valid_options": {
+        "VERSION": {
+          "format": "YYYYMMDD",
+          "example": "20250902"
+        },
+        "ADP_version": {
+          "format": "X.Y",
+          "example": "3.1"
+        },
+        "HASHVALUE_name": {
+          "format": "SHA256 hash",
+          "length": 64,
+          "example": "1b678c80fc9940d60d4ad7b3dd41ef886e196bb633c75611a5d94e1c63fab0bf"
+        },
+        "pattern_value": {
+          "type": "regex",
+          "examples": [
+            "^\\d{9}\\z",
+            "^\\d{10}\\z",
+            "[0-9]+",
+            "^\\d{4}00\\d{3}\\z"
+          ]
+        },
+        "hashCode_value": {
+          "type": "integer",
+          "examples": [310200015, 302300000, 4, 33]
+        },
+        "versionType_value": {
+          "type": "integer",
+          "examples": [1, 2, 3, 5, 1703114115]
+        },
+        "format_value": {
+          "type": "regex_capture",
+          "example": "([0-9]+)",
+          "optional": true
+        }
+      },
+      "modifications_allowed": true,
+      "requires_root": true,
+      "knox_impact": "high"
+    },
+    "ASKSB.xml": {
+      "location": "/system/etc/ASKSB.xml",
+      "purpose": "Application Blacklist - Contains hashes of blocked applications",
+      "purpose_es": "Lista Negra de Aplicaciones - Contiene hashes de aplicaciones bloqueadas",
+      "structure": {
+        "root": "LIST",
+        "version_attribute": "VERSION",
+        "main_elements": ["HASHVALUE", "HASH"]
+      },
+      "valid_options": {
+        "VERSION": {
+          "format": "YYYYMMDD",
+          "example": "20240926"
+        },
+        "HASHVALUE_name": {
+          "format": "SHA256 hash",
+          "length": 64
+        },
+        "HASH_value": {
+          "type": "string",
+          "options": ["ALL", "SHA256 hash"],
+          "ALL_meaning": "Block all versions",
+          "hash_meaning": "Block specific signature"
+        }
+      },
+      "modifications_allowed": true,
+      "requires_root": true,
+      "knox_impact": "medium"
+    },
+    "ASKSC.xml": {
+      "location": "/system/etc/ASKSC.xml",
+      "purpose": "Certificate List - Used for application certificate validation",
+      "purpose_es": "Lista de Certificados - Usado para validación de certificados de aplicaciones",
+      "structure": {
+        "root": "CLIST",
+        "version_attribute": "VERSION",
+        "main_elements": ["CERT", "HASH"]
+      },
+      "valid_options": {
+        "VERSION": {
+          "format": "YYYYMMDD",
+          "example": "20161003"
+        },
+        "CERT_name": {
+          "type": "string",
+          "description": "Certificate identifier"
+        },
+        "HASH_value": {
+          "format": "SHA256 hash",
+          "length": 64
+        }
+      },
+      "current_status": "empty",
+      "modifications_allowed": true,
+      "requires_root": true,
+      "knox_impact": "medium"
+    },
+    "ASKSHB.xml": {
+      "location": "/system/etc/ASKSHB.xml",
+      "purpose": "Hidden Blacklist - Silent blocking of applications",
+      "purpose_es": "Lista Negra Oculta - Bloqueo silencioso de aplicaciones",
+      "structure": {
+        "root": "LIST",
+        "version_attribute": "VERSION",
+        "main_elements": ["HASHVALUE", "HASH"]
+      },
+      "valid_options": "Same as ASKSB.xml",
+      "current_status": "empty",
+      "modifications_allowed": true,
+      "requires_root": true,
+      "knox_impact": "medium"
+    },
+    "ASKSP.xml": {
+      "location": "/system/etc/ASKSP.xml",
+      "purpose": "Special Package List - Packages requiring special permission handling",
+      "purpose_es": "Lista de Paquetes Especiales - Paquetes que requieren manejo especial de permisos",
+      "structure": {
+        "root": "LIST",
+        "version_attribute": "VERSION",
+        "main_elements": ["HASHVALUE", "UID"]
+      },
+      "valid_options": {
+        "VERSION": {
+          "format": "YYYYMMDD",
+          "example": "20200806"
+        },
+        "HASHVALUE_name": {
+          "type": "package_name",
+          "examples": ["com.sec.android.easyMover", "com.rsupport.rs.activity.rsupport.aas2"]
+        },
+        "UID_name": {
+          "type": "string",
+          "options": ["NONE", "numeric_uid"],
+          "NONE_meaning": "No specific UID assigned"
+        }
+      },
+      "current_entries": [
+        "com.sec.android.easyMover",
+        "com.rsupport.rs.activity.rsupport.aas2"
+      ],
+      "modifications_allowed": true,
+      "requires_root": true,
+      "knox_impact": "medium"
+    },
+    "ASKSRNEW.xml": {
+      "location": "/system/etc/ASKSRNEW.xml",
+      "purpose": "Restricted Applications List - Applications with limited access",
+      "purpose_es": "Lista de Aplicaciones Restringidas - Aplicaciones con acceso limitado",
+      "structure": {
+        "root": "RESTRICTED",
+        "version_attribute": "VERSION",
+        "main_elements": ["PACKAGE", "RESTRICTION"]
+      },
+      "valid_options": {
+        "VERSION": {
+          "format": "YYYYMMDD",
+          "example": "20191024"
+        },
+        "PACKAGE_name": {
+          "type": "package_name",
+          "description": "Package identifier"
+        },
+        "RESTRICTION_type": {
+          "type": "string",
+          "description": "Type of restriction to apply"
+        }
+      },
+      "current_status": "empty",
+      "modifications_allowed": true,
+      "requires_root": true,
+      "knox_impact": "medium"
+    },
+    "ASKSTS.xml": {
+      "location": "/system/etc/ASKSTS.xml",
+      "purpose": "Trusted Store - Defines trusted applications with special permissions",
+      "purpose_es": "Almacén de Confianza - Define aplicaciones confiables con permisos especiales",
+      "structure": {
+        "root": "TRUSTEDSTORE",
+        "version_attribute": "VERSION",
+        "main_elements": ["STORE", "DUMMY"]
+      },
+      "valid_options": {
+        "VERSION": {
+          "format": "YYYYMMDD",
+          "example": "20230714"
+        },
+        "STORE_name": {
+          "type": "string",
+          "examples": ["PrePackageInstaller"]
+        },
+        "DUMMY_value": {
+          "type": "integer",
+          "options": [0, 1],
+          "description": "Dummy value for configuration"
+        }
+      },
+      "current_entries": [
+        "PrePackageInstaller"
+      ],
+      "modifications_allowed": true,
+      "requires_root": true,
+      "knox_impact": "high"
+    },
+    "ASKSW.xml": {
+      "location": "/system/etc/ASKSW.xml",
+      "purpose": "Application Whitelist - Explicitly allowed applications",
+      "purpose_es": "Lista Blanca de Aplicaciones - Aplicaciones explícitamente permitidas",
+      "structure": {
+        "root": "LIST",
+        "version_attribute": "VERSION",
+        "main_elements": ["HASHVALUE", "HASH"]
+      },
+      "valid_options": {
+        "VERSION": {
+          "format": "YYYYMMDD",
+          "example": "20250425"
+        },
+        "HASHVALUE_name": {
+          "format": "SHA256 hash",
+          "length": 64
+        },
+        "HASH_value": {
+          "format": "SHA256 hash",
+          "length": 64,
+          "multiple": true,
+          "description": "Multiple hashes can be specified for different signatures"
+        }
+      },
+      "modifications_allowed": true,
+      "requires_root": true,
+      "knox_impact": "medium"
+    },
+    "PAICheck.xml": {
+      "location": "/system/etc/PAICheck.xml",
+      "purpose": "Package Authenticity Check - Additional integrity validation",
+      "purpose_es": "Verificación de Autenticidad de Paquetes - Validación adicional de integridad",
+      "structure": {
+        "root": "unknown",
+        "note": "Currently empty file"
+      },
+      "valid_options": {
+        "note": "File is empty, schema unknown"
+      },
+      "current_status": "empty",
+      "modifications_allowed": true,
+      "requires_root": true,
+      "knox_impact": "unknown"
+    }
+  },
+  "general_information": {
+    "firmware": "UN1CA-firmware-dm2q",
+    "device": "Samsung Galaxy (dm2q variant)",
+    "security_framework": "Samsung Knox",
+    "last_updated": "2025-12-28",
+    "requires_root": true,
+    "backup_recommended": true,
+    "knox_warranty_impact": "Modifying these files may trip Knox warranty bit",
+    "irremovable": "All these files are listed in /system/etc/irremovable_list.txt"
+  },
+  "modification_guidelines": {
+    "steps": [
+      "1. Make full system backup",
+      "2. Extract current XML file",
+      "3. Edit with care - maintain XML syntax",
+      "4. Validate XML structure",
+      "5. Test in safe environment if possible",
+      "6. Push back to device",
+      "7. Reboot and verify"
+    ],
+    "tools_needed": [
+      "adb",
+      "root access",
+      "XML editor",
+      "SHA256 hash generator"
+    ],
+    "commands": {
+      "pull_file": "adb pull /system/etc/[filename] .",
+      "push_file": "adb push [filename] /system/etc/",
+      "remount_system": "adb remount",
+      "get_hash_apk": "sha256sum app.apk",
+      "get_hash_cert": "unzip -p app.apk META-INF/*.RSA | keytool -printcert | grep SHA256"
+    }
+  },
+  "warnings": {
+    "critical": [
+      "Do NOT delete these files",
+      "Always backup before modifying",
+      "Invalid XML will cause system issues",
+      "May void Knox warranty",
+      "Samsung Pay may stop working",
+      "Banking apps may detect modification"
+    ],
+    "impact_levels": {
+      "high": "System may fail to boot or major features broken",
+      "medium": "Some applications or services may malfunction",
+      "low": "Minor issues or cosmetic problems"
+    }
+  }
+}
