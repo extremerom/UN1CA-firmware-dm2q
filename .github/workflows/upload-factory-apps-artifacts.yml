@@ -1,0 +1,289 @@
+name: Upload Factory and Diagnostic Apps Artifacts
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - copilot/list-apps-dependencies
+    paths:
+      - 'system/system/priv-app/ModemServiceMode/**'
+      - 'system/system/priv-app/SecFactoryPhoneTest/**'
+      - 'system/system/priv-app/DiagMonAgent95/**'
+      - 'system/system/priv-app/DeviceDiagnostics/**'
+      - 'system/system/priv-app/NetworkDiagnostic/**'
+      - 'system/system/priv-app/SEMFactoryApp/**'
+      - 'system/system/priv-app/SmartEpdgTestApp/**'
+      - 'system/system/priv-app/FactoryTestProvider/**'
+      - 'system/system/app/FactoryCameraFB/**'
+      - 'system/system/app/FactoryAirCommandManager/**'
+      - 'system/system/app/UwbTest/**'
+      - 'system/system/app/WlanTest/**'
+      - 'FACTORY_DIAGNOSTIC_APPS_DEPENDENCIES.md'
+  pull_request:
+    paths:
+      - 'system/system/priv-app/ModemServiceMode/**'
+      - 'system/system/priv-app/SecFactoryPhoneTest/**'
+      - 'system/system/priv-app/DiagMonAgent95/**'
+      - 'system/system/priv-app/DeviceDiagnostics/**'
+      - 'system/system/priv-app/NetworkDiagnostic/**'
+      - 'system/system/priv-app/SEMFactoryApp/**'
+      - 'system/system/priv-app/SmartEpdgTestApp/**'
+      - 'system/system/priv-app/FactoryTestProvider/**'
+      - 'system/system/app/FactoryCameraFB/**'
+      - 'system/system/app/FactoryAirCommandManager/**'
+      - 'system/system/app/UwbTest/**'
+      - 'system/system/app/WlanTest/**'
+      - 'FACTORY_DIAGNOSTIC_APPS_DEPENDENCIES.md'
+
+jobs:
+  collect-and-upload-artifacts:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create artifact directory structure
+        run: |
+          mkdir -p artifact_output/system/system/priv-app
+          mkdir -p artifact_output/system/system/app
+          mkdir -p artifact_output/system/system/etc/permissions
+          mkdir -p artifact_output/system/system/etc/init
+          mkdir -p artifact_output/system/system/bin
+          mkdir -p artifact_output/system/system/framework
+          mkdir -p artifact_output/system/system/lib
+          mkdir -p artifact_output/system/system/lib64
+          mkdir -p artifact_output/vendor/bin
+          mkdir -p artifact_output/vendor/lib
+          mkdir -p artifact_output/vendor/lib64
+          mkdir -p artifact_output/vendor/etc/init
+          mkdir -p artifact_output/system_ext/framework
+          mkdir -p artifact_output/system_ext/lib
+          mkdir -p artifact_output/system_ext/lib64
+          mkdir -p artifact_output/docs
+
+      - name: Copy factory and diagnostic apps
+        run: |
+          # Copy priv-app applications
+          echo "Copying privileged apps..."
+          for app in ModemServiceMode SecFactoryPhoneTest DiagMonAgent95 DeviceDiagnostics NetworkDiagnostic SEMFactoryApp SmartEpdgTestApp FactoryTestProvider; do
+            if [ -d "system/system/priv-app/$app" ]; then
+              echo "Copying $app..."
+              cp -r "system/system/priv-app/$app" artifact_output/system/system/priv-app/
+            fi
+          done
+          
+          # Copy app applications
+          echo "Copying system apps..."
+          for app in FactoryCameraFB FactoryAirCommandManager UwbTest WlanTest; do
+            if [ -d "system/system/app/$app" ]; then
+              echo "Copying $app..."
+              cp -r "system/system/app/$app" artifact_output/system/system/app/
+            fi
+          done
+
+      - name: Copy permission XML files
+        run: |
+          echo "Copying permission files..."
+          # Copy specific permission files for factory/diagnostic apps
+          for perm in privapp-permissions-com.sec.android.RilServiceModeApp.xml \
+                      privapp-permissions-com.sec.android.diagmonagent.xml \
+                      privapp-permissions-com.samsung.android.networkdiagnostic.xml \
+                      privapp-permissions-com.sem.factoryapp.xml \
+                      privapp-permissions-com.sec.epdgtestapp.xml \
+                      privapp-permissions-com.sec.epdg.xml \
+                      privapp-permissions-com.samsung.android.providers.factory.xml \
+                      privapp-permissions-com.sec.android.app.factorykeystring.xml \
+                      privapp-permissions-com.sec.android.app.uwbtest.xml \
+                      com.qualcomm.qcom_diag.xml \
+                      epdgmanager_library.xml \
+                      com.samsung.android.uwb_extras.xml; do
+            if [ -f "system/system/etc/permissions/$perm" ]; then
+              echo "Copying $perm..."
+              cp "system/system/etc/permissions/$perm" artifact_output/system/system/etc/permissions/
+            fi
+          done
+
+      - name: Copy framework JARs
+        run: |
+          echo "Copying framework JARs..."
+          # System framework
+          if [ -f "system/system/framework/EpdgManager.jar" ]; then
+            cp system/system/framework/EpdgManager.jar artifact_output/system/system/framework/
+          fi
+          if [ -f "system/system/framework/semuwb-service.jar" ]; then
+            cp system/system/framework/semuwb-service.jar artifact_output/system/system/framework/
+          fi
+          if [ -f "system/system/framework/com.samsung.android.uwb_extras.jar" ]; then
+            cp system/system/framework/com.samsung.android.uwb_extras.jar artifact_output/system/system/framework/
+          fi
+          
+          # System_ext framework (Qualcomm factory/diagnostic libraries)
+          echo "Copying Qualcomm factory/diagnostic JARs..."
+          if [ -d "system_ext/framework" ]; then
+            find system_ext/framework -name "*factory*.jar" -o -name "*diag*.jar" -o -name "*iwlan*.jar" | while read jar; do
+              echo "Copying $(basename $jar)..."
+              cp "$jar" artifact_output/system_ext/framework/ 2>/dev/null || true
+            done
+          fi
+
+      - name: Copy native libraries
+        run: |
+          echo "Copying native libraries..."
+          # System libraries (diag, RIL, UWB)
+          for lib in libsec_semRil.so libsecril-client.so vendor.qti.diaghal-V1-ndk.so libtflite_uwb_jni.so libsembitmapfactory_jni.so librildump_jni.so; do
+            if [ -f "system/system/lib/$lib" ]; then
+              cp "system/system/lib/$lib" artifact_output/system/system/lib/
+            fi
+            if [ -f "system/system/lib64/$lib" ]; then
+              cp "system/system/lib64/$lib" artifact_output/system/system/lib64/
+            fi
+          done
+          
+          # System_ext libraries
+          echo "Copying system_ext libraries..."
+          if [ -d "system_ext/lib" ]; then
+            find system_ext/lib -name "*diag*.so" -o -name "*factory*.so" | while read lib; do
+              cp "$lib" artifact_output/system_ext/lib/ 2>/dev/null || true
+            done
+          fi
+          if [ -d "system_ext/lib64" ]; then
+            find system_ext/lib64 -name "*diag*.so" -o -name "*factory*.so" | while read lib; do
+              cp "$lib" artifact_output/system_ext/lib64/ 2>/dev/null || true
+            done
+          fi
+          
+          # Vendor libraries
+          echo "Copying vendor libraries..."
+          for lib in libsec_semRil.so libsecril-client.so libsec-ril.so libnetmgrmodemproxy.so librilutils.so libril_sem.so \
+                     vendor.qti.diaghal@1.0.so libdiag.so libdiagjni.so libsnsdiaglog.so uwb_uci.hal.so; do
+            if [ -f "vendor/lib/$lib" ]; then
+              cp "vendor/lib/$lib" artifact_output/vendor/lib/ 2>/dev/null || true
+            fi
+            if [ -f "vendor/lib64/$lib" ]; then
+              cp "vendor/lib64/$lib" artifact_output/vendor/lib64/ 2>/dev/null || true
+            fi
+          done
+
+      - name: Copy binaries
+        run: |
+          echo "Copying binaries..."
+          # System binaries
+          for bin in diagsylincom wlandutservice sec_diag_uart_log; do
+            if [ -f "system/system/bin/$bin" ]; then
+              echo "Copying $bin..."
+              cp "system/system/bin/$bin" artifact_output/system/system/bin/
+            fi
+          done
+          
+          # Vendor binaries
+          for bin in debug-diag test_diag diag_uart_log ipacm-diag diag_klog diag-router ssr_diag cnss_diag \
+                     diag_callback_sample diag_dci_sample diag_mdlog diag_socket_log athdiag factory.ssc \
+                     fmfactorytest fmfactorytestserver; do
+            if [ -f "vendor/bin/$bin" ]; then
+              cp "vendor/bin/$bin" artifact_output/vendor/bin/ 2>/dev/null || true
+            fi
+          done
+
+      - name: Copy init service files
+        run: |
+          echo "Copying init service files..."
+          # System init files
+          for rc in diagsylincom.rc init.system.uwb.rc digitalkey_init_uwb_tss2.rc init.network.rc; do
+            if [ -f "system/system/etc/init/$rc" ]; then
+              echo "Copying $rc..."
+              cp "system/system/etc/init/$rc" artifact_output/system/system/etc/init/
+            fi
+          done
+          
+          # Vendor init files
+          mkdir -p artifact_output/vendor/etc/init/hw
+          for rc in init.vendor.uwb.rc init.vendor.wlan.rc vendor.qti.diag.rc modemManager.rc \
+                    vendor.samsung.hardware.uwb@1.0-service.rc ipacm-diag.rc; do
+            if [ -f "vendor/etc/init/$rc" ]; then
+              echo "Copying $rc..."
+              cp "vendor/etc/init/$rc" artifact_output/vendor/etc/init/
+            fi
+          done
+          if [ -f "vendor/etc/init/hw/init.qcom.factory.rc" ]; then
+            cp "vendor/etc/init/hw/init.qcom.factory.rc" artifact_output/vendor/etc/init/hw/
+          fi
+
+      - name: Copy documentation
+        run: |
+          echo "Copying documentation..."
+          if [ -f "FACTORY_DIAGNOSTIC_APPS_DEPENDENCIES.md" ]; then
+            cp FACTORY_DIAGNOSTIC_APPS_DEPENDENCIES.md artifact_output/docs/
+          fi
+          
+          # Create a README for the artifact
+          cat > artifact_output/README.md << 'EOF'
+          # Factory and Diagnostic Apps Artifact Package
+          
+          This package contains all factory and diagnostic applications and their dependencies from the UN1CA-firmware-dm2q repository.
+          
+          ## Contents
+          
+          - **system/system/priv-app/** - Privileged factory and diagnostic applications
+          - **system/system/app/** - System factory and diagnostic applications
+          - **system/system/etc/permissions/** - Permission XML files
+          - **system/system/etc/init/** - Init service files
+          - **system/system/bin/** - System binaries
+          - **system/system/framework/** - Framework JARs
+          - **system/system/lib/** and **system/system/lib64/** - System libraries
+          - **vendor/** - Vendor binaries, libraries, and init files
+          - **system_ext/** - Extended system framework and libraries
+          - **docs/** - Documentation
+          
+          ## Applications Included
+          
+          1. ModemServiceMode (com.sec.android.RilServiceModeApp)
+          2. SecFactoryPhoneTest
+          3. DiagMonAgent95 (com.sec.android.diagmonagent)
+          4. DeviceDiagnostics
+          5. NetworkDiagnostic (com.samsung.android.networkdiagnostic)
+          6. SEMFactoryApp (com.sem.factoryapp)
+          7. SmartEpdgTestApp (com.sec.epdgtestapp)
+          8. FactoryTestProvider (com.samsung.android.providers.factory)
+          9. FactoryCameraFB
+          10. FactoryAirCommandManager
+          11. UwbTest (com.sec.android.app.uwbtest)
+          12. WlanTest
+          
+          For detailed dependency information, see docs/FACTORY_DIAGNOSTIC_APPS_DEPENDENCIES.md
+          EOF
+
+      - name: Generate artifact manifest
+        run: |
+          echo "Generating artifact manifest..."
+          cd artifact_output
+          find . -type f | sort > MANIFEST.txt
+          echo "Total files: $(wc -l < MANIFEST.txt)"
+          cat MANIFEST.txt
+
+      - name: Upload factory apps artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: factory-diagnostic-apps-${{ github.sha }}
+          path: artifact_output/
+          retention-days: 90
+          compression-level: 9
+
+      - name: Create artifact summary
+        run: |
+          echo "## Factory and Diagnostic Apps Artifact" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Package Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Artifact Name**: factory-diagnostic-apps-${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Files**: $(wc -l < artifact_output/MANIFEST.txt)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Directory Structure" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cd artifact_output && tree -L 3 -d || find . -type d | sort | sed 's|^\./||' | grep -v '^\.$'
+          echo '```' >> $GITHUB_STEP_SUMMARY
