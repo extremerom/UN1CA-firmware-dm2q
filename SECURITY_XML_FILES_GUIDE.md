@@ -337,6 +337,127 @@ This file is currently empty. If content needs to be added, it must follow a val
 
 ---
 
+## 🔓 How to Disable or Reduce Security Protections / Cómo Desactivar o Reducir las Protecciones
+
+### ⚠️ CRITICAL WARNING / ADVERTENCIA CRÍTICA
+
+**English:** Disabling these protections **SIGNIFICANTLY REDUCES** your device security. Only do this if you fully understand the consequences.
+
+**Español:** Desactivar estas protecciones **REDUCE SIGNIFICATIVAMENTE** la seguridad de tu dispositivo. Solo hazlo si entiendes completamente las consecuencias.
+
+---
+
+### Methods to Disable Protections / Métodos para Desactivar Protecciones:
+
+#### Method 1: Empty the Lists (Safer) / Método 1: Vaciar las Listas (Más Seguro)
+
+Empty files maintain structure but without active restrictions:
+Los archivos vacíos mantienen la estructura pero sin restricciones activas:
+
+**For ASKSB.xml (Blacklist / Lista Negra):**
+```xml
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<VERSION value="20251228"/>
+<LIST>
+</LIST>
+```
+
+**For ASKSC.xml, ASKSHB.xml, ASKSRNEW.xml:**
+Keep the same empty structure with only VERSION and main container.
+Mantener la misma estructura vacía con solo VERSION y el contenedor principal.
+
+---
+
+#### Method 2: Remove Specific Entries / Método 2: Eliminar Entradas Específicas
+
+Instead of emptying everything, remove only apps you want to allow:
+En lugar de vaciar todo, elimina solo las aplicaciones que quieres permitir:
+
+**Example in ASKSB.xml / Ejemplo en ASKSB.xml:**
+```xml
+<!-- Comment out or delete specific entry -->
+<!-- Comentar o eliminar la entrada específica -->
+<!-- <HASHVALUE name="blocked_app_hash">
+  <HASH value="ALL"/>
+</HASHVALUE> -->
+```
+
+---
+
+#### Method 3: Move Apps from Blacklist to Whitelist / Método 3: Mover Apps de Lista Negra a Lista Blanca
+
+If an app is blocked in ASKSB.xml, add it to ASKSW.xml:
+Si una app está bloqueada en ASKSB.xml, agrégala a ASKSW.xml:
+
+1. Get the application hash / Obtén el hash de la aplicación
+2. Remove its entry from ASKSB.xml / Elimina su entrada de ASKSB.xml
+3. Add it to ASKSW.xml / Agrégala a ASKSW.xml
+
+---
+
+#### Method 4: Disable ADP (Integrity Validation) / Método 4: Desactivar ADP (Validación de Integridad)
+
+**VERY DANGEROUS - May break the system / MUY PELIGROSO - Puede romper el sistema**
+
+Emptying ADP.xml removes integrity validation:
+Vaciar ADP.xml elimina la validación de integridad:
+
+```xml
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<VERSION value="20251228"/>
+<ADP version="3.1">
+</ADP>
+```
+
+---
+
+### 🚨 Consequences of Disabling Protections / Consecuencias de Desactivar Protecciones:
+
+| Protection Disabled<br>Protección Desactivada | Consequences<br>Consecuencias |
+|----------------------------------------------|-------------------------------|
+| **ADP.xml** | - Modified apps can execute / Apps modificadas pueden ejecutarse<br>- Malware won't be detected / Malware no será detectado<br>- Unstable system / Sistema inestable |
+| **ASKSB.xml** | - Known malicious apps can install / Apps maliciosas conocidas pueden instalarse<br>- Loss of antimalware protection / Pérdida de protección antimalware |
+| **ASKSTS.xml** | - Untrusted apps can get special permissions / Apps no confiables pueden obtener permisos especiales<br>- Privilege escalation risk / Riesgo de escalación de privilegios |
+| **ASKSW.xml** | - Allowed apps policy is disabled / Política de apps permitidas se desactiva |
+
+---
+
+### ✅ Safe Recommendation / Recomendación Segura:
+
+**English:** Instead of completely disabling, consider:
+
+**Español:** En lugar de desactivar completamente, considera:
+
+1. **Selective Modification / Modificación Selectiva**: Only modify specific entries you need
+   Solo modifica las entradas específicas que necesitas
+
+2. **Personal Whitelist / Lista Blanca Personal**: Use ASKSW.xml to allow your custom apps
+   Usa ASKSW.xml para permitir tus apps personalizadas
+
+3. **Keep ADP.xml / Mantén ADP.xml**: Never modify ADP.xml unless absolutely necessary
+   Nunca modifiques ADP.xml a menos que sea absolutamente necesario
+
+4. **Update VERSION / Actualiza VERSION**: Always update VERSION field with current date
+   Siempre actualiza el campo VERSION con la fecha actual
+
+---
+
+### 🛡️ Alternative: Permissive Mode / Alternativa: Modo Permisivo
+
+Instead of disabling, make lists more permissive:
+En lugar de desactivar, haz las listas más permisivas:
+
+- **ASKSB.xml**: Only block specific known malware apps
+  Solo bloquear apps específicas conocidas como malware
+  
+- **ASKSW.xml**: Add all your trusted apps
+  Agregar todas tus apps confiables
+  
+- **ASKSTS.xml**: Add apps that need special permissions
+  Agregar apps que necesitan permisos especiales
+
+---
+
 ## Precauciones Importantes / Important Precautions
 
 ⚠️ **ADVERTENCIA / WARNING:**

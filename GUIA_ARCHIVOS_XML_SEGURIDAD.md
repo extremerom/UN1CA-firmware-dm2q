@@ -180,11 +180,92 @@ Estos archivos XML son parte del sistema de seguridad Samsung Knox en el firmwar
 
 ---
 
+## 🔓 Cómo Desactivar o Reducir las Protecciones de Seguridad
+
+### ⚠️ ADVERTENCIA CRÍTICA
+Desactivar estas protecciones **REDUCE SIGNIFICATIVAMENTE** la seguridad de tu dispositivo. Solo hazlo si entiendes completamente las consecuencias.
+
+### Métodos para Desactivar Protecciones:
+
+#### Método 1: Vaciar las Listas (Más Seguro)
+Vaciar los archivos deja la estructura pero sin restricciones activas:
+
+**Para ASKSB.xml (Lista Negra):**
+```xml
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<VERSION value="20251228"/>
+<LIST>
+</LIST>
+```
+
+**Para ASKSC.xml, ASKSHB.xml, ASKSRNEW.xml:**
+Mantener la misma estructura vacía con solo VERSION y el contenedor principal.
+
+#### Método 2: Eliminar Entradas Específicas
+En lugar de vaciar todo, elimina solo las aplicaciones que quieres permitir:
+
+**Ejemplo en ASKSB.xml:**
+```xml
+<!-- Comentar o eliminar la entrada específica -->
+<!-- <HASHVALUE name="hash_de_app_bloqueada">
+  <HASH value="ALL"/>
+</HASHVALUE> -->
+```
+
+#### Método 3: Mover Apps de Lista Negra a Lista Blanca
+Si una app está bloqueada en ASKSB.xml, agrégala a ASKSW.xml:
+
+1. Obtén el hash de la aplicación
+2. Elimina su entrada de ASKSB.xml
+3. Agrégala a ASKSW.xml
+
+#### Método 4: Desactivar ADP (Validación de Integridad)
+**MUY PELIGROSO - Puede romper el sistema**
+
+Vaciar ADP.xml elimina la validación de integridad:
+```xml
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<VERSION value="20251228"/>
+<ADP version="3.1">
+</ADP>
+```
+
+### 🚨 Consecuencias de Desactivar Protecciones:
+
+| Protección Desactivada | Consecuencias |
+|------------------------|---------------|
+| **ADP.xml** | - Apps modificadas pueden ejecutarse<br>- Malware no será detectado<br>- Sistema inestable |
+| **ASKSB.xml** | - Apps maliciosas conocidas pueden instalarse<br>- Pérdida de protección antimalware |
+| **ASKSTS.xml** | - Apps no confiables pueden obtener permisos especiales<br>- Riesgo de escalación de privilegios |
+| **ASKSW.xml** | - Política de apps permitidas se desactiva |
+
+### ✅ Recomendación Segura:
+
+En lugar de desactivar completamente, considera:
+
+1. **Modificación Selectiva**: Solo modifica las entradas específicas que necesitas
+2. **Lista Blanca Personal**: Usa ASKSW.xml para permitir tus apps personalizadas
+3. **Mantén ADP.xml**: Nunca modifiques ADP.xml a menos que sea absolutamente necesario
+4. **Actualiza VERSION**: Siempre actualiza el campo VERSION con la fecha actual
+
+### 🛡️ Alternativa: Modo Permisivo
+
+En lugar de desactivar, puedes hacer las listas más permisivas:
+
+**ASKSB.xml - Solo bloquear apps específicas conocidas como malware**
+**ASKSW.xml - Agregar todas tus apps confiables**
+**ASKSTS.xml - Agregar apps que necesitan permisos especiales**
+
+---
+
 ## 🛠️ Cómo Modificar Estos Archivos
 
 ### Paso 1: Hacer Copia de Seguridad
 ```bash
 adb pull /system/etc/ADP.xml ADP.xml.backup
+adb pull /system/etc/ASKSB.xml ASKSB.xml.backup
+adb pull /system/etc/ASKSW.xml ASKSW.xml.backup
+# Hacer backup de todos los archivos que vas a modificar
 ```
 
 ### Paso 2: Editar el Archivo
@@ -192,6 +273,9 @@ Use un editor de texto que preserve el formato XML
 
 ### Paso 3: Validar XML
 Asegúrese de que el XML sea válido antes de aplicar cambios
+```bash
+xmllint --noout archivo.xml
+```
 
 ### Paso 4: Aplicar Cambios
 ```bash

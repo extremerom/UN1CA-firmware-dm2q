@@ -53,6 +53,48 @@
 
 ---
 
+## 🔓 HOW TO DISABLE SECURITY / CÓMO DESACTIVAR SEGURIDAD
+
+### ⚠️ CRITICAL: Read full docs before disabling!
+### ⚠️ CRÍTICO: ¡Lee la documentación completa antes de desactivar!
+
+### Quick Disable Methods / Métodos Rápidos de Desactivación:
+
+#### 1️⃣ Empty Lists (Safest) / Vaciar Listas (Más Seguro)
+```xml
+<VERSION value="20251228"/>
+<LIST></LIST>  <!-- For ASKSB, ASKSHB, ASKSW -->
+```
+
+#### 2️⃣ Remove Specific Entry / Eliminar Entrada Específica
+Delete or comment out the HASHVALUE block for specific app
+Eliminar o comentar el bloque HASHVALUE para app específica
+
+#### 3️⃣ Move to Whitelist / Mover a Lista Blanca
+Remove from ASKSB.xml → Add to ASKSW.xml
+Eliminar de ASKSB.xml → Agregar a ASKSW.xml
+
+#### 4️⃣ Disable ADP (DANGEROUS!) / Desactivar ADP (¡PELIGROSO!)
+```xml
+<VERSION value="20251228"/>
+<ADP version="3.1"></ADP>  <!-- System may break! -->
+```
+
+### 🚨 Risks / Riesgos:
+- 🔴 Malware can install / Malware puede instalarse
+- 🔴 System instability / Inestabilidad del sistema
+- 🔴 Knox warranty void / Garantía Knox anulada
+- 🔴 Banking apps fail / Apps bancarias fallan
+
+### ✅ Safer Alternative / Alternativa Más Segura:
+**Don't disable - Add exceptions!**
+**¡No desactives - Agrega excepciones!**
+
+Use ASKSW.xml to whitelist your apps instead
+Usa ASKSW.xml para permitir tus apps en su lugar
+
+---
+
 ## Common Commands / Comandos Comunes
 
 ### Backup / Copia de Seguridad
