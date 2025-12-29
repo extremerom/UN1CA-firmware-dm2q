@@ -31,8 +31,24 @@ on:
       - 'system/system/priv-app/SamsungCoreServices/**'
       - 'system/system/priv-app/SamsungAccount/**'
       - 'system/system/priv-app/SamsungPass/**'
+      - 'system/system/priv-app/ThemeStore/**'
+      - 'system/system/priv-app/GalaxyApps_OPEN/**'
+      - 'system/system/priv-app/GalaxyResourceUpdater/**'
+      - 'system/system/app/GalaxyResourceUpdater/**'
       - 'system/system/app/MDMApp/**'
       - 'system/system/app/UniversalMDMClient/**'
+      - 'system/system/bin/ssud'
+      - 'system/system/bin/dmctl'
+      - 'system/system/bin/dmesgd'
+      - 'system/system/bin/dmabuf_dump'
+      - 'system/system/bin/fuse'
+      - 'system/system/bin/update_engine'
+      - 'system/system/bin/update_engine_client'
+      - 'system/system/bin/update_verifier'
+      - 'system/system/bin/otapreopt_chroot'
+      - 'vendor/bin/fuse'
+      - 'vendor/bin/update_engine'
+      - 'vendor/bin/update_verifier'
       - 'system/system/framework/telephony-common.jar'
       - 'system/system/framework/telephony-ext.jar'
       - 'system/system/framework/framework.jar'
@@ -96,8 +112,39 @@ on:
       - 'system/system/priv-app/AuthFramework/**'
       - 'system/system/priv-app/CIDManager/**'
       - 'system/system/priv-app/SPPPushClient/**'
+      - 'system/system/priv-app/Knox*/**'
+      - 'system/system/priv-app/knox*/**'
+      - 'system/system/priv-app/SKMSAgent/**'
+      - 'system/system/priv-app/SCPMAgent/**'
+      - 'system/system/priv-app/SVCAgent/**'
+      - 'system/system/priv-app/SOAgent*/**'
+      - 'system/system/priv-app/KLMSAgent/**'
+      - 'system/system/priv-app/OMCAgent*/**'
+      - 'system/system/priv-app/DiagMonAgent*/**'
+      - 'system/system/priv-app/DeviceQualityAgent*/**'
+      - 'system/system/priv-app/EnhancedAttestationAgent/**'
+      - 'system/system/priv-app/SamsungSeAgent/**'
+      - 'system/system/priv-app/SamsungCoreServices/**'
+      - 'system/system/priv-app/SamsungAccount/**'
+      - 'system/system/priv-app/SamsungPass/**'
+      - 'system/system/priv-app/ThemeStore/**'
+      - 'system/system/priv-app/GalaxyApps_OPEN/**'
+      - 'system/system/priv-app/GalaxyResourceUpdater/**'
+      - 'system/system/app/GalaxyResourceUpdater/**'
       - 'system/system/app/MDMApp/**'
       - 'system/system/app/UniversalMDMClient/**'
+      - 'system/system/bin/ssud'
+      - 'system/system/bin/dmctl'
+      - 'system/system/bin/dmesgd'
+      - 'system/system/bin/dmabuf_dump'
+      - 'system/system/bin/fuse'
+      - 'system/system/bin/update_engine'
+      - 'system/system/bin/update_engine_client'
+      - 'system/system/bin/update_verifier'
+      - 'system/system/bin/otapreopt_chroot'
+      - 'vendor/bin/fuse'
+      - 'vendor/bin/update_engine'
+      - 'vendor/bin/update_verifier'
       - 'system/system/framework/telephony-common.jar'
       - 'system/system/framework/telephony-ext.jar'
       - 'system/system/framework/framework.jar'
@@ -166,11 +213,13 @@ jobs:
         run: |
           mkdir -p artifact_output/system/system/priv-app
           mkdir -p artifact_output/system/system/app
+          mkdir -p artifact_output/system/system/bin
           mkdir -p artifact_output/system/system/framework
           mkdir -p artifact_output/system/system/lib
           mkdir -p artifact_output/system/system/lib64
           mkdir -p artifact_output/vendor/lib
           mkdir -p artifact_output/vendor/lib64
+          mkdir -p artifact_output/vendor/bin
           mkdir -p artifact_output/vendor/overlay
           mkdir -p artifact_output/product/overlay
           mkdir -p artifact_output/docs
@@ -353,6 +402,61 @@ jobs:
               echo "✓ $core_app APK copied"
             fi
           done
+
+      - name: Copy apps with update systems
+        run: |
+          echo "Copying apps with update systems (APK only)..."
+          # Apps with update/store functionality
+          for update_app in \
+            ThemeStore \
+            GalaxyApps_OPEN \
+            GalaxyResourceUpdater; do
+            if [ -d "system/system/priv-app/$update_app" ]; then
+              mkdir -p "artifact_output/system/system/priv-app/$update_app"
+              find "system/system/priv-app/$update_app" -name "*.apk" -exec cp {} "artifact_output/system/system/priv-app/$update_app/" \;
+              echo "✓ $update_app APK copied"
+            fi
+          done
+          
+          # Check for update apps in system/app
+          if [ -d "system/system/app/GalaxyResourceUpdater" ]; then
+            mkdir -p "artifact_output/system/system/app/GalaxyResourceUpdater"
+            find "system/system/app/GalaxyResourceUpdater" -name "*.apk" -exec cp {} "artifact_output/system/system/app/GalaxyResourceUpdater/" \;
+            echo "✓ GalaxyResourceUpdater (app) APK copied"
+          fi
+
+      - name: Copy binary files related to OTA/MDM/FUSE
+        run: |
+          echo "Copying bin files related to OTA, FOTA, MDM, SyncML, OAuth, FUSE..."
+          # System binaries related to updates, device management, and FUSE
+          for binary in \
+            ssud \
+            dmctl \
+            dmesgd \
+            dmabuf_dump \
+            fuse \
+            update_engine \
+            update_engine_client \
+            update_verifier \
+            otapreopt_chroot; do
+            if [ -f "system/system/bin/$binary" ]; then
+              cp "system/system/bin/$binary" artifact_output/system/system/bin/
+              echo "✓ $binary copied"
+            fi
+          done
+          
+          # Vendor binaries
+          if [ -d "vendor/bin" ]; then
+            for binary in \
+              fuse \
+              update_engine \
+              update_verifier; do
+              if [ -f "vendor/bin/$binary" ]; then
+                cp "vendor/bin/$binary" artifact_output/vendor/bin/
+                echo "✓ vendor/$binary copied"
+              fi
+            done
+          fi
 
       - name: Copy default permissions
         run: |
@@ -909,6 +1013,29 @@ jobs:
           - SamsungAccount
           - SamsungPass
           
+          ### Update & Store Applications
+          - ThemeStore (Samsung theme updates and management)
+          - GalaxyApps_OPEN (Galaxy Store for app updates)
+          - GalaxyResourceUpdater (System resource updater)
+          
+          ## Binary Files (bin/)
+          
+          ### System Binaries
+          - `ssud` - Samsung Software Update Daemon
+          - `dmctl` - Device Management control
+          - `dmesgd` - Device message daemon
+          - `dmabuf_dump` - DMA buffer dump utility
+          - `fuse` - FUSE filesystem support
+          - `update_engine` - System update engine
+          - `update_engine_client` - Update engine client
+          - `update_verifier` - Update verification tool
+          - `otapreopt_chroot` - OTA pre-optimization in chroot
+          
+          ### Vendor Binaries
+          - `fuse` - Vendor FUSE support
+          - `update_engine` - Vendor update engine
+          - `update_verifier` - Vendor update verifier
+          
           ## Key Features
           
           - Firmware Over-The-Air (FOTA) update management
@@ -977,6 +1104,17 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "#### Samsung Core Services" >> $GITHUB_STEP_SUMMARY
           echo "- SamsungCoreServices, SamsungAccount, SamsungPass" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Update & Store Apps" >> $GITHUB_STEP_SUMMARY
+          echo "- ThemeStore, GalaxyApps_OPEN, GalaxyResourceUpdater" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Binary Files" >> $GITHUB_STEP_SUMMARY
+          echo "#### System Binaries (/system/bin/)" >> $GITHUB_STEP_SUMMARY
+          echo "- ssud (Samsung Software Update Daemon), dmctl, dmesgd, dmabuf_dump" >> $GITHUB_STEP_SUMMARY
+          echo "- fuse, update_engine, update_engine_client, update_verifier, otapreopt_chroot" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Vendor Binaries (/vendor/bin/)" >> $GITHUB_STEP_SUMMARY
+          echo "- fuse, update_engine, update_verifier" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Native Libraries" >> $GITHUB_STEP_SUMMARY
           echo "- Authentication: libadbd_auth.so, libaccauthentication_jni.so, libauthentication_jni.so" >> $GITHUB_STEP_SUMMARY
