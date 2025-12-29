@@ -166,8 +166,6 @@ jobs:
         run: |
           mkdir -p artifact_output/system/system/priv-app
           mkdir -p artifact_output/system/system/app
-          mkdir -p artifact_output/system/system/etc/permissions
-          mkdir -p artifact_output/system/system/etc/default-permissions
           mkdir -p artifact_output/system/system/framework
           mkdir -p artifact_output/system/system/lib
           mkdir -p artifact_output/system/system/lib64
@@ -443,7 +441,19 @@ jobs:
         run: |
           echo "Copying security and keystore libraries from system/lib..."
           # Security and keystore libraries
-          for lib in android.hardware.security.keymint-V2-ndk.so android.security.authorization-ndk.so android.system.keystore2-V5-ndk.so libdk_native_keymint.so libtlc_blockchain_keystore.so libkeyutils.so vendor.samsung.hardware.keymint-V2-ndk.so vendor.samsung.hardware.security.wsm.service-V1-ndk.so vendor.samsung.hardware.security.skpm-V1-ndk.so vendor.samsung.hardware.tlc.hdm@1.0.so vendor.samsung.hardware.tlc.hdm@1.1.so vendor.samsung.hardware.tlc.hdm@1.2.so; do
+          for lib in \
+            android.hardware.security.keymint-V2-ndk.so \
+            android.security.authorization-ndk.so \
+            android.system.keystore2-V5-ndk.so \
+            libdk_native_keymint.so \
+            libtlc_blockchain_keystore.so \
+            libkeyutils.so \
+            vendor.samsung.hardware.keymint-V2-ndk.so \
+            vendor.samsung.hardware.security.wsm.service-V1-ndk.so \
+            vendor.samsung.hardware.security.skpm-V1-ndk.so \
+            vendor.samsung.hardware.tlc.hdm@1.0.so \
+            vendor.samsung.hardware.tlc.hdm@1.1.so \
+            vendor.samsung.hardware.tlc.hdm@1.2.so; do
             if [ -f "system/system/lib/$lib" ]; then
               cp "system/system/lib/$lib" artifact_output/system/system/lib/
               echo "✓ $lib copied"
@@ -454,7 +464,24 @@ jobs:
         run: |
           echo "Copying security and keystore libraries from system/lib64..."
           # Security and keystore libraries
-          for lib in android.hardware.security.keymint-V2-ndk.so android.hardware.security.keymint-V4-ndk.so android.security.authorization-ndk.so android.security.securekeygeneration-ndk.so android.system.keystore2-V5-ndk.so libdk_native_keymint.so libtlc_blockchain_keystore.so libkeyutils.so vendor.samsung.hardware.keymint-V2-ndk.so vendor.samsung.hardware.security.wsm.service-V1-ndk.so vendor.samsung.hardware.security.skpm-V1-ndk.so vendor.samsung.hardware.tlc.hdm@1.0.so vendor.samsung.hardware.tlc.hdm@1.1.so vendor.samsung.hardware.tlc.hdm@1.2.so android.hardware.keymaster@3.0.so android.hardware.keymaster@4.0.so android.hardware.keymaster@4.1.so; do
+          for lib in \
+            android.hardware.security.keymint-V2-ndk.so \
+            android.hardware.security.keymint-V4-ndk.so \
+            android.security.authorization-ndk.so \
+            android.security.securekeygeneration-ndk.so \
+            android.system.keystore2-V5-ndk.so \
+            libdk_native_keymint.so \
+            libtlc_blockchain_keystore.so \
+            libkeyutils.so \
+            vendor.samsung.hardware.keymint-V2-ndk.so \
+            vendor.samsung.hardware.security.wsm.service-V1-ndk.so \
+            vendor.samsung.hardware.security.skpm-V1-ndk.so \
+            vendor.samsung.hardware.tlc.hdm@1.0.so \
+            vendor.samsung.hardware.tlc.hdm@1.1.so \
+            vendor.samsung.hardware.tlc.hdm@1.2.so \
+            android.hardware.keymaster@3.0.so \
+            android.hardware.keymaster@4.0.so \
+            android.hardware.keymaster@4.1.so; do
             if [ -f "system/system/lib64/$lib" ]; then
               cp "system/system/lib64/$lib" artifact_output/system/system/lib64/
               echo "✓ $lib (64-bit) copied"
@@ -829,37 +856,77 @@ jobs:
           
           ## Contents
           
-          - **system/system/priv-app/FotaAgent/** - FotaAgent application
-          - **system/system/priv-app/OmaCP/** - OMA Client Provisioning application
-          - **system/system/priv-app/AppUpdateCenter/** - App Update Center application
-          - **system/system/priv-app/MCFDeviceSync/** - Multi-Connect Framework sync application
-          - **system/system/priv-app/NSDSWebApp/** - Network Service Discovery web app
-          - **system/system/priv-app/SmartSwitchAssistant/** - Smart Switch assistant application
-          - **system/system/etc/permissions/** - Permission XML files
-          - **system/system/etc/default-permissions/** - Default permission files
-          - **system/system/framework/** - Framework JARs dependencies
+          - **system/system/priv-app/** - Privileged applications (APK only, no odex/vdex)
+          - **system/system/app/** - System applications (APK only)
+          - **system/system/framework/** - Framework JARs (~50 files)
+          - **system/system/lib/** - 32-bit native libraries (.so files)
+          - **system/system/lib64/** - 64-bit native libraries (.so files)
+          - **vendor/lib/** - Vendor 32-bit native libraries
+          - **vendor/lib64/** - Vendor 64-bit native libraries
+          - **vendor/overlay/** - Vendor overlay APKs
+          - **product/overlay/** - Product overlay APKs
           - **docs/** - Documentation
           
           ## Applications Included
           
+          ### Core OTA/FOTA Applications
           1. **FotaAgent** (com.wsomacp) - OTA update management
           2. **OmaCP** - OMA Client Provisioning for device configuration
           3. **AppUpdateCenter** (com.samsung.android.app.updatecenter) - Application updates management
           4. **MCFDeviceSync** - Multi-Connect Framework device synchronization
           5. **NSDSWebApp** - Network Service Discovery web application
           6. **SmartSwitchAssistant** (com.samsung.android.smartswitchassistant) - Smart Switch data transfer
-          3. **AppUpdateCenter** (com.samsung.android.app.updatecenter) - App updates center
-          4. **MCFDeviceSync** - Multi-Connect Framework device synchronization
-          5. **NSDSWebApp** - Network Service Discovery web application
-          6. **SmartSwitchAssistant** (com.samsung.android.smartswitchassistant) - Smart Switch data transfer assistant
+          
+          ### Authentication & Security
+          7. **AuthFramework** - Samsung authentication framework
+          8. **CIDManager** - Carrier ID Manager
+          9. **SPPPushClient** - Samsung Push Protocol client
+          
+          ### MDM Applications
+          10. **MDMApp** - Mobile Device Management application
+          11. **UniversalMDMClient** - Universal MDM client
+          
+          ### Knox Suite (Security & Management)
+          - KnoxCore, KnoxGuard, KnoxPushManager
+          - KnoxMposAgent, KnoxERAgent, KnoxZtFramework
+          - KnoxNetworkFilter, KnoxSandbox
+          - knoxanalyticsagent, knoxvpnproxyhandler
+          
+          ### Samsung Agents (Device Management & Services)
+          - SKMSAgent (Samsung Key Management Service)
+          - SCPMAgent (Samsung Configuration & Policy Manager)
+          - SVCAgent (Samsung Voice Command)
+          - SOAgent76 (Samsung Optimization)
+          - KLMSAgent (Knox License Management)
+          - OMCAgent5 (OMC configuration)
+          - DiagMonAgent95 (Diagnostic Monitoring)
+          - DeviceQualityAgent36 (Device Quality)
+          - EnhancedAttestationAgent
+          - SamsungSeAgent (Secure Element)
+          
+          ### Samsung Core Services
+          - SamsungCoreServices
+          - SamsungAccount
+          - SamsungPass
           
           ## Key Features
           
           - Firmware Over-The-Air (FOTA) update management
           - OMA-CP/OMA-DM standards compliance
+          - Mobile Device Management (MDM) support
+          - Knox enterprise security features
+          - Samsung cloud service integration
           - WAP Push and SMS notification support
           - System update installation capabilities
           - Integration with Samsung diagnostic and keystore services
+          
+          ## Important Notes
+          
+          - **APK files only**: No odex or vdex compiled files included
+          - **No permission files**: privapp-permissions-*.xml and default-permissions-*.xml excluded
+          - **Native libraries included**: All authentication, security, MDM, and FIDO libraries
+          - **Framework JARs**: ~50 JARs related to telephony, IMS, security, cryptography
+          - **Overlays**: Device-specific and connectivity overlays for network management
           
           For detailed dependency information, see docs/FOTA_AGENT_DEPENDENCIES.md
           EOF
@@ -893,12 +960,42 @@ jobs:
           echo "- **Total Files**: $(wc -l < artifact_output/MANIFEST.txt)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Applications Included" >> $GITHUB_STEP_SUMMARY
-          echo "1. **FotaAgent** (com.wsomacp) - OTA update management" >> $GITHUB_STEP_SUMMARY
-          echo "2. **OmaCP** - OMA Client Provisioning" >> $GITHUB_STEP_SUMMARY
-          echo "3. **AppUpdateCenter** (com.samsung.android.app.updatecenter) - App updates" >> $GITHUB_STEP_SUMMARY
-          echo "4. **MCFDeviceSync** - Multi-Connect Framework sync" >> $GITHUB_STEP_SUMMARY
-          echo "5. **NSDSWebApp** - Network Service Discovery" >> $GITHUB_STEP_SUMMARY
-          echo "6. **SmartSwitchAssistant** (com.samsung.android.smartswitchassistant) - Data transfer" >> $GITHUB_STEP_SUMMARY
+          echo "#### Core OTA/FOTA" >> $GITHUB_STEP_SUMMARY
+          echo "- FotaAgent, OmaCP, AppUpdateCenter, MCFDeviceSync, NSDSWebApp, SmartSwitchAssistant" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Authentication & Security" >> $GITHUB_STEP_SUMMARY
+          echo "- AuthFramework, CIDManager, SPPPushClient" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### MDM" >> $GITHUB_STEP_SUMMARY
+          echo "- MDMApp, UniversalMDMClient" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Knox Suite" >> $GITHUB_STEP_SUMMARY
+          echo "- KnoxCore, KnoxGuard, KnoxPushManager, KnoxMposAgent, KnoxERAgent, KnoxZtFramework, KnoxNetworkFilter, KnoxSandbox, knoxanalyticsagent, knoxvpnproxyhandler" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Samsung Agents" >> $GITHUB_STEP_SUMMARY
+          echo "- SKMSAgent, SCPMAgent, SVCAgent, SOAgent76, KLMSAgent, OMCAgent5, DiagMonAgent95, DeviceQualityAgent36, EnhancedAttestationAgent, SamsungSeAgent" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Samsung Core Services" >> $GITHUB_STEP_SUMMARY
+          echo "- SamsungCoreServices, SamsungAccount, SamsungPass" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Native Libraries" >> $GITHUB_STEP_SUMMARY
+          echo "- Authentication: libadbd_auth.so, libaccauthentication_jni.so, libauthentication_jni.so" >> $GITHUB_STEP_SUMMARY
+          echo "- EDM: libedmnativehelper.so, libedmnativehelperservice.so" >> $GITHUB_STEP_SUMMARY
+          echo "- Security/Keystore: android.hardware.security.keymint-*.so, android.system.keystore2-*.so, libdk_native_keymint.so, libtlc_blockchain_keystore.so" >> $GITHUB_STEP_SUMMARY
+          echo "- Samsung Security: vendor.samsung.hardware.keymint-*.so, vendor.samsung.hardware.security.*.so, vendor.samsung.hardware.tlc.hdm@*.so" >> $GITHUB_STEP_SUMMARY
+          echo "- MDM/FIDO: libmdmdetect.so, libmdmimgload.so, libfidoauthnr_v2.so, vendor.samsung.hardware.authfw@1.0.so" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Framework JARs (~50 files)" >> $GITHUB_STEP_SUMMARY
+          echo "Core framework, telephony, IMS, security, cryptography, Samsung services" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Overlays" >> $GITHUB_STEP_SUMMARY
+          echo "- Product: framework-res__dm2qxxx (device-specific)" >> $GITHUB_STEP_SUMMARY
+          echo "- Vendor: Tethering, Connectivity overlays" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Important Notes" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ APK files only (no odex/vdex)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ No permission XML files included" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ All authentication, security, MDM, and FIDO libraries included" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Directory Structure" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
