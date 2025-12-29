@@ -16,6 +16,21 @@ on:
       - 'system/system/priv-app/AuthFramework/**'
       - 'system/system/priv-app/CIDManager/**'
       - 'system/system/priv-app/SPPPushClient/**'
+      - 'system/system/priv-app/Knox*/**'
+      - 'system/system/priv-app/knox*/**'
+      - 'system/system/priv-app/SKMSAgent/**'
+      - 'system/system/priv-app/SCPMAgent/**'
+      - 'system/system/priv-app/SVCAgent/**'
+      - 'system/system/priv-app/SOAgent*/**'
+      - 'system/system/priv-app/KLMSAgent/**'
+      - 'system/system/priv-app/OMCAgent*/**'
+      - 'system/system/priv-app/DiagMonAgent*/**'
+      - 'system/system/priv-app/DeviceQualityAgent*/**'
+      - 'system/system/priv-app/EnhancedAttestationAgent/**'
+      - 'system/system/priv-app/SamsungSeAgent/**'
+      - 'system/system/priv-app/SamsungCoreServices/**'
+      - 'system/system/priv-app/SamsungAccount/**'
+      - 'system/system/priv-app/SamsungPass/**'
       - 'system/system/app/MDMApp/**'
       - 'system/system/app/UniversalMDMClient/**'
       - 'system/system/framework/telephony-common.jar'
@@ -70,14 +85,6 @@ on:
       - 'vendor/lib64/libmdmimgload.so'
       - 'vendor/lib64/libfidoauthnr_v2.so'
       - 'vendor/lib64/vendor.samsung.hardware.authfw@1.0.so'
-      - 'system/system/etc/permissions/privapp-permissions-com.wsomacp.xml'
-      - 'system/system/etc/permissions/privapp-permissions-com.wssyncmldm.xml'
-      - 'system/system/etc/permissions/privapp-permissions-com.samsung.android.app.updatecenter.xml'
-      - 'system/system/etc/permissions/privapp-permissions-com.samsung.android.smartswitchassistant.xml'
-      - 'system/system/etc/permissions/privapp-permissions-com.samsung.android.cidmanager.xml'
-      - 'system/system/etc/permissions/privapp-permissions-com.sec.spp.push.xml'
-      - 'system/system/etc/default-permissions/default-permissions-com.wsomacp.xml'
-      - 'system/system/etc/default-permissions/default-permissions-com.sec.spp.push.xml'
   pull_request:
     paths:
       - 'system/system/priv-app/FotaAgent/**'
@@ -143,14 +150,6 @@ on:
       - 'vendor/lib64/libmdmimgload.so'
       - 'vendor/lib64/libfidoauthnr_v2.so'
       - 'vendor/lib64/vendor.samsung.hardware.authfw@1.0.so'
-      - 'system/system/etc/permissions/privapp-permissions-com.wsomacp.xml'
-      - 'system/system/etc/permissions/privapp-permissions-com.wssyncmldm.xml'
-      - 'system/system/etc/permissions/privapp-permissions-com.samsung.android.app.updatecenter.xml'
-      - 'system/system/etc/permissions/privapp-permissions-com.samsung.android.smartswitchassistant.xml'
-      - 'system/system/etc/permissions/privapp-permissions-com.samsung.android.cidmanager.xml'
-      - 'system/system/etc/permissions/privapp-permissions-com.sec.spp.push.xml'
-      - 'system/system/etc/default-permissions/default-permissions-com.wsomacp.xml'
-      - 'system/system/etc/default-permissions/default-permissions-com.sec.spp.push.xml'
 
 jobs:
   collect-and-upload-fota-artifacts:
@@ -180,116 +179,127 @@ jobs:
 
       - name: Copy FotaAgent application
         run: |
-          echo "Copying FotaAgent..."
+          echo "Copying FotaAgent (APK only, excluding odex/vdex)..."
           if [ -d "system/system/priv-app/FotaAgent" ]; then
-            cp -r "system/system/priv-app/FotaAgent" artifact_output/system/system/priv-app/
-            echo "✓ FotaAgent copied"
+            mkdir -p artifact_output/system/system/priv-app/FotaAgent
+            find system/system/priv-app/FotaAgent -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/FotaAgent/ \;
+            echo "✓ FotaAgent APK copied"
           else
             echo "⚠ FotaAgent not found"
           fi
 
       - name: Copy OmaCP application
         run: |
-          echo "Copying OmaCP (OMA Client Provisioning)..."
+          echo "Copying OmaCP (OMA Client Provisioning, APK only)..."
           if [ -d "system/system/priv-app/OmaCP" ]; then
-            cp -r "system/system/priv-app/OmaCP" artifact_output/system/system/priv-app/
-            echo "✓ OmaCP copied"
+            mkdir -p artifact_output/system/system/priv-app/OmaCP
+            find system/system/priv-app/OmaCP -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/OmaCP/ \;
+            echo "✓ OmaCP APK copied"
           else
             echo "⚠ OmaCP not found"
           fi
 
       - name: Copy AppUpdateCenter application
         run: |
-          echo "Copying AppUpdateCenter..."
+          echo "Copying AppUpdateCenter (APK only)..."
           if [ -d "system/system/priv-app/AppUpdateCenter" ]; then
-            cp -r "system/system/priv-app/AppUpdateCenter" artifact_output/system/system/priv-app/
-            echo "✓ AppUpdateCenter copied"
+            mkdir -p artifact_output/system/system/priv-app/AppUpdateCenter
+            find system/system/priv-app/AppUpdateCenter -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/AppUpdateCenter/ \;
+            echo "✓ AppUpdateCenter APK copied"
           else
             echo "⚠ AppUpdateCenter not found"
           fi
 
       - name: Copy MCFDeviceSync application
         run: |
-          echo "Copying MCFDeviceSync (Multi-Connect Framework)..."
+          echo "Copying MCFDeviceSync (Multi-Connect Framework, APK only)..."
           if [ -d "system/system/priv-app/MCFDeviceSync" ]; then
-            cp -r "system/system/priv-app/MCFDeviceSync" artifact_output/system/system/priv-app/
-            echo "✓ MCFDeviceSync copied"
+            mkdir -p artifact_output/system/system/priv-app/MCFDeviceSync
+            find system/system/priv-app/MCFDeviceSync -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/MCFDeviceSync/ \;
+            echo "✓ MCFDeviceSync APK copied"
           else
             echo "⚠ MCFDeviceSync not found"
           fi
 
       - name: Copy NSDSWebApp application
         run: |
-          echo "Copying NSDSWebApp (Network Service Discovery)..."
+          echo "Copying NSDSWebApp (Network Service Discovery, APK only)..."
           if [ -d "system/system/priv-app/NSDSWebApp" ]; then
-            cp -r "system/system/priv-app/NSDSWebApp" artifact_output/system/system/priv-app/
-            echo "✓ NSDSWebApp copied"
+            mkdir -p artifact_output/system/system/priv-app/NSDSWebApp
+            find system/system/priv-app/NSDSWebApp -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/NSDSWebApp/ \;
+            echo "✓ NSDSWebApp APK copied"
           else
             echo "⚠ NSDSWebApp not found"
           fi
 
       - name: Copy SmartSwitchAssistant application
         run: |
-          echo "Copying SmartSwitchAssistant..."
+          echo "Copying SmartSwitchAssistant (APK only)..."
           if [ -d "system/system/priv-app/SmartSwitchAssistant" ]; then
-            cp -r "system/system/priv-app/SmartSwitchAssistant" artifact_output/system/system/priv-app/
-            echo "✓ SmartSwitchAssistant copied"
+            mkdir -p artifact_output/system/system/priv-app/SmartSwitchAssistant
+            find system/system/priv-app/SmartSwitchAssistant -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/SmartSwitchAssistant/ \;
+            echo "✓ SmartSwitchAssistant APK copied"
           else
             echo "⚠ SmartSwitchAssistant not found"
           fi
 
       - name: Copy AuthFramework application
         run: |
-          echo "Copying AuthFramework (Authentication Framework)..."
+          echo "Copying AuthFramework (Authentication Framework, APK only)..."
           if [ -d "system/system/priv-app/AuthFramework" ]; then
-            cp -r "system/system/priv-app/AuthFramework" artifact_output/system/system/priv-app/
-            echo "✓ AuthFramework copied"
+            mkdir -p artifact_output/system/system/priv-app/AuthFramework
+            find system/system/priv-app/AuthFramework -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/AuthFramework/ \;
+            echo "✓ AuthFramework APK copied"
           else
             echo "⚠ AuthFramework not found"
           fi
 
       - name: Copy CIDManager application
         run: |
-          echo "Copying CIDManager (Carrier ID Manager)..."
+          echo "Copying CIDManager (Carrier ID Manager, APK only)..."
           if [ -d "system/system/priv-app/CIDManager" ]; then
-            cp -r "system/system/priv-app/CIDManager" artifact_output/system/system/priv-app/
-            echo "✓ CIDManager copied"
+            mkdir -p artifact_output/system/system/priv-app/CIDManager
+            find system/system/priv-app/CIDManager -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/CIDManager/ \;
+            echo "✓ CIDManager APK copied"
           else
             echo "⚠ CIDManager not found"
           fi
 
       - name: Copy SPPPushClient application
         run: |
-          echo "Copying SPPPushClient (Samsung Push Protocol)..."
+          echo "Copying SPPPushClient (Samsung Push Protocol, APK only)..."
           if [ -d "system/system/priv-app/SPPPushClient" ]; then
-            cp -r "system/system/priv-app/SPPPushClient" artifact_output/system/system/priv-app/
-            echo "✓ SPPPushClient copied"
+            mkdir -p artifact_output/system/system/priv-app/SPPPushClient
+            find system/system/priv-app/SPPPushClient -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/SPPPushClient/ \;
+            echo "✓ SPPPushClient APK copied"
           else
             echo "⚠ SPPPushClient not found"
           fi
 
       - name: Copy MDM applications
         run: |
-          echo "Copying MDM applications..."
+          echo "Copying MDM applications (APK only)..."
           # Copy MDMApp
           if [ -d "system/system/app/MDMApp" ]; then
-            cp -r "system/system/app/MDMApp" artifact_output/system/system/app/
-            echo "✓ MDMApp copied"
+            mkdir -p artifact_output/system/system/app/MDMApp
+            find system/system/app/MDMApp -name "*.apk" -exec cp {} artifact_output/system/system/app/MDMApp/ \;
+            echo "✓ MDMApp APK copied"
           else
             echo "⚠ MDMApp not found"
           fi
           
           # Copy UniversalMDMClient
           if [ -d "system/system/app/UniversalMDMClient" ]; then
-            cp -r "system/system/app/UniversalMDMClient" artifact_output/system/system/app/
-            echo "✓ UniversalMDMClient copied"
+            mkdir -p artifact_output/system/system/app/UniversalMDMClient
+            find system/system/app/UniversalMDMClient -name "*.apk" -exec cp {} artifact_output/system/system/app/UniversalMDMClient/ \;
+            echo "✓ UniversalMDMClient APK copied"
           else
             echo "⚠ UniversalMDMClient not found"
           fi
 
       - name: Copy Knox applications
         run: |
-          echo "Copying Knox applications..."
+          echo "Copying Knox applications (APK only)..."
           # Core Knox apps
           for knox_app in \
             KnoxCore \
@@ -303,14 +313,15 @@ jobs:
             knoxanalyticsagent \
             knoxvpnproxyhandler; do
             if [ -d "system/system/priv-app/$knox_app" ]; then
-              cp -r "system/system/priv-app/$knox_app" artifact_output/system/system/priv-app/
-              echo "✓ $knox_app copied"
+              mkdir -p "artifact_output/system/system/priv-app/$knox_app"
+              find "system/system/priv-app/$knox_app" -name "*.apk" -exec cp {} "artifact_output/system/system/priv-app/$knox_app/" \;
+              echo "✓ $knox_app APK copied"
             fi
           done
 
       - name: Copy Samsung Agent applications
         run: |
-          echo "Copying Samsung Agent applications..."
+          echo "Copying Samsung Agent applications (APK only)..."
           # Samsung agents for device management, security, and services
           for agent_app in \
             SKMSAgent \
@@ -324,74 +335,31 @@ jobs:
             EnhancedAttestationAgent \
             SamsungSeAgent; do
             if [ -d "system/system/priv-app/$agent_app" ]; then
-              cp -r "system/system/priv-app/$agent_app" artifact_output/system/system/priv-app/
-              echo "✓ $agent_app copied"
+              mkdir -p "artifact_output/system/system/priv-app/$agent_app"
+              find "system/system/priv-app/$agent_app" -name "*.apk" -exec cp {} "artifact_output/system/system/priv-app/$agent_app/" \;
+              echo "✓ $agent_app APK copied"
             fi
           done
 
       - name: Copy Samsung Core Services
         run: |
-          echo "Copying Samsung Core Services..."
+          echo "Copying Samsung Core Services (APK only)..."
           # Samsung core service apps
           for core_app in \
             SamsungCoreServices \
             SamsungAccount \
             SamsungPass; do
             if [ -d "system/system/priv-app/$core_app" ]; then
-              cp -r "system/system/priv-app/$core_app" artifact_output/system/system/priv-app/
-              echo "✓ $core_app copied"
+              mkdir -p "artifact_output/system/system/priv-app/$core_app"
+              find "system/system/priv-app/$core_app" -name "*.apk" -exec cp {} "artifact_output/system/system/priv-app/$core_app/" \;
+              echo "✓ $core_app APK copied"
             fi
           done
 
-      - name: Copy permission XML files
-        run: |
-          echo "Copying permission files..."
-          # Copy FOTA-related permission files
-          if [ -f "system/system/etc/permissions/privapp-permissions-com.wsomacp.xml" ]; then
-            cp "system/system/etc/permissions/privapp-permissions-com.wsomacp.xml" artifact_output/system/system/etc/permissions/
-            echo "✓ privapp-permissions-com.wsomacp.xml copied"
-          fi
-          
-          if [ -f "system/system/etc/permissions/privapp-permissions-com.wssyncmldm.xml" ]; then
-            cp "system/system/etc/permissions/privapp-permissions-com.wssyncmldm.xml" artifact_output/system/system/etc/permissions/
-            echo "✓ privapp-permissions-com.wssyncmldm.xml copied"
-          fi
-          
-          if [ -f "system/system/etc/permissions/privapp-permissions-com.samsung.android.app.updatecenter.xml" ]; then
-            cp "system/system/etc/permissions/privapp-permissions-com.samsung.android.app.updatecenter.xml" artifact_output/system/system/etc/permissions/
-            echo "✓ privapp-permissions-com.samsung.android.app.updatecenter.xml copied"
-          fi
-          
-          if [ -f "system/system/etc/permissions/privapp-permissions-com.samsung.android.smartswitchassistant.xml" ]; then
-            cp "system/system/etc/permissions/privapp-permissions-com.samsung.android.smartswitchassistant.xml" artifact_output/system/system/etc/permissions/
-            echo "✓ privapp-permissions-com.samsung.android.smartswitchassistant.xml copied"
-          fi
-          
-          # Copy CIDManager permissions
-          if [ -f "system/system/etc/permissions/privapp-permissions-com.samsung.android.cidmanager.xml" ]; then
-            cp "system/system/etc/permissions/privapp-permissions-com.samsung.android.cidmanager.xml" artifact_output/system/system/etc/permissions/
-            echo "✓ privapp-permissions-com.samsung.android.cidmanager.xml copied"
-          fi
-          
-          # Copy SPP Push permissions
-          if [ -f "system/system/etc/permissions/privapp-permissions-com.sec.spp.push.xml" ]; then
-            cp "system/system/etc/permissions/privapp-permissions-com.sec.spp.push.xml" artifact_output/system/system/etc/permissions/
-            echo "✓ privapp-permissions-com.sec.spp.push.xml copied"
-          fi
-
       - name: Copy default permissions
         run: |
-          echo "Copying default permissions..."
-          if [ -f "system/system/etc/default-permissions/default-permissions-com.wsomacp.xml" ]; then
-            cp "system/system/etc/default-permissions/default-permissions-com.wsomacp.xml" artifact_output/system/system/etc/default-permissions/
-            echo "✓ default-permissions-com.wsomacp.xml copied"
-          fi
-          
-          # Copy SPP Push default permissions
-          if [ -f "system/system/etc/default-permissions/default-permissions-com.sec.spp.push.xml" ]; then
-            cp "system/system/etc/default-permissions/default-permissions-com.sec.spp.push.xml" artifact_output/system/system/etc/default-permissions/
-            echo "✓ default-permissions-com.sec.spp.push.xml copied"
-          fi
+          echo "Skipping permission files per requirements..."
+          echo "⚠ Permission XML files and default permissions not copied"
 
       - name: Copy related framework JARs
         run: |
