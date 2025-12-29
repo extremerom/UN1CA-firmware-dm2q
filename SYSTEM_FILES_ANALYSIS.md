@@ -6,9 +6,9 @@ Este documento contiene listas separadas de archivos relacionados con componente
 29 de diciembre de 2025
 
 ## Resumen
-- **Pantalla (Display/Screen)**: 39 archivos
-- **Carga Rápida (Fast Charging/Battery)**: 54 archivos
-- **Vibración (Vibration/Haptic)**: 25 archivos
+- **Pantalla (Display/Screen)**: 40 archivos
+- **Carga Rápida (Fast Charging/Battery)**: 56 archivos
+- **Vibración (Vibration/Haptic)**: 26 archivos
 - **Audio (Audio/Sound)**: 236 archivos
 - **Cámara (Camera)**: 203 archivos
 
@@ -61,7 +61,7 @@ Archivos relacionados con pantalla, brillo, captura de pantalla y display remoto
 ./priv-app/TaskEdgePanel_v3.2/oat/arm64/TaskEdgePanel_v3.2.vdex
 ```
 
-**Total: 39 archivos**
+**Total: 40 archivos**
 
 ---
 
@@ -128,7 +128,7 @@ Archivos relacionados con carga rápida, batería y gestión de energía:
 ./media/slow_charging_usb.spi
 ```
 
-**Total: 54 archivos**
+**Total: 56 archivos**
 
 **Nota sobre Carga Rápida**: Los archivos con el prefijo "ChargingStarted_Fast" son específicos para la funcionalidad de carga rápida.
 
@@ -167,7 +167,7 @@ Archivos relacionados con vibración y retroalimentación háptica:
 ./media/audio/ui/VIB_Vibration_Call.ogg
 ```
 
-**Total: 25 archivos**
+**Total: 26 archivos**
 
 ---
 
