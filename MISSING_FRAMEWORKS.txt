@@ -1,0 +1,23 @@
+# Missing Frameworks from Your List
+
+The following frameworks are present in system_ext/framework/ but are MISSING from your provided list:
+
+1. org.carconnectivity.android.digitalkey.rangingintent.jar
+2. org.carconnectivity.android.digitalkey.secureelement.jar
+
+## Where to add them
+
+These should be inserted in your list after:
+  org.carconnectivity.android.digitalkey.timesync.jar
+
+And before:
+  qmapbridge.jar
+
+## Context
+
+Both frameworks are part of the Android Digital Key (Car Connectivity) API:
+- rangingintent.jar: Handles UWB ranging functionality for digital car keys
+- secureelement.jar: Handles secure element operations for digital car keys
+
+Your list already includes the third framework from this family:
+- org.carconnectivity.android.digitalkey.timesync.jar ✓
