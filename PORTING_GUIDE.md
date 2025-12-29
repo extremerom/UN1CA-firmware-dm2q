@@ -59,6 +59,10 @@ La mejor estrategia es:
 
 ## PASO 1: Archivos que DEBES COPIAR de dm2q a r0q
 
+**📄 LISTA COMPLETA:** Ver **[FILES_TO_COPY_FROM_DM2Q.md](FILES_TO_COPY_FROM_DM2Q.md)** para la lista detallada de TODOS los archivos a copiar con rutas exactas (~280 archivos críticos + ~150 opcionales).
+
+A continuación se describe cada categoría:
+
 ### A. Partición `vendor/` (COMPLETA)
 
 **⚠️ CRÍTICO:** Copia **TODA** la partición `/vendor` de dm2q a r0q
