@@ -1,0 +1,65 @@
+# FAST CHARGING / BATTERY / POWER RELATED FILES
+
+Total files found: 59
+
+## Files by Category
+
+- system/system/app/CocktailQuickTool/CocktailQuickTool.apk
+- system/system/app/CocktailQuickTool/oat/arm64/CocktailQuickTool.odex
+- system/system/app/CocktailQuickTool/oat/arm64/CocktailQuickTool.vdex
+- system/system/bin/samsungpowersoundplay
+- system/system/etc/init/init.sec-charger.rc
+- system/system/etc/init/powersnd.rc
+- system/system/etc/permissions/com.sec.feature.wirelesscharger_authentication.xml
+- system/system/etc/res/images/charger/battery_fail.png
+- system/system/etc/res/images/charger/battery_scale.png
+- system/system/lib/android.hardware.power-V6-ndk.so
+- system/system/lib/android.hardware.power.stats-V1-cpp.so
+- system/system/lib/android.hardware.power.stats-V1-ndk.so
+- system/system/lib/android.hardware.power.stats@1.0.so
+- system/system/lib/android.hardware.power@1.0.so
+- system/system/lib/android.hardware.power@1.1.so
+- system/system/lib/android.hardware.power@1.2.so
+- system/system/lib/android.hardware.power@1.3.so
+- system/system/lib/libbattery.so
+- system/system/lib/libbatterystats_aidl.so
+- system/system/lib/libpower.so
+- system/system/lib/libpowermanager.so
+- system/system/lib/vendor.samsung.hardware.miscpower@2.0.so
+- system/system/lib64/android.hardware.power-V6-ndk.so
+- system/system/lib64/android.hardware.power.stats-V1-cpp.so
+- system/system/lib64/android.hardware.power.stats-V1-ndk.so
+- system/system/lib64/android.hardware.power.stats@1.0.so
+- system/system/lib64/android.hardware.power@1.0.so
+- system/system/lib64/android.hardware.power@1.1.so
+- system/system/lib64/android.hardware.power@1.2.so
+- system/system/lib64/android.hardware.power@1.3.so
+- system/system/lib64/libbattery.so
+- system/system/lib64/libbatterystats_aidl.so
+- system/system/lib64/libpower.so
+- system/system/lib64/libpower_monitor.dylib.so
+- system/system/lib64/libpowermanager.so
+- system/system/lib64/libsamsungpowersound.so
+- system/system/lib64/vendor.samsung.hardware.miscpower@2.0.so
+- system/system/media/audio/ui/ChargingStarted.ogg
+- system/system/media/audio/ui/ChargingStarted_Calm.ogg
+- system/system/media/audio/ui/ChargingStarted_Fast.ogg
+- system/system/media/audio/ui/ChargingStarted_Fast_Calm.ogg
+- system/system/media/audio/ui/ChargingStarted_Fast_Fun.ogg
+- system/system/media/audio/ui/ChargingStarted_Fast_Retro.ogg
+- system/system/media/audio/ui/ChargingStarted_Fun.ogg
+- system/system/media/audio/ui/ChargingStarted_Retro.ogg
+- system/system/media/audio/ui/LowBattery.ogg
+- system/system/media/audio/ui/LowBattery_Calm.ogg
+- system/system/media/audio/ui/LowBattery_Fun.ogg
+- system/system/media/audio/ui/LowBattery_Retro.ogg
+- system/system/media/audio/ui/TW_Battery_caution.ogg
+- system/system/media/audio/ui/TW_Battery_swelling_warning.ogg
+- system/system/media/audio/ui/WirelessChargingStarted.ogg
+- system/system/media/battery_error.spi
+- system/system/media/battery_low.spi
+- system/system/media/battery_protection.spi
+- system/system/media/battery_temperature_error.spi
+- system/system/media/battery_temperature_limit.spi
+- system/system/media/battery_water_usb.spi
+- system/system/media/slow_charging_usb.spi
