@@ -13,11 +13,94 @@ on:
       - 'system/system/priv-app/MCFDeviceSync/**'
       - 'system/system/priv-app/NSDSWebApp/**'
       - 'system/system/priv-app/SmartSwitchAssistant/**'
-      - 'system/system/etc/permissions/privapp-permissions-com.wsomacp.xml'
-      - 'system/system/etc/permissions/privapp-permissions-com.wssyncmldm.xml'
-      - 'system/system/etc/permissions/privapp-permissions-com.samsung.android.app.updatecenter.xml'
-      - 'system/system/etc/permissions/privapp-permissions-com.samsung.android.smartswitchassistant.xml'
-      - 'system/system/etc/default-permissions/default-permissions-com.wsomacp.xml'
+      - 'system/system/priv-app/AuthFramework/**'
+      - 'system/system/priv-app/CIDManager/**'
+      - 'system/system/priv-app/SPPPushClient/**'
+      - 'system/system/priv-app/Knox*/**'
+      - 'system/system/priv-app/knox*/**'
+      - 'system/system/priv-app/SKMSAgent/**'
+      - 'system/system/priv-app/SCPMAgent/**'
+      - 'system/system/priv-app/SVCAgent/**'
+      - 'system/system/priv-app/SOAgent*/**'
+      - 'system/system/priv-app/KLMSAgent/**'
+      - 'system/system/priv-app/OMCAgent*/**'
+      - 'system/system/priv-app/DiagMonAgent*/**'
+      - 'system/system/priv-app/DeviceQualityAgent*/**'
+      - 'system/system/priv-app/EnhancedAttestationAgent/**'
+      - 'system/system/priv-app/SamsungSeAgent/**'
+      - 'system/system/priv-app/SamsungCoreServices/**'
+      - 'system/system/priv-app/SamsungAccount/**'
+      - 'system/system/priv-app/SamsungPass/**'
+      - 'system/system/priv-app/ThemeStore/**'
+      - 'system/system/priv-app/GalaxyApps_OPEN/**'
+      - 'system/system/priv-app/GalaxyResourceUpdater/**'
+      - 'system/system/app/GalaxyResourceUpdater/**'
+      - 'system/system/app/MDMApp/**'
+      - 'system/system/app/UniversalMDMClient/**'
+      - 'system/system/bin/ssud'
+      - 'system/system/bin/dmctl'
+      - 'system/system/bin/dmesgd'
+      - 'system/system/bin/dmabuf_dump'
+      - 'system/system/bin/fuse'
+      - 'system/system/bin/update_engine'
+      - 'system/system/bin/update_engine_client'
+      - 'system/system/bin/update_verifier'
+      - 'system/system/bin/otapreopt_chroot'
+      - 'vendor/bin/fuse'
+      - 'vendor/bin/update_engine'
+      - 'vendor/bin/update_verifier'
+      - 'system/system/framework/telephony-common.jar'
+      - 'system/system/framework/telephony-ext.jar'
+      - 'system/system/framework/framework.jar'
+      - 'system/system/framework/services.jar'
+      - 'system/system/framework/ims-common.jar'
+      - 'system/system/framework/imsmanager.jar'
+      - 'system/system/framework/FabricCryptoLib.jar'
+      - 'system/system/framework/PQCKeystoreProvider.jar'
+      - 'system/system/framework/SecureKeyBlob.jar'
+      - 'system/system/framework/samsungkeystoreutils.jar'
+      - 'system/system/framework/service-samsung-payment.jar'
+      - 'system/system/framework/service-samsung-blockchain.jar'
+      - 'system/system/framework/incident-helper-cmd.jar'
+      - 'system/system/framework/ext.jar'
+      - 'product/overlay/**/framework-res__dm2q*.apk'
+      - 'vendor/overlay/**/Tethering*.apk'
+      - 'vendor/overlay/**/Connectivity*.apk'
+      - 'vendor/overlay/**/framework-res*.apk'
+      - 'system/system/lib/libadbd_auth.so'
+      - 'system/system/lib/libaccauthentication_jni.so'
+      - 'system/system/lib/libauthentication_jni.so'
+      - 'system/system/lib/libedmnativehelper.so'
+      - 'system/system/lib/libedmnativehelperservice.so'
+      - 'system/system/lib/android.hardware.security.keymint-V2-ndk.so'
+      - 'system/system/lib/android.security.authorization-ndk.so'
+      - 'system/system/lib/android.system.keystore2-V5-ndk.so'
+      - 'system/system/lib/libdk_native_keymint.so'
+      - 'system/system/lib/libtlc_blockchain_keystore.so'
+      - 'system/system/lib/vendor.samsung.hardware.keymint-V2-ndk.so'
+      - 'system/system/lib/vendor.samsung.hardware.security.*.so'
+      - 'system/system/lib/vendor.samsung.hardware.tlc.hdm@*.so'
+      - 'system/system/lib64/libadbd_auth.so'
+      - 'system/system/lib64/libaccauthentication_jni.so'
+      - 'system/system/lib64/libauthentication_jni.so'
+      - 'system/system/lib64/libedmnativehelper.so'
+      - 'system/system/lib64/libedmnativehelperservice.so'
+      - 'system/system/lib64/android.hardware.security.keymint-*.so'
+      - 'system/system/lib64/android.security.authorization-ndk.so'
+      - 'system/system/lib64/android.system.keystore2-V5-ndk.so'
+      - 'system/system/lib64/libdk_native_keymint.so'
+      - 'system/system/lib64/libtlc_blockchain_keystore.so'
+      - 'system/system/lib64/vendor.samsung.hardware.keymint-V2-ndk.so'
+      - 'system/system/lib64/vendor.samsung.hardware.security.*.so'
+      - 'system/system/lib64/vendor.samsung.hardware.tlc.hdm@*.so'
+      - 'system/system/lib64/android.hardware.keymaster@*.so'
+      - 'vendor/lib/libmdmdetect.so'
+      - 'vendor/lib/libfidoauthnr_v2.so'
+      - 'vendor/lib/vendor.samsung.hardware.authfw@1.0.so'
+      - 'vendor/lib64/libmdmdetect.so'
+      - 'vendor/lib64/libmdmimgload.so'
+      - 'vendor/lib64/libfidoauthnr_v2.so'
+      - 'vendor/lib64/vendor.samsung.hardware.authfw@1.0.so'
   pull_request:
     paths:
       - 'system/system/priv-app/FotaAgent/**'
@@ -26,11 +109,94 @@ on:
       - 'system/system/priv-app/MCFDeviceSync/**'
       - 'system/system/priv-app/NSDSWebApp/**'
       - 'system/system/priv-app/SmartSwitchAssistant/**'
-      - 'system/system/etc/permissions/privapp-permissions-com.wsomacp.xml'
-      - 'system/system/etc/permissions/privapp-permissions-com.wssyncmldm.xml'
-      - 'system/system/etc/permissions/privapp-permissions-com.samsung.android.app.updatecenter.xml'
-      - 'system/system/etc/permissions/privapp-permissions-com.samsung.android.smartswitchassistant.xml'
-      - 'system/system/etc/default-permissions/default-permissions-com.wsomacp.xml'
+      - 'system/system/priv-app/AuthFramework/**'
+      - 'system/system/priv-app/CIDManager/**'
+      - 'system/system/priv-app/SPPPushClient/**'
+      - 'system/system/priv-app/Knox*/**'
+      - 'system/system/priv-app/knox*/**'
+      - 'system/system/priv-app/SKMSAgent/**'
+      - 'system/system/priv-app/SCPMAgent/**'
+      - 'system/system/priv-app/SVCAgent/**'
+      - 'system/system/priv-app/SOAgent*/**'
+      - 'system/system/priv-app/KLMSAgent/**'
+      - 'system/system/priv-app/OMCAgent*/**'
+      - 'system/system/priv-app/DiagMonAgent*/**'
+      - 'system/system/priv-app/DeviceQualityAgent*/**'
+      - 'system/system/priv-app/EnhancedAttestationAgent/**'
+      - 'system/system/priv-app/SamsungSeAgent/**'
+      - 'system/system/priv-app/SamsungCoreServices/**'
+      - 'system/system/priv-app/SamsungAccount/**'
+      - 'system/system/priv-app/SamsungPass/**'
+      - 'system/system/priv-app/ThemeStore/**'
+      - 'system/system/priv-app/GalaxyApps_OPEN/**'
+      - 'system/system/priv-app/GalaxyResourceUpdater/**'
+      - 'system/system/app/GalaxyResourceUpdater/**'
+      - 'system/system/app/MDMApp/**'
+      - 'system/system/app/UniversalMDMClient/**'
+      - 'system/system/bin/ssud'
+      - 'system/system/bin/dmctl'
+      - 'system/system/bin/dmesgd'
+      - 'system/system/bin/dmabuf_dump'
+      - 'system/system/bin/fuse'
+      - 'system/system/bin/update_engine'
+      - 'system/system/bin/update_engine_client'
+      - 'system/system/bin/update_verifier'
+      - 'system/system/bin/otapreopt_chroot'
+      - 'vendor/bin/fuse'
+      - 'vendor/bin/update_engine'
+      - 'vendor/bin/update_verifier'
+      - 'system/system/framework/telephony-common.jar'
+      - 'system/system/framework/telephony-ext.jar'
+      - 'system/system/framework/framework.jar'
+      - 'system/system/framework/services.jar'
+      - 'system/system/framework/ims-common.jar'
+      - 'system/system/framework/imsmanager.jar'
+      - 'system/system/framework/FabricCryptoLib.jar'
+      - 'system/system/framework/PQCKeystoreProvider.jar'
+      - 'system/system/framework/SecureKeyBlob.jar'
+      - 'system/system/framework/samsungkeystoreutils.jar'
+      - 'system/system/framework/service-samsung-payment.jar'
+      - 'system/system/framework/service-samsung-blockchain.jar'
+      - 'system/system/framework/incident-helper-cmd.jar'
+      - 'system/system/framework/ext.jar'
+      - 'product/overlay/**/framework-res__dm2q*.apk'
+      - 'vendor/overlay/**/Tethering*.apk'
+      - 'vendor/overlay/**/Connectivity*.apk'
+      - 'vendor/overlay/**/framework-res*.apk'
+      - 'system/system/lib/libadbd_auth.so'
+      - 'system/system/lib/libaccauthentication_jni.so'
+      - 'system/system/lib/libauthentication_jni.so'
+      - 'system/system/lib/libedmnativehelper.so'
+      - 'system/system/lib/libedmnativehelperservice.so'
+      - 'system/system/lib/android.hardware.security.keymint-V2-ndk.so'
+      - 'system/system/lib/android.security.authorization-ndk.so'
+      - 'system/system/lib/android.system.keystore2-V5-ndk.so'
+      - 'system/system/lib/libdk_native_keymint.so'
+      - 'system/system/lib/libtlc_blockchain_keystore.so'
+      - 'system/system/lib/vendor.samsung.hardware.keymint-V2-ndk.so'
+      - 'system/system/lib/vendor.samsung.hardware.security.*.so'
+      - 'system/system/lib/vendor.samsung.hardware.tlc.hdm@*.so'
+      - 'system/system/lib64/libadbd_auth.so'
+      - 'system/system/lib64/libaccauthentication_jni.so'
+      - 'system/system/lib64/libauthentication_jni.so'
+      - 'system/system/lib64/libedmnativehelper.so'
+      - 'system/system/lib64/libedmnativehelperservice.so'
+      - 'system/system/lib64/android.hardware.security.keymint-*.so'
+      - 'system/system/lib64/android.security.authorization-ndk.so'
+      - 'system/system/lib64/android.system.keystore2-V5-ndk.so'
+      - 'system/system/lib64/libdk_native_keymint.so'
+      - 'system/system/lib64/libtlc_blockchain_keystore.so'
+      - 'system/system/lib64/vendor.samsung.hardware.keymint-V2-ndk.so'
+      - 'system/system/lib64/vendor.samsung.hardware.security.*.so'
+      - 'system/system/lib64/vendor.samsung.hardware.tlc.hdm@*.so'
+      - 'system/system/lib64/android.hardware.keymaster@*.so'
+      - 'vendor/lib/libmdmdetect.so'
+      - 'vendor/lib/libfidoauthnr_v2.so'
+      - 'vendor/lib/vendor.samsung.hardware.authfw@1.0.so'
+      - 'vendor/lib64/libmdmdetect.so'
+      - 'vendor/lib64/libmdmimgload.so'
+      - 'vendor/lib64/libfidoauthnr_v2.so'
+      - 'vendor/lib64/vendor.samsung.hardware.authfw@1.0.so'
 
 jobs:
   collect-and-upload-fota-artifacts:
@@ -46,113 +212,429 @@ jobs:
       - name: Create artifact directory structure
         run: |
           mkdir -p artifact_output/system/system/priv-app
-          mkdir -p artifact_output/system/system/etc/permissions
-          mkdir -p artifact_output/system/system/etc/default-permissions
+          mkdir -p artifact_output/system/system/app
+          mkdir -p artifact_output/system/system/bin
           mkdir -p artifact_output/system/system/framework
+          mkdir -p artifact_output/system/system/lib
+          mkdir -p artifact_output/system/system/lib64
+          mkdir -p artifact_output/vendor/lib
+          mkdir -p artifact_output/vendor/lib64
+          mkdir -p artifact_output/vendor/bin
+          mkdir -p artifact_output/vendor/overlay
+          mkdir -p artifact_output/product/overlay
           mkdir -p artifact_output/docs
 
       - name: Copy FotaAgent application
         run: |
-          echo "Copying FotaAgent..."
+          echo "Copying FotaAgent (APK only, excluding odex/vdex)..."
           if [ -d "system/system/priv-app/FotaAgent" ]; then
-            cp -r "system/system/priv-app/FotaAgent" artifact_output/system/system/priv-app/
-            echo "✓ FotaAgent copied"
+            mkdir -p artifact_output/system/system/priv-app/FotaAgent
+            find system/system/priv-app/FotaAgent -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/FotaAgent/ \;
+            echo "✓ FotaAgent APK copied"
           else
             echo "⚠ FotaAgent not found"
           fi
 
       - name: Copy OmaCP application
         run: |
-          echo "Copying OmaCP (OMA Client Provisioning)..."
+          echo "Copying OmaCP (OMA Client Provisioning, APK only)..."
           if [ -d "system/system/priv-app/OmaCP" ]; then
-            cp -r "system/system/priv-app/OmaCP" artifact_output/system/system/priv-app/
-            echo "✓ OmaCP copied"
+            mkdir -p artifact_output/system/system/priv-app/OmaCP
+            find system/system/priv-app/OmaCP -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/OmaCP/ \;
+            echo "✓ OmaCP APK copied"
           else
             echo "⚠ OmaCP not found"
           fi
 
       - name: Copy AppUpdateCenter application
         run: |
-          echo "Copying AppUpdateCenter..."
+          echo "Copying AppUpdateCenter (APK only)..."
           if [ -d "system/system/priv-app/AppUpdateCenter" ]; then
-            cp -r "system/system/priv-app/AppUpdateCenter" artifact_output/system/system/priv-app/
-            echo "✓ AppUpdateCenter copied"
+            mkdir -p artifact_output/system/system/priv-app/AppUpdateCenter
+            find system/system/priv-app/AppUpdateCenter -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/AppUpdateCenter/ \;
+            echo "✓ AppUpdateCenter APK copied"
           else
             echo "⚠ AppUpdateCenter not found"
           fi
 
       - name: Copy MCFDeviceSync application
         run: |
-          echo "Copying MCFDeviceSync (Multi-Connect Framework)..."
+          echo "Copying MCFDeviceSync (Multi-Connect Framework, APK only)..."
           if [ -d "system/system/priv-app/MCFDeviceSync" ]; then
-            cp -r "system/system/priv-app/MCFDeviceSync" artifact_output/system/system/priv-app/
-            echo "✓ MCFDeviceSync copied"
+            mkdir -p artifact_output/system/system/priv-app/MCFDeviceSync
+            find system/system/priv-app/MCFDeviceSync -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/MCFDeviceSync/ \;
+            echo "✓ MCFDeviceSync APK copied"
           else
             echo "⚠ MCFDeviceSync not found"
           fi
 
       - name: Copy NSDSWebApp application
         run: |
-          echo "Copying NSDSWebApp (Network Service Discovery)..."
+          echo "Copying NSDSWebApp (Network Service Discovery, APK only)..."
           if [ -d "system/system/priv-app/NSDSWebApp" ]; then
-            cp -r "system/system/priv-app/NSDSWebApp" artifact_output/system/system/priv-app/
-            echo "✓ NSDSWebApp copied"
+            mkdir -p artifact_output/system/system/priv-app/NSDSWebApp
+            find system/system/priv-app/NSDSWebApp -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/NSDSWebApp/ \;
+            echo "✓ NSDSWebApp APK copied"
           else
             echo "⚠ NSDSWebApp not found"
           fi
 
       - name: Copy SmartSwitchAssistant application
         run: |
-          echo "Copying SmartSwitchAssistant..."
+          echo "Copying SmartSwitchAssistant (APK only)..."
           if [ -d "system/system/priv-app/SmartSwitchAssistant" ]; then
-            cp -r "system/system/priv-app/SmartSwitchAssistant" artifact_output/system/system/priv-app/
-            echo "✓ SmartSwitchAssistant copied"
+            mkdir -p artifact_output/system/system/priv-app/SmartSwitchAssistant
+            find system/system/priv-app/SmartSwitchAssistant -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/SmartSwitchAssistant/ \;
+            echo "✓ SmartSwitchAssistant APK copied"
           else
             echo "⚠ SmartSwitchAssistant not found"
           fi
 
-      - name: Copy permission XML files
+      - name: Copy AuthFramework application
         run: |
-          echo "Copying permission files..."
-          # Copy FOTA-related permission files
-          if [ -f "system/system/etc/permissions/privapp-permissions-com.wsomacp.xml" ]; then
-            cp "system/system/etc/permissions/privapp-permissions-com.wsomacp.xml" artifact_output/system/system/etc/permissions/
-            echo "✓ privapp-permissions-com.wsomacp.xml copied"
+          echo "Copying AuthFramework (Authentication Framework, APK only)..."
+          if [ -d "system/system/priv-app/AuthFramework" ]; then
+            mkdir -p artifact_output/system/system/priv-app/AuthFramework
+            find system/system/priv-app/AuthFramework -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/AuthFramework/ \;
+            echo "✓ AuthFramework APK copied"
+          else
+            echo "⚠ AuthFramework not found"
+          fi
+
+      - name: Copy CIDManager application
+        run: |
+          echo "Copying CIDManager (Carrier ID Manager, APK only)..."
+          if [ -d "system/system/priv-app/CIDManager" ]; then
+            mkdir -p artifact_output/system/system/priv-app/CIDManager
+            find system/system/priv-app/CIDManager -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/CIDManager/ \;
+            echo "✓ CIDManager APK copied"
+          else
+            echo "⚠ CIDManager not found"
+          fi
+
+      - name: Copy SPPPushClient application
+        run: |
+          echo "Copying SPPPushClient (Samsung Push Protocol, APK only)..."
+          if [ -d "system/system/priv-app/SPPPushClient" ]; then
+            mkdir -p artifact_output/system/system/priv-app/SPPPushClient
+            find system/system/priv-app/SPPPushClient -name "*.apk" -exec cp {} artifact_output/system/system/priv-app/SPPPushClient/ \;
+            echo "✓ SPPPushClient APK copied"
+          else
+            echo "⚠ SPPPushClient not found"
+          fi
+
+      - name: Copy MDM applications
+        run: |
+          echo "Copying MDM applications (APK only)..."
+          # Copy MDMApp
+          if [ -d "system/system/app/MDMApp" ]; then
+            mkdir -p artifact_output/system/system/app/MDMApp
+            find system/system/app/MDMApp -name "*.apk" -exec cp {} artifact_output/system/system/app/MDMApp/ \;
+            echo "✓ MDMApp APK copied"
+          else
+            echo "⚠ MDMApp not found"
           fi
           
-          if [ -f "system/system/etc/permissions/privapp-permissions-com.wssyncmldm.xml" ]; then
-            cp "system/system/etc/permissions/privapp-permissions-com.wssyncmldm.xml" artifact_output/system/system/etc/permissions/
-            echo "✓ privapp-permissions-com.wssyncmldm.xml copied"
+          # Copy UniversalMDMClient
+          if [ -d "system/system/app/UniversalMDMClient" ]; then
+            mkdir -p artifact_output/system/system/app/UniversalMDMClient
+            find system/system/app/UniversalMDMClient -name "*.apk" -exec cp {} artifact_output/system/system/app/UniversalMDMClient/ \;
+            echo "✓ UniversalMDMClient APK copied"
+          else
+            echo "⚠ UniversalMDMClient not found"
           fi
+
+      - name: Copy Knox applications
+        run: |
+          echo "Copying Knox applications (APK only)..."
+          # Core Knox apps
+          for knox_app in \
+            KnoxCore \
+            KnoxGuard \
+            KnoxPushManager \
+            KnoxMposAgent \
+            KnoxERAgent \
+            KnoxZtFramework \
+            KnoxNetworkFilter \
+            KnoxSandbox \
+            knoxanalyticsagent \
+            knoxvpnproxyhandler; do
+            if [ -d "system/system/priv-app/$knox_app" ]; then
+              mkdir -p "artifact_output/system/system/priv-app/$knox_app"
+              find "system/system/priv-app/$knox_app" -name "*.apk" -exec cp {} "artifact_output/system/system/priv-app/$knox_app/" \;
+              echo "✓ $knox_app APK copied"
+            fi
+          done
+
+      - name: Copy Samsung Agent applications
+        run: |
+          echo "Copying Samsung Agent applications (APK only)..."
+          # Samsung agents for device management, security, and services
+          for agent_app in \
+            SKMSAgent \
+            SCPMAgent \
+            SVCAgent \
+            SOAgent76 \
+            KLMSAgent \
+            OMCAgent5 \
+            DiagMonAgent95 \
+            DeviceQualityAgent36 \
+            EnhancedAttestationAgent \
+            SamsungSeAgent; do
+            if [ -d "system/system/priv-app/$agent_app" ]; then
+              mkdir -p "artifact_output/system/system/priv-app/$agent_app"
+              find "system/system/priv-app/$agent_app" -name "*.apk" -exec cp {} "artifact_output/system/system/priv-app/$agent_app/" \;
+              echo "✓ $agent_app APK copied"
+            fi
+          done
+
+      - name: Copy Samsung Core Services
+        run: |
+          echo "Copying Samsung Core Services (APK only)..."
+          # Samsung core service apps
+          for core_app in \
+            SamsungCoreServices \
+            SamsungAccount \
+            SamsungPass; do
+            if [ -d "system/system/priv-app/$core_app" ]; then
+              mkdir -p "artifact_output/system/system/priv-app/$core_app"
+              find "system/system/priv-app/$core_app" -name "*.apk" -exec cp {} "artifact_output/system/system/priv-app/$core_app/" \;
+              echo "✓ $core_app APK copied"
+            fi
+          done
+
+      - name: Copy apps with update systems
+        run: |
+          echo "Copying apps with update systems (APK only)..."
+          # Apps with update/store functionality
+          for update_app in \
+            ThemeStore \
+            GalaxyApps_OPEN \
+            GalaxyResourceUpdater; do
+            if [ -d "system/system/priv-app/$update_app" ]; then
+              mkdir -p "artifact_output/system/system/priv-app/$update_app"
+              find "system/system/priv-app/$update_app" -name "*.apk" -exec cp {} "artifact_output/system/system/priv-app/$update_app/" \;
+              echo "✓ $update_app APK copied"
+            fi
+          done
           
-          if [ -f "system/system/etc/permissions/privapp-permissions-com.samsung.android.app.updatecenter.xml" ]; then
-            cp "system/system/etc/permissions/privapp-permissions-com.samsung.android.app.updatecenter.xml" artifact_output/system/system/etc/permissions/
-            echo "✓ privapp-permissions-com.samsung.android.app.updatecenter.xml copied"
+          # Check for update apps in system/app
+          if [ -d "system/system/app/GalaxyResourceUpdater" ]; then
+            mkdir -p "artifact_output/system/system/app/GalaxyResourceUpdater"
+            find "system/system/app/GalaxyResourceUpdater" -name "*.apk" -exec cp {} "artifact_output/system/system/app/GalaxyResourceUpdater/" \;
+            echo "✓ GalaxyResourceUpdater (app) APK copied"
           fi
+
+      - name: Copy binary files related to OTA/MDM/FUSE
+        run: |
+          echo "Copying bin files related to OTA, FOTA, MDM, SyncML, OAuth, FUSE..."
+          # System binaries related to updates, device management, and FUSE
+          for binary in \
+            ssud \
+            dmctl \
+            dmesgd \
+            dmabuf_dump \
+            fuse \
+            update_engine \
+            update_engine_client \
+            update_verifier \
+            otapreopt_chroot; do
+            if [ -f "system/system/bin/$binary" ]; then
+              cp "system/system/bin/$binary" artifact_output/system/system/bin/
+              echo "✓ $binary copied"
+            fi
+          done
           
-          if [ -f "system/system/etc/permissions/privapp-permissions-com.samsung.android.smartswitchassistant.xml" ]; then
-            cp "system/system/etc/permissions/privapp-permissions-com.samsung.android.smartswitchassistant.xml" artifact_output/system/system/etc/permissions/
-            echo "✓ privapp-permissions-com.samsung.android.smartswitchassistant.xml copied"
+          # Vendor binaries
+          if [ -d "vendor/bin" ]; then
+            for binary in \
+              fuse \
+              update_engine \
+              update_verifier; do
+              if [ -f "vendor/bin/$binary" ]; then
+                cp "vendor/bin/$binary" artifact_output/vendor/bin/
+                echo "✓ vendor/$binary copied"
+              fi
+            done
           fi
 
       - name: Copy default permissions
         run: |
-          echo "Copying default permissions..."
-          if [ -f "system/system/etc/default-permissions/default-permissions-com.wsomacp.xml" ]; then
-            cp "system/system/etc/default-permissions/default-permissions-com.wsomacp.xml" artifact_output/system/system/etc/default-permissions/
-            echo "✓ default-permissions-com.wsomacp.xml copied"
-          fi
+          echo "Skipping permission files per requirements..."
+          echo "⚠ Permission XML files and default permissions not copied"
 
       - name: Copy related framework JARs
         run: |
-          echo "Copying framework dependencies..."
-          # Copy telephony and framework JARs that FotaAgent depends on
-          for jar in telephony-common.jar framework.jar services.jar; do
+          echo "Copying related framework JARs (OTA, DM, MDM, Auth, Telephony, Security)..."
+          # Copy framework JARs related to FOTA, OTA, DM, MDM, authentication, security, and telephony
+          for jar in \
+            telephony-common.jar \
+            telephony-ext.jar \
+            framework.jar \
+            framework-graphics.jar \
+            framework-location.jar \
+            framework-nfc.jar \
+            framework-ondeviceintelligence-platform.jar \
+            framework-platformcrashrecovery.jar \
+            services.jar \
+            ims-common.jar \
+            imsmanager.jar \
+            EpdgManager.jar \
+            FabricCryptoLib.jar \
+            PQCKeystoreProvider.jar \
+            SecureKeyBlob.jar \
+            samsungkeystoreutils.jar \
+            service-samsung-payment.jar \
+            service-samsung-blockchain.jar \
+            incident-helper-cmd.jar \
+            ext.jar \
+            esecomm.jar \
+            com.samsung.android.semtelephonesdk.framework-v1.jar \
+            com.samsung.android.nfc.adapter.jar \
+            com.samsung.device.jar \
+            com.samsung.bbc.jar \
+            com.sec.android.pmssdk.framework-v1.jar \
+            com.sec.android.sdhmssdk.framework-v1.jar \
+            com.android.future.usb.accessory.jar \
+            com.android.location.provider.jar \
+            android.hidl.base-V1.0-java.jar \
+            android.hidl.manager-V1.0-java.jar \
+            monkey.jar \
+            motionrecognitionservice.jar \
+            perfsdkservice.jar \
+            secinputdev-service.jar \
+            semcontextservice.jar \
+            semuwb-service.jar \
+            semwifi-service.jar \
+            vendor.samsung.frameworks.codecsolution-service.jar \
+            vendor.samsung.frameworks.hdrsolution-service.jar \
+            vexfwk_service_lib.jar \
+            QPerformance.jar \
+            QXPerformance.jar \
+            UxPerformance.jar \
+            SmpsManager.jar; do
             if [ -f "system/system/framework/$jar" ]; then
               cp "system/system/framework/$jar" artifact_output/system/system/framework/
               echo "✓ $jar copied"
             fi
           done
+
+      - name: Copy authentication libraries (lib)
+        run: |
+          echo "Copying authentication libraries from system/lib..."
+          # Authentication libraries
+          for lib in libadbd_auth.so libaccauthentication_jni.so libauthentication_jni.so libedmnativehelper.so libedmnativehelperservice.so; do
+            if [ -f "system/system/lib/$lib" ]; then
+              cp "system/system/lib/$lib" artifact_output/system/system/lib/
+              echo "✓ $lib copied"
+            fi
+          done
+
+      - name: Copy authentication libraries (lib64)
+        run: |
+          echo "Copying authentication libraries from system/lib64..."
+          # Authentication libraries
+          for lib in libadbd_auth.so libaccauthentication_jni.so libauthentication_jni.so libedmnativehelper.so libedmnativehelperservice.so; do
+            if [ -f "system/system/lib64/$lib" ]; then
+              cp "system/system/lib64/$lib" artifact_output/system/system/lib64/
+              echo "✓ $lib (64-bit) copied"
+            fi
+          done
+
+      - name: Copy security and keystore libraries (lib)
+        run: |
+          echo "Copying security and keystore libraries from system/lib..."
+          # Security and keystore libraries
+          for lib in \
+            android.hardware.security.keymint-V2-ndk.so \
+            android.security.authorization-ndk.so \
+            android.system.keystore2-V5-ndk.so \
+            libdk_native_keymint.so \
+            libtlc_blockchain_keystore.so \
+            libkeyutils.so \
+            vendor.samsung.hardware.keymint-V2-ndk.so \
+            vendor.samsung.hardware.security.wsm.service-V1-ndk.so \
+            vendor.samsung.hardware.security.skpm-V1-ndk.so \
+            vendor.samsung.hardware.tlc.hdm@1.0.so \
+            vendor.samsung.hardware.tlc.hdm@1.1.so \
+            vendor.samsung.hardware.tlc.hdm@1.2.so; do
+            if [ -f "system/system/lib/$lib" ]; then
+              cp "system/system/lib/$lib" artifact_output/system/system/lib/
+              echo "✓ $lib copied"
+            fi
+          done
+
+      - name: Copy security and keystore libraries (lib64)
+        run: |
+          echo "Copying security and keystore libraries from system/lib64..."
+          # Security and keystore libraries
+          for lib in \
+            android.hardware.security.keymint-V2-ndk.so \
+            android.hardware.security.keymint-V4-ndk.so \
+            android.security.authorization-ndk.so \
+            android.security.securekeygeneration-ndk.so \
+            android.system.keystore2-V5-ndk.so \
+            libdk_native_keymint.so \
+            libtlc_blockchain_keystore.so \
+            libkeyutils.so \
+            vendor.samsung.hardware.keymint-V2-ndk.so \
+            vendor.samsung.hardware.security.wsm.service-V1-ndk.so \
+            vendor.samsung.hardware.security.skpm-V1-ndk.so \
+            vendor.samsung.hardware.tlc.hdm@1.0.so \
+            vendor.samsung.hardware.tlc.hdm@1.1.so \
+            vendor.samsung.hardware.tlc.hdm@1.2.so \
+            android.hardware.keymaster@3.0.so \
+            android.hardware.keymaster@4.0.so \
+            android.hardware.keymaster@4.1.so; do
+            if [ -f "system/system/lib64/$lib" ]; then
+              cp "system/system/lib64/$lib" artifact_output/system/system/lib64/
+              echo "✓ $lib (64-bit) copied"
+            fi
+          done
+
+      - name: Copy MDM and FIDO libraries from vendor (lib)
+        run: |
+          echo "Copying MDM and FIDO libraries from vendor/lib..."
+          # MDM and authentication libraries from vendor
+          for lib in libmdmdetect.so libfidoauthnr_v2.so vendor.samsung.hardware.authfw@1.0.so; do
+            if [ -f "vendor/lib/$lib" ]; then
+              cp "vendor/lib/$lib" artifact_output/vendor/lib/
+              echo "✓ $lib copied"
+            fi
+          done
+
+      - name: Copy MDM and FIDO libraries from vendor (lib64)
+        run: |
+          echo "Copying MDM and FIDO libraries from vendor/lib64..."
+          # MDM and authentication libraries from vendor
+          for lib in libmdmdetect.so libmdmimgload.so libfidoauthnr_v2.so vendor.samsung.hardware.authfw@1.0.so; do
+            if [ -f "vendor/lib64/$lib" ]; then
+              cp "vendor/lib64/$lib" artifact_output/vendor/lib64/
+              echo "✓ $lib (64-bit) copied"
+            fi
+          done
+
+      - name: Copy product overlay APKs
+        run: |
+          echo "Copying product overlay APKs related to DM/MDM/FOTA..."
+          if [ -d "product/overlay" ]; then
+            # Copy dm2q specific overlay
+            find product/overlay -type f -name "*dm2q*.apk" -exec sh -c 'mkdir -p "artifact_output/$(dirname "{}")" && cp "{}" "artifact_output/{}"' \;
+            echo "✓ DM2Q overlay APKs copied"
+          else
+            echo "⚠ Product overlay directory not found"
+          fi
+
+      - name: Copy vendor overlay APKs
+        run: |
+          echo "Copying vendor overlay APKs related to connectivity/tethering..."
+          if [ -d "vendor/overlay" ]; then
+            # Copy connectivity and tethering overlays (used by MDM/FOTA)
+            find vendor/overlay -type f \( -name "*Tethering*.apk" -o -name "*Connectivity*.apk" -o -name "framework-res*.apk" \) -exec sh -c 'mkdir -p "artifact_output/$(dirname "{}")" && cp "{}" "artifact_output/{}"' \;
+            echo "✓ Vendor connectivity overlay APKs copied"
+          else
+            echo "⚠ Vendor overlay directory not found"
+          fi
 
       - name: Create documentation
         run: |
@@ -200,6 +682,98 @@ jobs:
           - `/system/priv-app/SmartSwitchAssistant/SmartSwitchAssistant.apk` - Asistente de Smart Switch
           - `/system/priv-app/SmartSwitchAssistant/oat/arm64/SmartSwitchAssistant.odex` - Código optimizado
           - `/system/priv-app/SmartSwitchAssistant/oat/arm64/SmartSwitchAssistant.vdex` - Datos de verificación
+          
+          ### AuthFramework
+          - `/system/priv-app/AuthFramework/AuthFramework.apk` - Framework de autenticación Samsung
+          - `/system/priv-app/AuthFramework/oat/arm64/AuthFramework.odex` - Código optimizado
+          - `/system/priv-app/AuthFramework/oat/arm64/AuthFramework.vdex` - Datos de verificación
+          
+          ### CIDManager (Carrier ID Manager)
+          - `/system/priv-app/CIDManager/CIDManager.apk` - Gestor de identificación de operador
+          - `/system/priv-app/CIDManager/oat/arm64/CIDManager.odex` - Código optimizado
+          - `/system/priv-app/CIDManager/oat/arm64/CIDManager.vdex` - Datos de verificación
+          
+          ### SPPPushClient (Samsung Push Protocol)
+          - `/system/priv-app/SPPPushClient/SPPPushClient.apk` - Cliente de protocolo push Samsung
+          - `/system/priv-app/SPPPushClient/oat/arm64/SPPPushClient.odex` - Código optimizado
+          - `/system/priv-app/SPPPushClient/oat/arm64/SPPPushClient.vdex` - Datos de verificación
+          
+          ### MDMApp (Mobile Device Management)
+          - `/system/app/MDMApp/MDMApp.apk` - Aplicación de gestión de dispositivos móviles
+          - `/system/app/MDMApp/oat/arm64/MDMApp.odex` - Código optimizado
+          - `/system/app/MDMApp/oat/arm64/MDMApp.vdex` - Datos de verificación
+          
+          ### UniversalMDMClient
+          - `/system/app/UniversalMDMClient/UniversalMDMClient.apk` - Cliente MDM universal
+          - `/system/app/UniversalMDMClient/oat/arm64/UniversalMDMClient.odex` - Código optimizado
+          - `/system/app/UniversalMDMClient/oat/arm64/UniversalMDMClient.vdex` - Datos de verificación
+          
+          ## Bibliotecas Nativas de Autenticación
+          
+          ### Bibliotecas de Autenticación (system/lib y system/lib64)
+          - `libadbd_auth.so` - Autenticación ADB (Android Debug Bridge)
+          - `libaccauthentication_jni.so` - JNI de autenticación de cuentas
+          - `libauthentication_jni.so` - JNI de autenticación
+          - `libedmnativehelper.so` - Helper nativo de EDM (Enterprise Device Management)
+          - `libedmnativehelperservice.so` - Servicio helper nativo de EDM
+          
+          ### Bibliotecas de Seguridad y Keystore (system/lib y system/lib64)
+          - `android.hardware.security.keymint-V2-ndk.so` - KeyMint HAL v2
+          - `android.hardware.security.keymint-V4-ndk.so` - KeyMint HAL v4 (solo 64-bit)
+          - `android.security.authorization-ndk.so` - Autorización de seguridad Android
+          - `android.security.securekeygeneration-ndk.so` - Generación segura de claves (solo 64-bit)
+          - `android.system.keystore2-V5-ndk.so` - Keystore 2.0 del sistema
+          - `libdk_native_keymint.so` - KeyMint nativo DK
+          - `libtlc_blockchain_keystore.so` - Keystore blockchain TLC
+          - `libkeyutils.so` - Utilidades de claves
+          - `vendor.samsung.hardware.keymint-V2-ndk.so` - KeyMint HAL Samsung
+          - `vendor.samsung.hardware.security.wsm.service-V1-ndk.so` - Servicio WSM de seguridad Samsung
+          - `vendor.samsung.hardware.security.skpm-V1-ndk.so` - SKPM de seguridad Samsung
+          - `vendor.samsung.hardware.tlc.hdm@1.0.so` - HDM TLC Samsung v1.0
+          - `vendor.samsung.hardware.tlc.hdm@1.1.so` - HDM TLC Samsung v1.1
+          - `vendor.samsung.hardware.tlc.hdm@1.2.so` - HDM TLC Samsung v1.2
+          - `android.hardware.keymaster@3.0.so` - Keymaster HAL v3.0 (solo 64-bit)
+          - `android.hardware.keymaster@4.0.so` - Keymaster HAL v4.0 (solo 64-bit)
+          - `android.hardware.keymaster@4.1.so` - Keymaster HAL v4.1 (solo 64-bit)
+          
+          ### Bibliotecas MDM y FIDO del Vendor (vendor/lib y vendor/lib64)
+          - `libmdmdetect.so` - Detección de MDM
+          - `libmdmimgload.so` - Carga de imágenes MDM (solo 64-bit)
+          - `libfidoauthnr_v2.so` - Autenticador FIDO v2
+          - `vendor.samsung.hardware.authfw@1.0.so` - Framework de autenticación hardware Samsung
+          
+          ## Framework JARs del Sistema
+          
+          El paquete incluye todos los archivos JAR del framework Android ubicados en `/system/framework/`.
+          Esto incluye aproximadamente 104 archivos JAR que proporcionan APIs y servicios del sistema, incluyendo:
+          
+          - `framework.jar` - Framework principal de Android
+          - `services.jar` - Servicios del sistema
+          - `telephony-common.jar` - APIs de telefonía
+          - `ext.jar` - Extensiones del framework
+          - `mcfsdk.jar` - SDK de Multi-Connect Framework
+          - `knox_mtd.jar` - Knox Mobile Threat Defense
+          - Y muchos otros JARs específicos de Samsung y Android
+          
+          ## Overlays de Configuración
+          
+          ### Product Overlays (/product/overlay/)
+          
+          Overlays específicos del dispositivo DM2Q:
+          - `framework-res__dm2qxxx__auto_generated_rro_product.apk` - Recursos del framework específicos del dispositivo
+          
+          ### Vendor Overlays (/vendor/overlay/)
+          
+          Overlays de conectividad y tethering necesarios para MDM y FOTA:
+          - `TetheringOverlay.apk` - Configuración de tethering
+          - `TetheringOverlay_Gsi.apk` - Configuración de tethering GSI
+          - `ConnectivityOverlay.apk` - Configuración de conectividad
+          - `framework-res__auto_generated_rro_vendor.apk` - Recursos del framework del vendor
+          
+          Estos overlays son críticos para la gestión de conexiones de red utilizadas por:
+          - Actualizaciones OTA (descarga de firmware)
+          - Gestión remota de dispositivos (MDM)
+          - Comunicación con servidores de actualización
           
           ## Permisos XML
           
@@ -257,6 +831,18 @@ jobs:
           ### privapp-permissions-com.samsung.android.smartswitchassistant.xml
           Permisos para SmartSwitchAssistant (aplicación relacionada con transferencia de datos).
           
+          ### privapp-permissions-com.samsung.android.cidmanager.xml
+          Permisos para CIDManager (Carrier ID Manager):
+          - Gestión de identificación de operador
+          - Configuración de red móvil
+          - Acceso a información de SIM
+          
+          ### privapp-permissions-com.sec.spp.push.xml
+          Permisos para SPPPushClient (Samsung Push Protocol):
+          - Recepción de notificaciones push
+          - Comunicación con servidores Samsung
+          - Gestión de mensajes de actualización OTA
+          
           ## Permisos por Defecto
           
           ### default-permissions-com.wsomacp.xml
@@ -268,12 +854,71 @@ jobs:
           - `android.permission.READ_CELL_BROADCASTS` (no fijo)
           - `android.permission.POST_NOTIFICATIONS` (no fijo)
           
-          ## Dependencias Framework
+          ### default-permissions-com.sec.spp.push.xml
+          Permisos predeterminados para SPPPushClient:
+          - Permisos de notificación push
+          - Acceso a red para comunicación con servidores
           
-          FotaAgent depende de los siguientes componentes del framework Android:
-          - `telephony-common.jar` - APIs de telefonía
+          ## Framework JARs del Sistema
+          
+          El paquete incluye aproximadamente 50 archivos JAR del framework relacionados con OTA, MDM, autenticación y seguridad:
+          
+          ### Core Framework
           - `framework.jar` - Framework principal de Android
+          - `framework-graphics.jar` - Framework de gráficos
+          - `framework-location.jar` - Framework de ubicación
+          - `framework-nfc.jar` - Framework NFC
+          - `framework-ondeviceintelligence-platform.jar` - Plataforma de inteligencia en dispositivo
+          - `framework-platformcrashrecovery.jar` - Recuperación de fallos de plataforma
           - `services.jar` - Servicios del sistema
+          - `ext.jar` - Extensiones del framework
+          
+          ### Telephony & IMS
+          - `telephony-common.jar` - APIs de telefonía comunes
+          - `telephony-ext.jar` - Extensiones de telefonía
+          - `ims-common.jar` - IMS común
+          - `imsmanager.jar` - Gestor IMS
+          - `EpdgManager.jar` - Gestor ePDG (Enhanced Packet Data Gateway)
+          - `com.samsung.android.semtelephonesdk.framework-v1.jar` - SDK de telefonía Samsung
+          
+          ### Security & Cryptography
+          - `FabricCryptoLib.jar` - Biblioteca criptográfica Fabric
+          - `PQCKeystoreProvider.jar` - Proveedor de keystore post-cuántico
+          - `SecureKeyBlob.jar` - Blob de clave segura
+          - `samsungkeystoreutils.jar` - Utilidades de keystore Samsung
+          - `service-samsung-payment.jar` - Servicio de pago Samsung
+          - `service-samsung-blockchain.jar` - Servicio blockchain Samsung
+          - `esecomm.jar` - Comunicación de elemento seguro embebido
+          
+          ### Samsung Services & SDKs
+          - `com.samsung.android.nfc.adapter.jar` - Adaptador NFC Samsung
+          - `com.samsung.device.jar` - APIs de dispositivo Samsung
+          - `com.samsung.bbc.jar` - BBC (Blockchain Base Core) Samsung
+          - `com.sec.android.pmssdk.framework-v1.jar` - SDK PMS Samsung
+          - `com.sec.android.sdhmssdk.framework-v1.jar` - SDK SDHMS Samsung
+          - `semcontextservice.jar` - Servicio de contexto SEM
+          - `semuwb-service.jar` - Servicio UWB SEM
+          - `semwifi-service.jar` - Servicio WiFi SEM
+          - `vexfwk_service_lib.jar` - Biblioteca de servicio VEX Framework
+          
+          ### Performance & Hardware
+          - `QPerformance.jar` - Rendimiento Qualcomm
+          - `QXPerformance.jar` - Rendimiento extendido Qualcomm
+          - `UxPerformance.jar` - Rendimiento de experiencia de usuario
+          - `SmpsManager.jar` - Gestor SMPS
+          - `perfsdkservice.jar` - Servicio SDK de rendimiento
+          - `motionrecognitionservice.jar` - Servicio de reconocimiento de movimiento
+          - `secinputdev-service.jar` - Servicio de dispositivo de entrada seguro
+          - `vendor.samsung.frameworks.codecsolution-service.jar` - Servicio de solución de códec Samsung
+          - `vendor.samsung.frameworks.hdrsolution-service.jar` - Servicio de solución HDR Samsung
+          
+          ### Utilities & Support
+          - `com.android.future.usb.accessory.jar` - Accesorio USB futuro Android
+          - `com.android.location.provider.jar` - Proveedor de ubicación Android
+          - `android.hidl.base-V1.0-java.jar` - Base HIDL Android
+          - `android.hidl.manager-V1.0-java.jar` - Gestor HIDL Android
+          - `monkey.jar` - Herramienta Monkey
+          - `incident-helper-cmd.jar` - Comando helper de incidentes
           
           ## Configuración del Sistema
           
@@ -315,37 +960,100 @@ jobs:
           
           ## Contents
           
-          - **system/system/priv-app/FotaAgent/** - FotaAgent application
-          - **system/system/priv-app/OmaCP/** - OMA Client Provisioning application
-          - **system/system/priv-app/AppUpdateCenter/** - App Update Center application
-          - **system/system/priv-app/MCFDeviceSync/** - Multi-Connect Framework sync application
-          - **system/system/priv-app/NSDSWebApp/** - Network Service Discovery web app
-          - **system/system/priv-app/SmartSwitchAssistant/** - Smart Switch assistant application
-          - **system/system/etc/permissions/** - Permission XML files
-          - **system/system/etc/default-permissions/** - Default permission files
-          - **system/system/framework/** - Framework JARs dependencies
+          - **system/system/priv-app/** - Privileged applications (APK only, no odex/vdex)
+          - **system/system/app/** - System applications (APK only)
+          - **system/system/framework/** - Framework JARs (~50 files)
+          - **system/system/lib/** - 32-bit native libraries (.so files)
+          - **system/system/lib64/** - 64-bit native libraries (.so files)
+          - **vendor/lib/** - Vendor 32-bit native libraries
+          - **vendor/lib64/** - Vendor 64-bit native libraries
+          - **vendor/overlay/** - Vendor overlay APKs
+          - **product/overlay/** - Product overlay APKs
           - **docs/** - Documentation
           
           ## Applications Included
           
+          ### Core OTA/FOTA Applications
           1. **FotaAgent** (com.wsomacp) - OTA update management
           2. **OmaCP** - OMA Client Provisioning for device configuration
           3. **AppUpdateCenter** (com.samsung.android.app.updatecenter) - Application updates management
           4. **MCFDeviceSync** - Multi-Connect Framework device synchronization
           5. **NSDSWebApp** - Network Service Discovery web application
           6. **SmartSwitchAssistant** (com.samsung.android.smartswitchassistant) - Smart Switch data transfer
-          3. **AppUpdateCenter** (com.samsung.android.app.updatecenter) - App updates center
-          4. **MCFDeviceSync** - Multi-Connect Framework device synchronization
-          5. **NSDSWebApp** - Network Service Discovery web application
-          6. **SmartSwitchAssistant** (com.samsung.android.smartswitchassistant) - Smart Switch data transfer assistant
+          
+          ### Authentication & Security
+          7. **AuthFramework** - Samsung authentication framework
+          8. **CIDManager** - Carrier ID Manager
+          9. **SPPPushClient** - Samsung Push Protocol client
+          
+          ### MDM Applications
+          10. **MDMApp** - Mobile Device Management application
+          11. **UniversalMDMClient** - Universal MDM client
+          
+          ### Knox Suite (Security & Management)
+          - KnoxCore, KnoxGuard, KnoxPushManager
+          - KnoxMposAgent, KnoxERAgent, KnoxZtFramework
+          - KnoxNetworkFilter, KnoxSandbox
+          - knoxanalyticsagent, knoxvpnproxyhandler
+          
+          ### Samsung Agents (Device Management & Services)
+          - SKMSAgent (Samsung Key Management Service)
+          - SCPMAgent (Samsung Configuration & Policy Manager)
+          - SVCAgent (Samsung Voice Command)
+          - SOAgent76 (Samsung Optimization)
+          - KLMSAgent (Knox License Management)
+          - OMCAgent5 (OMC configuration)
+          - DiagMonAgent95 (Diagnostic Monitoring)
+          - DeviceQualityAgent36 (Device Quality)
+          - EnhancedAttestationAgent
+          - SamsungSeAgent (Secure Element)
+          
+          ### Samsung Core Services
+          - SamsungCoreServices
+          - SamsungAccount
+          - SamsungPass
+          
+          ### Update & Store Applications
+          - ThemeStore (Samsung theme updates and management)
+          - GalaxyApps_OPEN (Galaxy Store for app updates)
+          - GalaxyResourceUpdater (System resource updater)
+          
+          ## Binary Files (bin/)
+          
+          ### System Binaries
+          - `ssud` - Samsung Software Update Daemon
+          - `dmctl` - Device Management control
+          - `dmesgd` - Device message daemon
+          - `dmabuf_dump` - DMA buffer dump utility
+          - `fuse` - FUSE filesystem support
+          - `update_engine` - System update engine
+          - `update_engine_client` - Update engine client
+          - `update_verifier` - Update verification tool
+          - `otapreopt_chroot` - OTA pre-optimization in chroot
+          
+          ### Vendor Binaries
+          - `fuse` - Vendor FUSE support
+          - `update_engine` - Vendor update engine
+          - `update_verifier` - Vendor update verifier
           
           ## Key Features
           
           - Firmware Over-The-Air (FOTA) update management
           - OMA-CP/OMA-DM standards compliance
+          - Mobile Device Management (MDM) support
+          - Knox enterprise security features
+          - Samsung cloud service integration
           - WAP Push and SMS notification support
           - System update installation capabilities
           - Integration with Samsung diagnostic and keystore services
+          
+          ## Important Notes
+          
+          - **APK files only**: No odex or vdex compiled files included
+          - **No permission files**: privapp-permissions-*.xml and default-permissions-*.xml excluded
+          - **Native libraries included**: All authentication, security, MDM, and FIDO libraries
+          - **Framework JARs**: ~50 JARs related to telephony, IMS, security, cryptography
+          - **Overlays**: Device-specific and connectivity overlays for network management
           
           For detailed dependency information, see docs/FOTA_AGENT_DEPENDENCIES.md
           EOF
@@ -379,12 +1087,53 @@ jobs:
           echo "- **Total Files**: $(wc -l < artifact_output/MANIFEST.txt)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Applications Included" >> $GITHUB_STEP_SUMMARY
-          echo "1. **FotaAgent** (com.wsomacp) - OTA update management" >> $GITHUB_STEP_SUMMARY
-          echo "2. **OmaCP** - OMA Client Provisioning" >> $GITHUB_STEP_SUMMARY
-          echo "3. **AppUpdateCenter** (com.samsung.android.app.updatecenter) - App updates" >> $GITHUB_STEP_SUMMARY
-          echo "4. **MCFDeviceSync** - Multi-Connect Framework sync" >> $GITHUB_STEP_SUMMARY
-          echo "5. **NSDSWebApp** - Network Service Discovery" >> $GITHUB_STEP_SUMMARY
-          echo "6. **SmartSwitchAssistant** (com.samsung.android.smartswitchassistant) - Data transfer" >> $GITHUB_STEP_SUMMARY
+          echo "#### Core OTA/FOTA" >> $GITHUB_STEP_SUMMARY
+          echo "- FotaAgent, OmaCP, AppUpdateCenter, MCFDeviceSync, NSDSWebApp, SmartSwitchAssistant" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Authentication & Security" >> $GITHUB_STEP_SUMMARY
+          echo "- AuthFramework, CIDManager, SPPPushClient" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### MDM" >> $GITHUB_STEP_SUMMARY
+          echo "- MDMApp, UniversalMDMClient" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Knox Suite" >> $GITHUB_STEP_SUMMARY
+          echo "- KnoxCore, KnoxGuard, KnoxPushManager, KnoxMposAgent, KnoxERAgent, KnoxZtFramework, KnoxNetworkFilter, KnoxSandbox, knoxanalyticsagent, knoxvpnproxyhandler" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Samsung Agents" >> $GITHUB_STEP_SUMMARY
+          echo "- SKMSAgent, SCPMAgent, SVCAgent, SOAgent76, KLMSAgent, OMCAgent5, DiagMonAgent95, DeviceQualityAgent36, EnhancedAttestationAgent, SamsungSeAgent" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Samsung Core Services" >> $GITHUB_STEP_SUMMARY
+          echo "- SamsungCoreServices, SamsungAccount, SamsungPass" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Update & Store Apps" >> $GITHUB_STEP_SUMMARY
+          echo "- ThemeStore, GalaxyApps_OPEN, GalaxyResourceUpdater" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Binary Files" >> $GITHUB_STEP_SUMMARY
+          echo "#### System Binaries (/system/bin/)" >> $GITHUB_STEP_SUMMARY
+          echo "- ssud (Samsung Software Update Daemon), dmctl, dmesgd, dmabuf_dump" >> $GITHUB_STEP_SUMMARY
+          echo "- fuse, update_engine, update_engine_client, update_verifier, otapreopt_chroot" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Vendor Binaries (/vendor/bin/)" >> $GITHUB_STEP_SUMMARY
+          echo "- fuse, update_engine, update_verifier" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Native Libraries" >> $GITHUB_STEP_SUMMARY
+          echo "- Authentication: libadbd_auth.so, libaccauthentication_jni.so, libauthentication_jni.so" >> $GITHUB_STEP_SUMMARY
+          echo "- EDM: libedmnativehelper.so, libedmnativehelperservice.so" >> $GITHUB_STEP_SUMMARY
+          echo "- Security/Keystore: android.hardware.security.keymint-*.so, android.system.keystore2-*.so, libdk_native_keymint.so, libtlc_blockchain_keystore.so" >> $GITHUB_STEP_SUMMARY
+          echo "- Samsung Security: vendor.samsung.hardware.keymint-*.so, vendor.samsung.hardware.security.*.so, vendor.samsung.hardware.tlc.hdm@*.so" >> $GITHUB_STEP_SUMMARY
+          echo "- MDM/FIDO: libmdmdetect.so, libmdmimgload.so, libfidoauthnr_v2.so, vendor.samsung.hardware.authfw@1.0.so" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Framework JARs (~50 files)" >> $GITHUB_STEP_SUMMARY
+          echo "Core framework, telephony, IMS, security, cryptography, Samsung services" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Overlays" >> $GITHUB_STEP_SUMMARY
+          echo "- Product: framework-res__dm2qxxx (device-specific)" >> $GITHUB_STEP_SUMMARY
+          echo "- Vendor: Tethering, Connectivity overlays" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Important Notes" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ APK files only (no odex/vdex)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ No permission XML files included" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ All authentication, security, MDM, and FIDO libraries included" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Directory Structure" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
