@@ -126,24 +126,116 @@ product/overlay/framework-res__dm2qxxx__auto_generated_rro_product.apk
 product/app/AssistantShell/
 ```
 
-### E. Archivos en system/
+### E. Archivos en system/ (Análisis Detallado)
 
-**⚠️ IMPORTANTE:** De los 204 archivos únicos de dm2q, la mayoría son TTS voices (no críticos).
+**Total de archivos únicos en dm2q:** 204 archivos
 
-**Archivos CRÍTICOS a copiar:**
+#### E.1. Archivos CRÍTICOS para Hardware (DEBEN copiarse)
 
 ```bash
-# Overlays de dispositivo (REQUERIDOS)
+# Overlays de dispositivo (REQUERIDOS para identificación correcta)
 system/vendor/overlay/framework-res__dm2qxxx__auto_generated_rro_vendor.apk
 system/vendor/overlay/framework-res__dm1qxxx__auto_generated_rro_vendor.apk
+
+# Datos de cámara para SM8550 (chip de dm2q vs SM8450 de r0q)
+system/cameradata/portrait_data/SRIB_Acenet_A16W8_V141_sm8550_snpe2704.dlc
+system/cameradata/portrait_data/SRIB_DPD_A16W8_V013_sm8550_snpe2106.dlc
+system/cameradata/portrait_data/SRIB_HDE_A16W8_V003_sm8550_snpe2433.dlc
+system/cameradata/portrait_data/SRIB_Matting_INT8_V015_sm8550_snpe2108_TILE_896.dlc
+system/cameradata/portrait_data/SRIB_SID_A16W8_V018_sm8550_snpe2433.dlc
+
+# Configuración UWB (Ultra-Wideband)
+system/etc/libuwb-cal.conf
+system/etc/init/init.system.uwb.rc
+system/etc/init/digitalkey_init_uwb_tss2.rc
+
+# Configuración específica de dm2q
+system/etc/init/ssu_dm2qxxx.rc
 ```
 
-**Archivos OPCIONALES (pero recomendados):**
+**Nota sobre cámara:** dm2q usa **SM8550** (Snapdragon 8 Gen 2), mientras r0q usa **SM8450** (Snapdragon 8 Gen 1). Los archivos de cámara son diferentes.
+
+#### E.2. Aplicaciones Específicas de dm2q
 
 ```bash
-# Si quieres TTS completo, copia todos los SamsungTTSVoice_* (~150 archivos)
-# Si no, r0q tiene SamsungTTS_no_vdata que es más ligero
+# UWB Test Tool (para probar Ultra-Wideband)
+system/app/UwbTest/
+
+# SketchBook (Aplicación de dibujo Samsung)
+system/app/SketchBook/
+
+# SamsungTTS completo con paquetes de voz (~150 archivos)
+system/app/SamsungTTS/
+system/app/SamsungTTSVoice_ar_AE_m00/
+system/app/SamsungTTSVoice_de_DE_f00/
+system/app/SamsungTTSVoice_en_GB_f00/
+system/app/SamsungTTSVoice_es_ES_f00/
+system/app/SamsungTTSVoice_es_US_f00/
+system/app/SamsungTTSVoice_fr_FR_f00/
+system/app/SamsungTTSVoice_hi_IN_f00/
+system/app/SamsungTTSVoice_id_ID_f00/
+system/app/SamsungTTSVoice_it_IT_f00/
+system/app/SamsungTTSVoice_pl_PL_f00/
+system/app/SamsungTTSVoice_ru_RU_f00/
+system/app/SamsungTTSVoice_th_TH_f00/
+system/app/SamsungTTSVoice_vi_VN_f00/
+# ... más idiomas (ver FILE_LISTS.md para lista completa)
 ```
+
+**Decisión sobre TTS:**
+- **Opción 1 (Recomendada):** Copia solo `system/app/SamsungTTS/` sin los paquetes de voz → ~6 archivos
+- **Opción 2:** Copia TTS completo con todos los idiomas → ~156 archivos (~200MB)
+- **Opción 3:** Mantén `SamsungTTS_no_vdata` de r0q (más ligero pero sin voces)
+
+#### E.3. Búsqueda de Medios
+
+```bash
+# Sistema de búsqueda de medios (fotos/videos)
+system/etc/mediasearch/data/dec_adaptor.tflite
+system/etc/mediasearch/data/dec_event.tflite
+system/etc/mediasearch/data/enc_image.tflite
+system/etc/mediasearch/data/enc_text.tflite
+system/etc/mediasearch/data/versioninfo.json
+system/etc/default-permissions/default-permissions-com.samsung.mediasearch.xml
+system/etc/default-permissions/default-permissions-com.samsung.videoscan.xml
+```
+
+**¿Copiar?** OPCIONAL - Solo si quieres la función de búsqueda avanzada de medios
+
+#### E.4. Archivos ÚNICOS a r0q (NO copiar, eliminar si existen)
+
+```bash
+# Herramientas específicas de r0q - ELIMINAR
+system/app/Cameralyzer/                    # Herramienta de análisis de cámara
+system/app/ClockPackage/                   # Reloj (puede causar conflictos)
+system/app/MinusOnePage/                   # Widget de página principal
+system/app/SamsungTTS_no_vdata/            # TTS sin datos (si copias el completo)
+
+# Daemon de criptografía de r0q
+system/bin/sdp_cryptod                     # MANTENER (no reemplazar)
+
+# Datos de cámara para SM8450 - REEMPLAZAR con los de SM8550
+system/cameradata/portrait_data/SRIB_Acenet_A16W8_V141_sm8450_snpe2108.dlc
+system/cameradata/portrait_data/SRIB_Matting_INT8_V015_sm8450_snpe2108_TILE_896.dlc
+system/cameradata/portrait_data/SRIB_SID_A16W8_V018_sm8450_snpe2106.dlc
+
+# Configuración de digital key de r0q
+system/etc/init/digitalkey_init_ble_tss2.rc  # Mantener si no tienes UWB
+```
+
+#### Resumen de Archivos system/
+
+| Categoría | Acción | Cantidad |
+|-----------|--------|----------|
+| Overlays de dispositivo | ✅ COPIAR | 2 archivos |
+| Datos de cámara SM8550 | ✅ COPIAR | 5 archivos |
+| Configuración UWB | ✅ COPIAR | 3 archivos |
+| Config específica dm2q | ✅ COPIAR | 1 archivo |
+| TTS con voces | 🔶 OPCIONAL | ~156 archivos |
+| UwbTest/SketchBook | 🔶 OPCIONAL | ~12 archivos |
+| Búsqueda de medios | 🔶 OPCIONAL | ~7 archivos |
+| **TOTAL MÍNIMO** | - | **11 archivos** |
+| **TOTAL COMPLETO** | - | **204 archivos** |
 
 ### F. Configuración de Hardware
 
