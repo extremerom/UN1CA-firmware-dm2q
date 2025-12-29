@@ -6,6 +6,8 @@ Se realizó una comparación detallada de los archivos de configuración del sis
 
 Estos archivos definen permisos, propietarios y capacidades para todos los archivos y directorios en el firmware.
 
+**📄 NOTA:** Para ver las listas completas de todos los archivos únicos con sus rutas exactas, consulta **[FILE_LISTS.md](FILE_LISTS.md)** que contiene las 348 entradas completas organizadas por partición y dispositivo.
+
 ## Archivos Analizados
 
 | Archivo | dm2q (líneas) | r0q (líneas) | MD5 dm2q | MD5 r0q |
