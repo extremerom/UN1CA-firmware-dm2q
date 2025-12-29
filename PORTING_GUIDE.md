@@ -6,6 +6,33 @@
 
 ---
 
+## Resumen Ejecutivo
+
+### Archivos a COPIAR de dm2q → r0q
+
+| Partición | Cantidad | Crítico | Descripción |
+|-----------|----------|---------|-------------|
+| **vendor/** | TODO | ✅ SÍ | Drivers de hardware completos |
+| **boot/dtbo/vendor_boot** | 3 imgs | ✅ SÍ | Kernel y device tree |
+| **system_ext/** | 41 archivos | ✅ SÍ | VNDK v33, QCC, Digital Key |
+| **product/** | 14 archivos | ⚠️ Parcial | Wi-Fi 6E, UWB overlays |
+| **system/** | 11-204 archivos | ⚠️ Parcial | Mínimo 11, máximo 204 |
+| **Configs** | 14 archivos | ✅ SÍ | fs_config, file_context, dpolicy |
+
+### Archivos a ELIMINAR de r0q
+
+| Tipo | Cantidad | Razón |
+|------|----------|-------|
+| **VNDK v31** | 1 apex | Incompatible con Android 13 |
+| **HALs antiguos** | ~20 libs | KeyMint v1→v2, HIDL→AIDL |
+| **Cámara SM8450** | ~8 archivos | Incompatible con SM8550 |
+| **Overlays r0q** | 2 apk | Identificación incorrecta |
+| **Apps r0q** | 3-4 apps | Conflictos opcionales |
+
+**Total archivos a modificar:** ~10,100+ (principalmente vendor/)
+
+---
+
 ## Resumen del Problema
 
 Quieres instalar el firmware de **r0q** (Android 12) en un dispositivo **dm2q** (Android 13), pero necesitas adaptarlo para que funcione correctamente con el hardware de dm2q.
@@ -267,29 +294,122 @@ system/dpolicy_system
 ### A. Eliminar VNDK antiguo
 
 ```bash
-# Eliminar Android 12 VNDK
+# Eliminar Android 12 VNDK (r0q) antes de instalar Android 13 VNDK (dm2q)
 system_ext/apex/com.android.vndk.v31.apex
 ```
 
 ### B. Eliminar overlays específicos de r0q
 
 ```bash
-# Eliminar overlay de r0q
+# Eliminar overlays de r0q que causan conflictos de identificación
 product/overlay/framework-res__r0qxxx__auto_generated_rro_product.apk
 system/vendor/overlay/framework-res__r0qxxx__auto_generated_rro_vendor.apk
 ```
 
-### C. Archivos de r0q que pueden causar conflictos
+### C. Eliminar HALs y bibliotecas incompatibles de r0q
+
+**⚠️ CRÍTICO:** Estos archivos de r0q usan versiones antiguas de APIs o HALs incompatibles con dm2q.
+
+#### C.1. Bibliotecas de Seguridad (KeyMint v1 → v2)
 
 ```bash
-# Herramientas específicas de r0q (OPCIONAL eliminar)
-system/app/Cameralyzer/
-system/app/ClockPackage/
-system/app/MinusOnePage/
+# Eliminar versión V1 (r0q), se reemplaza con V2 (dm2q)
+system/lib/android.hardware.security.keymint-V1-ndk.so
+system/lib64/android.hardware.security.keymint-V1-ndk.so
+system/lib/vendor.samsung.hardware.keymint-V1-ndk.so
+system/lib64/vendor.samsung.hardware.keymint-V1-ndk.so
 
-# TTS ligero de r0q (si copias el completo de dm2q)
-system/app/SamsungTTS_no_vdata/
+# Eliminar HALs antiguos de seguridad (HIDL → AIDL)
+system/lib/libsec_semHal.so
+system/lib64/libsec_semHal.so
+system/lib/libsec_skpmHal.so
+system/lib64/libsec_skpmHal.so
+system/lib/vendor.samsung.hardware.security.sem@1.0.so
+system/lib64/vendor.samsung.hardware.security.sem@1.0.so
+system/lib/vendor.samsung.hardware.security.skpm@1.0.so
+system/lib64/vendor.samsung.hardware.security.skpm@1.0.so
 ```
+
+**Razón:** dm2q usa KeyMint V2 y AIDL en lugar de V1 y HIDL. Los HALs antiguos causan conflictos de autenticación y encriptación.
+
+#### C.2. Bibliotecas de Cámara SM8450 (r0q)
+
+```bash
+# Eliminar datos de cámara para SM8450 (Snapdragon 8 Gen 1)
+system/cameradata/portrait_data/SRIB_Acenet_A16W8_V141_sm8450_snpe2108.dlc
+system/cameradata/portrait_data/SRIB_Matting_INT8_V015_sm8450_snpe2108_TILE_896.dlc
+system/cameradata/portrait_data/SRIB_SID_A16W8_V018_sm8450_snpe2106.dlc
+
+# Eliminar bibliotecas de procesamiento de cámara de r0q
+system/lib64/libHREnhancementAPI.camera.samsung.so
+system/lib64/libarcsoft_superresolution_bokeh.so
+system/lib64/libhigh_dynamic_range.arcsoft.so
+system/lib64/libhighres_enhancement.arcsoft.so
+system/lib64/liblow_light_hdr.arcsoft.so
+```
+
+**Razón:** dm2q usa SM8550 (Snapdragon 8 Gen 2) con diferentes algoritmos de cámara. Los archivos de SM8450 causarán crashes de cámara.
+
+#### C.3. Bibliotecas de Media y Servicios duplicados
+
+```bash
+# Eliminar si existen en system/ de r0q (dm2q los tiene diferentes)
+system/lib/libmediacaptureservice.so
+system/lib64/libmediacaptureservice.so
+system/lib/libmediaplayerservice.so
+system/lib64/libmediaplayerservice.so
+system/lib/libstagefright_httplive_sec.so
+system/lib64/libstagefright_httplive_sec.so
+```
+
+**Razón:** dm2q tiene versiones actualizadas de estos servicios para Android 13.
+
+#### C.4. Bibliotecas de Dumpstate antiguas
+
+```bash
+# Eliminar HALs de dumpstate v1.x (r0q)
+system/lib64/android.hardware.dumpstate@1.0.so
+system/lib64/android.hardware.dumpstate@1.1.so
+```
+
+**Razón:** dm2q usa versiones más recientes integradas en el sistema.
+
+#### C.5. Bibliotecas SDP (Sensitive Data Protection) antiguas
+
+```bash
+# MANTENER PERO NO COPIAR - dm2q no usa estas bibliotecas
+# Si están en r0q, déjalas a menos que causen conflictos
+system/lib/libsdp_crypto.so
+system/lib64/libsdp_crypto.so
+system/lib/libsdp_kekm.so
+system/lib64/libsdp_kekm.so
+system/lib/libsdp_sdk.so
+system/lib64/libsdp_sdk.so
+system/bin/sdp_cryptod
+```
+
+**Razón:** dm2q maneja SDP de forma diferente. Puede funcionar sin estas libs.
+
+### D. Eliminar aplicaciones específicas de r0q (OPCIONAL)
+
+```bash
+# Herramientas de r0q que pueden causar conflictos
+system/app/Cameralyzer/                    # Herramienta de análisis específica de r0q
+system/app/ClockPackage/                   # Puede conflictuar con reloj de dm2q
+system/app/MinusOnePage/                   # Widget específico de r0q
+
+# TTS ligero de r0q (si instalas TTS completo de dm2q)
+system/app/SamsungTTS_no_vdata/           # Versión sin voces
+```
+
+### E. Eliminar configuración de Digital Key BLE de r0q
+
+```bash
+# Si dm2q usa UWB, eliminar configuración BLE de r0q
+system/etc/init/digitalkey_init_ble_tss2.rc
+```
+
+**Razón:** dm2q tiene `digitalkey_init_uwb_tss2.rc` para UWB. Ambos pueden conflictuar.
 
 ---
 
