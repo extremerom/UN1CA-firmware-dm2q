@@ -7,25 +7,43 @@ on:
       - main
     paths:
       - 'system/system/framework/sprengine.jar'
-      - 'system/system/lib/lib.eng*.so'
-      - 'system/system/lib/vendor.samsung.hardware.security.engmode*.so'
-      - 'system/system/lib64/lib.eng*.so'
-      - 'system/system/lib64/vendor.samsung.hardware.security.engmode*.so'
+      - 'system/system/lib/lib.engmode*.so'
+      - 'system/system/lib/vendor.samsung.hardware.security.engmode@*.so'
+      - 'system/system/lib/libMotionEngine.so'
+      - 'system/system/lib/libaudiopolicyenginedefault.so'
+      - 'system/system/lib/drm/libfwdlockengine.so'
+      - 'system/system/lib64/lib.engmode*.so'
+      - 'system/system/lib64/vendor.samsung.hardware.security.engmode@*.so'
+      - 'system/system/lib64/*Engine*.so'
+      - 'system/system/lib64/drm/libfwdlockengine.so'
       - 'vendor/lib/libeng*.so'
+      - 'vendor/lib/*engine*.so'
+      - 'vendor/lib/rfsa/adsp/libmctfengine_skel.so'
       - 'vendor/lib64/libeng*.so'
-      - 'system_ext/lib/libvr_*_engine.so'
-      - 'system_ext/lib64/libvr_*_engine.so'
+      - 'vendor/lib64/*engine*.so'
+      - 'system_ext/lib/*engine*.so'
+      - 'system_ext/lib64/*engine*.so'
+      - '.github/workflows/upload-engineering-artifacts.yml'
   pull_request:
     paths:
       - 'system/system/framework/sprengine.jar'
-      - 'system/system/lib/lib.eng*.so'
-      - 'system/system/lib/vendor.samsung.hardware.security.engmode*.so'
-      - 'system/system/lib64/lib.eng*.so'
-      - 'system/system/lib64/vendor.samsung.hardware.security.engmode*.so'
+      - 'system/system/lib/lib.engmode*.so'
+      - 'system/system/lib/vendor.samsung.hardware.security.engmode@*.so'
+      - 'system/system/lib/libMotionEngine.so'
+      - 'system/system/lib/libaudiopolicyenginedefault.so'
+      - 'system/system/lib/drm/libfwdlockengine.so'
+      - 'system/system/lib64/lib.engmode*.so'
+      - 'system/system/lib64/vendor.samsung.hardware.security.engmode@*.so'
+      - 'system/system/lib64/*Engine*.so'
+      - 'system/system/lib64/drm/libfwdlockengine.so'
       - 'vendor/lib/libeng*.so'
+      - 'vendor/lib/*engine*.so'
+      - 'vendor/lib/rfsa/adsp/libmctfengine_skel.so'
       - 'vendor/lib64/libeng*.so'
-      - 'system_ext/lib/libvr_*_engine.so'
-      - 'system_ext/lib64/libvr_*_engine.so'
+      - 'vendor/lib64/*engine*.so'
+      - 'system_ext/lib/*engine*.so'
+      - 'system_ext/lib64/*engine*.so'
+      - '.github/workflows/upload-engineering-artifacts.yml'
 
 jobs:
   collect-and-upload-engineering-artifacts:
@@ -683,7 +701,7 @@ jobs:
           echo "- libengmode15.so, libengmode2lite.so" >> $GITHUB_STEP_SUMMARY
           echo "- libengmode_client.so, libengmode_server.so, libengmode_tlc.so" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "#### Processing Engines (~57 files)" >> $GITHUB_STEP_SUMMARY
+          echo "#### Processing Engines (57 .so files)" >> $GITHUB_STEP_SUMMARY
           echo "- **Camera**: Face detection, QR, low-light, portrait, pet detection" >> $GITHUB_STEP_SUMMARY
           echo "- **AI/ML**: Neural networks (QNN), BitML, device identification" >> $GITHUB_STEP_SUMMARY
           echo "- **Audio**: Voice command, audio policy, voice recognition" >> $GITHUB_STEP_SUMMARY
@@ -696,9 +714,9 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### File Count by Type" >> $GITHUB_STEP_SUMMARY
           echo "- JAR files: 1" >> $GITHUB_STEP_SUMMARY
-          echo "- .so files: ~65" >> $GITHUB_STEP_SUMMARY
-          echo "  - 32-bit: ~20" >> $GITHUB_STEP_SUMMARY
-          echo "  - 64-bit: ~45" >> $GITHUB_STEP_SUMMARY
+          echo "- .so files: 65" >> $GITHUB_STEP_SUMMARY
+          echo "  - 32-bit: 20" >> $GITHUB_STEP_SUMMARY
+          echo "  - 64-bit: 45" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Directory Structure" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
