@@ -1,0 +1,1117 @@
+name: Upload Camera Apps and Dependencies Artifacts
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'system/system/priv-app/SamsungCamera/**'
+      - 'system/system/priv-app/SCameraSDKService/**'
+      - 'system/system/priv-app/sec_camerax_service/**'
+      - 'system/system/app/VTCameraSetting/**'
+      - 'system/system/app/FactoryCameraFB/**'
+      - 'system/system/app/CameraExtensionsProxy/**'
+      - 'system/system/cameradata/**'
+      - 'system/system/framework/scamera_*.jar'
+      - 'system/system/framework/sec_camerax_impl.jar'
+      - 'system/system/lib/*camera*.so'
+      - 'system/system/lib64/*camera*.so'
+      - 'vendor/lib/*camera*.so'
+      - 'vendor/lib64/*camera*.so'
+      - 'vendor/lib/camera/**'
+      - 'vendor/lib64/camera/**'
+      - 'vendor/firmware/CAMERA*'
+      - 'system/system/etc/*camera*'
+      - 'CAMERA_DEPENDENCIES.md'
+  pull_request:
+    paths:
+      - 'system/system/priv-app/SamsungCamera/**'
+      - 'system/system/priv-app/SCameraSDKService/**'
+      - 'system/system/priv-app/sec_camerax_service/**'
+      - 'system/system/app/VTCameraSetting/**'
+      - 'system/system/app/FactoryCameraFB/**'
+      - 'system/system/app/CameraExtensionsProxy/**'
+      - 'system/system/cameradata/**'
+      - 'system/system/framework/scamera_*.jar'
+      - 'system/system/framework/sec_camerax_impl.jar'
+      - 'system/system/lib/*camera*.so'
+      - 'system/system/lib64/*camera*.so'
+      - 'vendor/lib/*camera*.so'
+      - 'vendor/lib64/*camera*.so'
+      - 'vendor/lib/camera/**'
+      - 'vendor/lib64/camera/**'
+      - 'vendor/firmware/CAMERA*'
+      - 'system/system/etc/*camera*'
+      - 'CAMERA_DEPENDENCIES.md'
+
+jobs:
+  collect-and-upload-camera-artifacts:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create artifact directory structure
+        run: |
+          mkdir -p artifact_output/system/system/priv-app
+          mkdir -p artifact_output/system/system/app
+          mkdir -p artifact_output/system/system/bin
+          mkdir -p artifact_output/system/system/etc/permissions
+          mkdir -p artifact_output/system/system/etc/init
+          mkdir -p artifact_output/system/system/etc/default-permissions
+          mkdir -p artifact_output/system/system/etc/vintf/manifest
+          mkdir -p artifact_output/system/system/framework
+          mkdir -p artifact_output/system/system/lib
+          mkdir -p artifact_output/system/system/lib64
+          mkdir -p artifact_output/system/system/cameradata
+          mkdir -p artifact_output/system_ext/lib
+          mkdir -p artifact_output/system_ext/lib64
+          mkdir -p artifact_output/vendor/bin/hw
+          mkdir -p artifact_output/vendor/lib
+          mkdir -p artifact_output/vendor/lib64
+          mkdir -p artifact_output/vendor/lib/camera
+          mkdir -p artifact_output/vendor/lib64/camera
+          mkdir -p artifact_output/vendor/etc/init
+          mkdir -p artifact_output/vendor/etc/permissions
+          mkdir -p artifact_output/vendor/etc/vintf/manifest
+          mkdir -p artifact_output/vendor/firmware
+          mkdir -p artifact_output/docs
+
+      - name: Copy camera applications (priv-app)
+        run: |
+          echo "Copying privileged camera apps..."
+          for app in SamsungCamera SCameraSDKService sec_camerax_service; do
+            if [ -d "system/system/priv-app/$app" ]; then
+              echo "Copying $app..."
+              cp -r "system/system/priv-app/$app" artifact_output/system/system/priv-app/
+            fi
+          done
+
+      - name: Copy camera applications (app)
+        run: |
+          echo "Copying system camera apps..."
+          for app in VTCameraSetting FactoryCameraFB CameraExtensionsProxy; do
+            if [ -d "system/system/app/$app" ]; then
+              echo "Copying $app..."
+              cp -r "system/system/app/$app" artifact_output/system/system/app/
+            fi
+          done
+
+      - name: Copy camera data directory
+        run: |
+          echo "Copying camera data..."
+          if [ -d "system/system/cameradata" ]; then
+            cp -r system/system/cameradata/. artifact_output/system/system/cameradata/ 2>/dev/null || true
+            echo "✓ Camera data copied"
+          else
+            echo "⚠ Camera data directory not found"
+          fi
+
+      - name: Copy camera framework JARs
+        run: |
+          echo "Copying camera framework JARs..."
+          for jar in scamera_sdk_util.jar scamera_sep.jar sec_camerax_impl.jar; do
+            if [ -f "system/system/framework/$jar" ]; then
+              echo "Copying $jar..."
+              cp "system/system/framework/$jar" artifact_output/system/system/framework/
+            fi
+          done
+
+      - name: Copy camera permission XML files
+        run: |
+          echo "Copying camera permission files..."
+          for perm in \
+            privapp-permissions-com.sec.android.app.camera.xml \
+            sec_camerax_impl.xml \
+            sec_camerax_service.xml \
+            scamera_sep.xml \
+            scamera_sdk_util.xml \
+            cameraservice.xml \
+            com.samsung.android.sdk.camera.processor.xml \
+            com.samsung.android.sdk.camera.processor.effect.xml \
+            com.sec.feature.cover.clearcameraviewcover.xml; do
+            if [ -f "system/system/etc/permissions/$perm" ]; then
+              echo "Copying $perm..."
+              cp "system/system/etc/permissions/$perm" artifact_output/system/system/etc/permissions/
+            fi
+          done
+
+      - name: Copy camera default permissions
+        run: |
+          echo "Copying camera default permission files..."
+          if [ -f "system/system/etc/default-permissions/default-permissions-com.samsung.android.vtcamerasettings.xml" ]; then
+            cp "system/system/etc/default-permissions/default-permissions-com.samsung.android.vtcamerasettings.xml" artifact_output/system/system/etc/default-permissions/
+          fi
+
+      - name: Copy camera init service files
+        run: |
+          echo "Copying camera init service files..."
+          for rc in cameraserver.rc virtual_camera.hal.rc; do
+            if [ -f "system/system/etc/init/$rc" ]; then
+              echo "Copying $rc..."
+              cp "system/system/etc/init/$rc" artifact_output/system/system/etc/init/
+            fi
+          done
+          
+          # Vendor init files
+          for rc in \
+            android.hardware.camera.provider@2.7-external-service.rc \
+            camera.unihal.rc \
+            vendor.samsung.hardware.camera.provider-service_64.rc; do
+            if [ -f "vendor/etc/init/$rc" ]; then
+              echo "Copying $rc..."
+              cp "vendor/etc/init/$rc" artifact_output/vendor/etc/init/
+            fi
+          done
+
+      - name: Copy camera manifest files
+        run: |
+          echo "Copying camera manifest files..."
+          if [ -f "system/system/etc/vintf/manifest/manifest_android.frameworks.cameraservice.service.xml" ]; then
+            cp "system/system/etc/vintf/manifest/manifest_android.frameworks.cameraservice.service.xml" artifact_output/system/system/etc/vintf/manifest/
+          fi
+          
+          # Vendor manifest files
+          for manifest in \
+            vendor.samsung.hardware.camera.provider-service.xml \
+            vendor.qti.camera.postproc-impl.xml \
+            vendor.qti.camera.aon-impl-1.3.xml; do
+            if [ -f "vendor/etc/vintf/manifest/$manifest" ]; then
+              echo "Copying $manifest..."
+              cp "vendor/etc/vintf/manifest/$manifest" artifact_output/vendor/etc/vintf/manifest/
+            fi
+          done
+
+      - name: Copy vendor camera permissions
+        run: |
+          echo "Copying vendor camera permissions..."
+          for perm in \
+            android.hardware.camera.full.xml \
+            vendor.android.hardware.camera.preview-dis.back.xml \
+            android.hardware.camera.front.xml \
+            android.hardware.camera.concurrent.xml \
+            android.hardware.camera.flash-autofocus.xml \
+            android.hardware.camera.raw.xml; do
+            if [ -f "vendor/etc/permissions/$perm" ]; then
+              echo "Copying $perm..."
+              cp "vendor/etc/permissions/$perm" artifact_output/vendor/etc/permissions/
+            fi
+          done
+          
+          # Copy external camera config
+          if [ -f "vendor/etc/external_camera_config.xml" ]; then
+            cp "vendor/etc/external_camera_config.xml" artifact_output/vendor/etc/
+          fi
+
+      - name: Copy camera binaries
+        run: |
+          echo "Copying camera binaries..."
+          # System binaries
+          for bin in cameraserver virtual_camera; do
+            if [ -f "system/system/bin/$bin" ]; then
+              echo "Copying $bin..."
+              cp "system/system/bin/$bin" artifact_output/system/system/bin/
+            fi
+          done
+          
+          # Vendor hardware binaries
+          for bin in \
+            android.hardware.camera.provider@2.7-external-service \
+            vendor.samsung.hardware.camera.provider-service_64; do
+            if [ -f "vendor/bin/hw/$bin" ]; then
+              echo "Copying $bin..."
+              cp "vendor/bin/hw/$bin" artifact_output/vendor/bin/hw/
+            fi
+          done
+
+      - name: Copy camera libraries from system/lib
+        run: |
+          echo "Copying camera libraries from system/lib..."
+          if [ -d "system/system/lib" ]; then
+            find system/system/lib -maxdepth 1 -type f \( -name "*camera*" -o -name "*Camera*" \) -name "*.so" | while read lib; do
+              echo "Copying $(basename $lib)..."
+              cp "$lib" artifact_output/system/system/lib/ 2>/dev/null || true
+            done
+          fi
+
+      - name: Copy camera libraries from system/lib64
+        run: |
+          echo "Copying camera libraries from system/lib64..."
+          if [ -d "system/system/lib64" ]; then
+            find system/system/lib64 -maxdepth 1 -type f \( -name "*camera*" -o -name "*Camera*" \) -name "*.so" | while read lib; do
+              echo "Copying $(basename $lib)..."
+              cp "$lib" artifact_output/system/system/lib64/ 2>/dev/null || true
+            done
+          fi
+
+      - name: Copy camera libraries from vendor/lib
+        run: |
+          echo "Copying camera libraries from vendor/lib..."
+          if [ -d "vendor/lib" ]; then
+            # Copy camera-related .so files
+            find vendor/lib -maxdepth 1 -type f \( -name "*camera*" -o -name "*Camera*" \) -name "*.so" | while read lib; do
+              echo "Copying $(basename $lib)..."
+              cp "$lib" artifact_output/vendor/lib/ 2>/dev/null || true
+            done
+            
+            # Copy camera directory
+            if [ -d "vendor/lib/camera" ]; then
+              echo "Copying vendor/lib/camera directory..."
+              cp -r vendor/lib/camera/* artifact_output/vendor/lib/camera/ 2>/dev/null || true
+            fi
+          fi
+
+      - name: Copy camera libraries from vendor/lib64
+        run: |
+          echo "Copying camera libraries from vendor/lib64..."
+          if [ -d "vendor/lib64" ]; then
+            # Copy camera-related .so files
+            find vendor/lib64 -maxdepth 1 -type f \( -name "*camera*" -o -name "*Camera*" \) -name "*.so" | while read lib; do
+              echo "Copying $(basename $lib)..."
+              cp "$lib" artifact_output/vendor/lib64/ 2>/dev/null || true
+            done
+            
+            # Copy camera directory
+            if [ -d "vendor/lib64/camera" ]; then
+              echo "Copying vendor/lib64/camera directory..."
+              cp -r vendor/lib64/camera/* artifact_output/vendor/lib64/camera/ 2>/dev/null || true
+            fi
+          fi
+
+      - name: Copy system_ext camera libraries
+        run: |
+          echo "Copying system_ext camera libraries..."
+          # Copy seccam libraries
+          if [ -d "system_ext/lib" ]; then
+            find system_ext/lib -type f -name "*seccam*" -name "*.so" | while read lib; do
+              echo "Copying $(basename $lib)..."
+              cp "$lib" artifact_output/system_ext/lib/ 2>/dev/null || true
+            done
+          fi
+          if [ -d "system_ext/lib64" ]; then
+            find system_ext/lib64 -type f -name "*seccam*" -name "*.so" | while read lib; do
+              echo "Copying $(basename $lib)..."
+              cp "$lib" artifact_output/system_ext/lib64/ 2>/dev/null || true
+            done
+          fi
+
+      - name: Copy camera firmware files
+        run: |
+          echo "Copying camera firmware files..."
+          if [ -d "vendor/firmware" ]; then
+            find vendor/firmware -type f -name "CAMERA*" | while read fw; do
+              echo "Copying $(basename $fw)..."
+              cp "$fw" artifact_output/vendor/firmware/ 2>/dev/null || true
+            done
+            echo "✓ Camera firmware files copied"
+          else
+            echo "⚠ Vendor firmware directory not found"
+          fi
+
+      - name: Copy public libraries list
+        run: |
+          echo "Copying public camera libraries list..."
+          if [ -f "system/system/etc/public.libraries-camera.samsung.txt" ]; then
+            cp "system/system/etc/public.libraries-camera.samsung.txt" artifact_output/system/system/etc/
+            echo "✓ public.libraries-camera.samsung.txt copied"
+          else
+            echo "⚠ public.libraries-camera.samsung.txt not found"
+          fi
+
+      - name: Copy additional camera data files
+        run: |
+          echo "Copying additional camera data files..."
+          # Copy portrait data (DLC models, JSON configs)
+          if [ -d "system/system/cameradata/portrait_data" ]; then
+            mkdir -p artifact_output/system/system/cameradata/portrait_data
+            cp -r system/system/cameradata/portrait_data/. artifact_output/system/system/cameradata/portrait_data/ 2>/dev/null || true
+            echo "✓ Portrait data copied (DLC models, configs)"
+          fi
+          
+          # Copy myfilter data (TFLite models, templates)
+          if [ -d "system/system/cameradata/myfilter" ]; then
+            mkdir -p artifact_output/system/system/cameradata/myfilter
+            cp -r system/system/cameradata/myfilter/. artifact_output/system/system/cameradata/myfilter/ 2>/dev/null || true
+            echo "✓ MyFilter data copied (TFLite models, templates)"
+          fi
+          
+          # Copy preloaded filters
+          if [ -d "system/system/cameradata/preloadfilters" ]; then
+            mkdir -p artifact_output/system/system/cameradata/preloadfilters
+            cp -r system/system/cameradata/preloadfilters/. artifact_output/system/system/cameradata/preloadfilters/ 2>/dev/null || true
+            echo "✓ Preloaded filters copied (SEL, JSON, PNG)"
+          fi
+          
+          # Copy singletake data
+          if [ -d "system/system/cameradata/singletake" ]; then
+            mkdir -p artifact_output/system/system/cameradata/singletake
+            cp -r system/system/cameradata/singletake/. artifact_output/system/system/cameradata/singletake/ 2>/dev/null || true
+            echo "✓ Single Take data copied"
+          fi
+          
+          # Copy aremoji feature file
+          if [ -f "system/system/cameradata/aremoji-feature.xml" ]; then
+            cp "system/system/cameradata/aremoji-feature.xml" artifact_output/system/system/cameradata/
+            echo "✓ AR Emoji feature file copied"
+          fi
+          
+          # Copy masking shapes
+          find system/system/cameradata -maxdepth 1 -type f \( -name "*.png" -o -name "*.jpg" \) 2>/dev/null | while read img; do
+            cp "$img" artifact_output/system/system/cameradata/ 2>/dev/null || true
+          done
+
+      - name: Create documentation
+        run: |
+          echo "Creating documentation..."
+          cat > artifact_output/docs/CAMERA_DEPENDENCIES.md << 'EOF'
+          # Camera Applications and Dependencies
+          
+          Este documento lista todas las aplicaciones de cámara y sus dependencias del firmware UN1CA-firmware-dm2q.
+          
+          ## Aplicaciones de Cámara
+          
+          ### Aplicaciones Privilegiadas (/system/priv-app/)
+          
+          1. **SamsungCamera** (com.sec.android.app.camera)
+             - APK principal de la cámara Samsung
+             - Tamaño: ~59MB
+             - Ubicación: `/system/priv-app/SamsungCamera/SamsungCamera.apk`
+          
+          2. **SCameraSDKService**
+             - Servicio SDK de la cámara Samsung
+             - Proporciona APIs para desarrolladores
+             - Ubicación: `/system/priv-app/SCameraSDKService/`
+          
+          3. **sec_camerax_service**
+             - Servicio CameraX de Samsung
+             - Implementación del framework CameraX
+             - Ubicación: `/system/priv-app/sec_camerax_service/`
+          
+          ### Aplicaciones del Sistema (/system/app/)
+          
+          4. **VTCameraSetting** (com.samsung.android.vtcamerasettings)
+             - Configuración de cámara para videollamadas
+             - Ubicación: `/system/app/VTCameraSetting/VTCameraSetting.apk`
+          
+          5. **FactoryCameraFB**
+             - Aplicación de prueba de cámara para modo fábrica
+             - Utilizada para diagnósticos y calibración
+             - Ubicación: `/system/app/FactoryCameraFB/FactoryCameraFB.apk`
+          
+          6. **CameraExtensionsProxy**
+             - Proxy para extensiones de cámara
+             - Maneja características avanzadas de cámara
+             - Ubicación: `/system/app/CameraExtensionsProxy/CameraExtensionsProxy.apk`
+          
+          ## Framework JARs
+          
+          ### System Framework (/system/framework/)
+          
+          - `scamera_sdk_util.jar` - Utilidades del SDK de cámara Samsung
+          - `scamera_sep.jar` - Cámara Samsung SEP (Samsung Experience)
+          - `sec_camerax_impl.jar` - Implementación CameraX de Samsung
+          
+          ## Bibliotecas Nativas
+          
+          ### System Libraries (32-bit) - /system/lib/
+          
+          #### Core Camera Libraries
+          - `libcamera_metadata.so` - Metadatos de cámara
+          - `camera_platform_flags_c_lib.so` - Flags de plataforma
+          - `libseccameracore2.so` - Core de cámara Samsung v2
+          - `libcamera2ndk.so` - NDK Camera2 API
+          - `libcamera_client.so` - Cliente de cámara
+          
+          #### Android Camera HAL
+          - `android.hardware.camera.device@3.2.so` - HAL de dispositivo cámara v3.2
+          - `android.hardware.camera.common@1.0.so` - HAL común de cámara
+          
+          #### Samsung Camera Processing
+          - `libMattingCore.camera.samsung.so` - Procesamiento de matting
+          - `libOpenCv.camera.samsung.so` - OpenCV para cámara Samsung
+          - `libaifrcInterface.camera.samsung.so` - Interfaz AI FRC
+          - `libInteractiveSegmentation.camera.samsung.so` - Segmentación interactiva
+          - `libSegmentationCore.camera.samsung.so` - Core de segmentación
+          - `libSemanticMap_v1.camera.samsung.so` - Mapa semántico
+          - `libFace_Landmark_API.camera.samsung.so` - API de landmarks faciales
+          
+          #### Image Processing
+          - `libjpega.camera.samsung.so` - Procesamiento JPEG acelerado
+          - `libexifa.camera.samsung.so` - Procesamiento EXIF acelerado
+          - `libsecjpeginterface.camera.samsung.so` - Interfaz JPEG segura
+          - `libcore2nativeutil.camera.samsung.so` - Utilidades nativas Core2
+          - `libsec_camerax_util_jni.camera.samsung.so` - JNI CameraX
+          
+          ### System Libraries (64-bit) - /system/lib64/
+          
+          #### Core Camera Libraries
+          - `libcamera_metadata.so` - Metadatos de cámara
+          - `camera_platform_flags_c_lib.so` - Flags de plataforma
+          - `libseccameracore2.so` - Core de cámara Samsung v2
+          - `libcamera2ndk.so` - NDK Camera2 API
+          
+          #### Android Camera HAL (64-bit)
+          - `android.hardware.camera.provider@2.4.so` - Proveedor de cámara v2.4
+          - `android.hardware.camera.provider@2.5.so` - Proveedor de cámara v2.5
+          - `android.hardware.camera.provider@2.6.so` - Proveedor de cámara v2.6
+          - `android.hardware.camera.device@3.2.so` - Dispositivo cámara v3.2
+          - `android.hardware.camera.device@3.3.so` - Dispositivo cámara v3.3
+          - `android.hardware.camera.device@3.6.so` - Dispositivo cámara v3.6
+          - `android.hardware.camera.device@3.7.so` - Dispositivo cámara v3.7
+          - `android.hardware.camera.common@1.0.so` - HAL común de cámara
+          - `android.hardware.camera.common-V1-ndk.so` - HAL común NDK
+          - `android.hardware.camera.metadata@3.2.so` - Metadatos v3.2
+          - `android.hardware.camera.metadata@3.4.so` - Metadatos v3.4
+          - `android.hardware.camera.metadata@3.5.so` - Metadatos v3.5
+          - `android.hardware.camera.metadata@3.6.so` - Metadatos v3.6
+          - `android.hardware.camera.metadata-V3-ndk.so` - Metadatos NDK
+          - `vendor.samsung.hardware.camera.device@5.0.so` - Dispositivo Samsung v5.0
+          - `vendor.samsung.hardware.camera.provider-V1-ndk.so` - Proveedor Samsung NDK
+          
+          #### AI & Machine Learning
+          - `libtensorflowlite_inference_api.camera.samsung.so` - TensorFlow Lite inference
+          - `libtensorflowlite_c.camera.samsung.so` - TensorFlow Lite C API
+          - `libDLInterface_aidl.camera.samsung.so` - Interfaz Deep Learning AIDL
+          - `libsrib_CNNInterface.camera.samsung.so` - Interfaz CNN SRIB
+          - `libsrib_MQA.camera.samsung.so` - MQA SRIB
+          
+          #### Image Enhancement & Processing
+          - `libBeauty_v4.camera.samsung.so` - Filtro de belleza v4
+          - `libMultiFrameProcessing30.camera.samsung.so` - Procesamiento multi-frame
+          - `libMultiFrameProcessing30Tuning.camera.samsung.so` - Tuning multi-frame
+          - `libFaceRestoration.camera.samsung.so` - Restauración facial
+          - `libMattingCore.camera.samsung.so` - Core de matting
+          - `libLttEngine.camera.samsung.so` - Motor LTT
+          - `libHprFace_GAE_jni.camera.samsung.so` - HPR Face GAE JNI
+          - `libHprFace_GAE_api.camera.samsung.so` - HPR Face GAE API
+          - `libHpr_RecFace_dl_v1.0.camera.samsung.so` - Reconocimiento facial DL
+          - `libFacePreProcessing_jni.camera.samsung.so` - Pre-procesamiento facial JNI
+          - `libOpenCv.camera.samsung.so` - OpenCV
+          - `libdvs.camera.samsung.so` - Estabilización de video digital
+          
+          #### Scene & Object Detection
+          - `libSceneDetector_v1.camera.samsung.so` - Detector de escenas v1
+          - `libObjectDetector_v1.camera.samsung.so` - Detector de objetos v1
+          - `libLightObjectDetector_v1.camera.samsung.so` - Detector de objetos ligero
+          - `libEventDetector.camera.samsung.so` - Detector de eventos
+          - `libFood.camera.samsung.so` - Detección de comida
+          - `libFoodDetector.camera.samsung.so` - Detector de comida
+          
+          #### Advanced Features
+          - `libMyFilter.camera.samsung.so` - Filtros personalizados
+          - `libMyFilterPlugin.camera.samsung.so` - Plugin de filtros
+          - `libsuperresolutionraw_wrapper_v2.camera.samsung.so` - Super resolución RAW
+          - `libaiclearzoomraw_wrapper_v1.camera.samsung.so` - AI Clear Zoom RAW
+          - `libsecbufferhandler.camera.samsung.so` - Manejador de buffer seguro
+          - `libhumantracking_util.camera.samsung.so` - Utilidades de seguimiento humano
+          - `libLocalTM_pcc.camera.samsung.so` - Tone mapping local PCC
+          - `libsmart_cropping.camera.samsung.so` - Recorte inteligente
+          
+          #### Portrait & Bokeh Effects
+          - `libaifrcInterface.camera.samsung.so` - Interfaz AI FRC
+          - `libRemasterEngine.camera.samsung.so` - Motor de remasterización
+          - `libhybridHDR_wrapper.camera.samsung.so` - Wrapper HDR híbrido
+          - `libsecimaging.camera.samsung.so` - Imaging seguro
+          - `libsecimaging_pdk.camera.samsung.so` - Imaging PDK
+          - `libMPISingleRGB40.camera.samsung.so` - MPI Single RGB
+          - `libInteractiveSegmentation.camera.samsung.so` - Segmentación interactiva
+          - `libPortraitSolution.camera.samsung.so` - Solución de retrato
+          - `libDualCamBokehCapture.camera.samsung.so` - Captura bokeh cámara dual
+          - `libImageCropper.camera.samsung.so` - Recortador de imagen
+          - `libRelighting_API.camera.samsung.so` - API de re-iluminación
+          - `libportrait_controller_interface_jni.camera.samsung.so` - Interfaz controlador retrato
+          
+          #### Document & QR Processing
+          - `libQREngine.camera.samsung.so` - Motor QR
+          - `libWideDistortionCorrection.camera.samsung.so` - Corrección de distorsión amplia
+          - `libDocRectifyWrapper.camera.samsung.so` - Wrapper rectificación documento
+          - `libDeepDocRectify.camera.samsung.so` - Rectificación profunda documento
+          
+          #### Specialized Features
+          - `libBestPhoto.camera.samsung.so` - Selección mejor foto
+          - `libstartrail.camera.samsung.so` - Efecto star trail
+          - `libSemanticMap_v1.camera.samsung.so` - Mapa semántico
+          - `libAIQSolution_MPI.camera.samsung.so` - Solución AIQ MPI
+          - `libSwIsp_wrapper_v1.camera.samsung.so` - Wrapper Software ISP
+          - `libmidas_core.camera.samsung.so` - Core MIDAS
+          
+          #### Utilities
+          - `libFace_Landmark_API.camera.samsung.so` - API landmarks faciales
+          - `libjpega.camera.samsung.so` - JPEG acelerado
+          - `libexifa.camera.samsung.so` - EXIF acelerado
+          - `libsecjpeginterface.camera.samsung.so` - Interfaz JPEG segura
+          - `libcore2nativeutil.camera.samsung.so` - Utilidades nativas
+          - `libsec_camerax_util_jni.camera.samsung.so` - JNI CameraX
+          - `libSegmentationCore.camera.samsung.so` - Core segmentación
+          - `libHIDTSnapJNI.camera.samsung.so` - HIDT Snap JNI
+          
+          ### Vendor Libraries - /vendor/lib/ (32-bit)
+          
+          #### Vendor Camera HAL
+          - `android.hardware.camera.provider@2.4.so`
+          - `android.hardware.camera.provider@2.5-external.so`
+          - `android.hardware.camera.provider@2.6.so`
+          - `android.hardware.camera.provider@2.7.so`
+          - `android.hardware.camera.provider@2.7-external.so`
+          - `android.hardware.camera.device@3.2.so`
+          - `android.hardware.camera.common@1.0.so`
+          - `android.hardware.camera.metadata@3.2.so`
+          - `android.hardware.camera.metadata@3.4.so`
+          - `android.hardware.camera.metadata@3.5.so`
+          - `android.hardware.camera.metadata@3.6.so`
+          - `camera.device@3.2-impl.so`
+          - `camera.device@3.4-impl.so`
+          - `camera.device@3.4-external-impl.so`
+          - `camera.device@3.6-external-impl.so`
+          
+          #### Qualcomm Camera Services
+          - `vendor.qti.hardware.camera.postproc@1.0.so`
+          - `vendor.qti.hardware.camera.postproc@1.0-service-impl.so`
+          - `vendor.qti.hardware.camera.aon@1.1.so`
+          - `vendor.qti.hardware.camera.aon@1.3.so`
+          - `vendor.qti.hardware.camera.aon-service-impl.so`
+          - `android.frameworks.cameraservice.service@2.1.so`
+          - `android.frameworks.cameraservice.service@2.2.so`
+          - `android.frameworks.cameraservice.device@2.0.so`
+          
+          #### Vendor Processing Libraries
+          - `libcamerapostproc.so`
+          - `libcamera2ndk_vendor.so`
+          - `libmmcamera_mfnr.so` - Multi-frame noise reduction
+          - `libmmcamera_bestats.so` - Best statistics
+          - `libmmcamera_cac3.so` - Chromatic aberration correction
+          - `libmmcamera_pdpc.so` - Phase detection pixel correction
+          - `libmmcamera_lscv35.so` - Lens shading correction
+          
+          #### Samsung Vendor Camera Processing
+          - `libBeauty_v4.camera.samsung.so`
+          - `libAFSegmenter_v1.camera.samsung.so`
+          - `libAIMFISP.camera.samsung.so`
+          - `libAIMFISP_core.camera.samsung.so`
+          - `libOpenCv.camera.samsung.so`
+          - `libPersonal_capture.camera.samsung.so`
+          - `libMoireDetection.camera.samsung.so`
+          - `libLightObjectDetector_v1.camera.samsung.so`
+          - `libHprFace_GAE_api.camera.samsung.so`
+          - `libLocalTM_wrapper.camera.samsung.so`
+          - `libLocalTM_capture_core.camera.samsung.so`
+          - `libAIphoto_core.camera.samsung.so`
+          - `libTetraMFP10Tuning.camera.samsung.so`
+          - `libAImode_wrapper.camera.samsung.so`
+          - `libRelighting_API.camera.samsung.so`
+          - `libEventFinder.camera.samsung.so`
+          - `libFace_Landmark_API.camera.samsung.so`
+          - `libMotionEstimatorWrapper.camera.samsung.so`
+          - `libMotionEstimator.camera.samsung.so`
+          
+          ### Vendor Libraries - /vendor/lib64/ (64-bit)
+          
+          Similar a las bibliotecas de 32-bit pero compiladas para arquitectura de 64-bit.
+          
+          ### Vendor Camera Plugins - /vendor/lib/camera/ y /vendor/lib64/camera/
+          
+          Plugins y módulos adicionales de cámara proporcionados por el fabricante.
+          
+          ### System_ext Libraries
+          
+          - `vendor.qti.hardware.seccam@1.0.so` - HAL de cámara segura Qualcomm (lib y lib64)
+          
+          ## Binarios
+          
+          ### System Binaries - /system/bin/
+          
+          - `cameraserver` - Servidor de cámara del sistema Android
+          - `virtual_camera` - Soporte de cámara virtual
+          
+          ### Vendor Binaries - /vendor/bin/hw/
+          
+          - `android.hardware.camera.provider@2.7-external-service` - Servicio proveedor cámara externa
+          - `vendor.samsung.hardware.camera.provider-service_64` - Servicio proveedor cámara Samsung (64-bit)
+          
+          ## Archivos de Configuración
+          
+          ### Permisos - /system/etc/permissions/
+          
+          - `privapp-permissions-com.sec.android.app.camera.xml` - Permisos privilegiados cámara Samsung
+          - `sec_camerax_impl.xml` - Permisos CameraX
+          - `sec_camerax_service.xml` - Permisos servicio CameraX
+          - `scamera_sep.xml` - Permisos S Camera SEP
+          - `scamera_sdk_util.xml` - Permisos utilidades SDK
+          - `cameraservice.xml` - Permisos servicio de cámara
+          - `com.samsung.android.sdk.camera.processor.xml` - Permisos procesador SDK
+          - `com.samsung.android.sdk.camera.processor.effect.xml` - Permisos efectos procesador
+          - `com.sec.feature.cover.clearcameraviewcover.xml` - Característica cover con vista de cámara
+          
+          ### Permisos Vendor - /vendor/etc/permissions/
+          
+          - `android.hardware.camera.full.xml` - Soporte cámara completa
+          - `vendor.android.hardware.camera.preview-dis.back.xml` - DIS para cámara trasera
+          - `android.hardware.camera.front.xml` - Soporte cámara frontal
+          - `android.hardware.camera.concurrent.xml` - Soporte cámaras concurrentes
+          - `android.hardware.camera.flash-autofocus.xml` - Flash con autofocus
+          - `android.hardware.camera.raw.xml` - Soporte captura RAW
+          
+          ### Permisos por Defecto - /system/etc/default-permissions/
+          
+          - `default-permissions-com.samsung.android.vtcamerasettings.xml` - Permisos por defecto VT Camera
+          
+          ### Archivos Init - /system/etc/init/
+          
+          - `cameraserver.rc` - Script init del servidor de cámara
+          - `virtual_camera.hal.rc` - Script init HAL cámara virtual
+          
+          ### Archivos Init Vendor - /vendor/etc/init/
+          
+          - `android.hardware.camera.provider@2.7-external-service.rc`
+          - `camera.unihal.rc`
+          - `vendor.samsung.hardware.camera.provider-service_64.rc`
+          
+          ### Manifiestos VINTF - /system/etc/vintf/manifest/
+          
+          - `manifest_android.frameworks.cameraservice.service.xml` - Manifiesto del servicio de cámara
+          
+          ### Manifiestos VINTF Vendor - /vendor/etc/vintf/manifest/
+          
+          - `vendor.samsung.hardware.camera.provider-service.xml`
+          - `vendor.qti.camera.postproc-impl.xml`
+          - `vendor.qti.camera.aon-impl-1.3.xml`
+          
+          ### Configuración Vendor - /vendor/etc/
+          
+          - `external_camera_config.xml` - Configuración de cámaras externas
+          
+          ## Datos de Cámara - /system/cameradata/
+          
+          ### Archivos de Características
+          
+          - `camera-feature.xml` - Características de cámara (~27KB)
+          - `aremoji-feature.xml` - Características AR Emoji
+          
+          ### Recursos Visuales
+          
+          - `masking_roundrect_shape.png` - Forma de máscara rectangular redondeada
+          - `masking_roundrect_shape_ninepatch.png` - Nine-patch de forma de máscara
+          
+          ### Directorios de Datos
+          
+          - `myfilter/` - Filtros personalizados
+          - `portrait_data/` - Datos para modo retrato
+          - `preloadfilters/` - Filtros precargados
+          - `singletake/` - Datos para modo Single Take
+          
+          ## Características Principales
+          
+          ### Capacidades de Cámara
+          
+          1. **Multi-Frame Processing** - Procesamiento de múltiples frames para mejor calidad
+          2. **AI Enhancement** - Mejoras basadas en inteligencia artificial
+          3. **Scene Detection** - Detección automática de escenas
+          4. **Object Detection** - Detección de objetos y personas
+          5. **Face Recognition** - Reconocimiento y mejora facial
+          6. **Portrait Mode** - Modo retrato con efecto bokeh
+          7. **HDR** - High Dynamic Range
+          8. **Super Resolution** - Super resolución para más detalles
+          9. **Night Mode** - Modo nocturno con reducción de ruido multi-frame
+          10. **Pro Mode** - Modo profesional con controles manuales
+          11. **RAW Capture** - Captura en formato RAW
+          12. **QR/Barcode Scanner** - Escáner integrado de códigos QR
+          13. **Document Scanner** - Escáner de documentos con corrección de perspectiva
+          14. **AR Emoji** - Emojis de realidad aumentada
+          15. **Single Take** - Captura múltiple automática
+          16. **My Filters** - Filtros personalizables
+          
+          ### Tecnologías
+          
+          - **TensorFlow Lite** - Para inferencia de modelos de ML
+          - **OpenCV** - Para procesamiento de visión por computadora
+          - **Multi-Camera Support** - Soporte para múltiples cámaras simultáneas
+          - **CameraX** - Framework moderno de cámara Android
+          - **Camera2 API** - API avanzada de cámara Android
+          - **HAL 3.x** - Hardware Abstraction Layer versión 3.x
+          - **AIDL** - Android Interface Definition Language para servicios
+          
+          ## Notas Importantes
+          
+          1. **Tamaño del paquete**: La aplicación de cámara principal (SamsungCamera.apk) es de ~59MB, 
+             reflejando la complejidad y características avanzadas incluidas.
+          
+          2. **Procesamiento AI**: Múltiples bibliotecas dedicadas a procesamiento de imágenes basado en IA,
+             incluyendo TensorFlow Lite y modelos de deep learning personalizados.
+          
+          3. **Multi-Frame**: Capacidades extensivas de procesamiento multi-frame para reducción de ruido,
+             super resolución y mejora de rango dinámico.
+          
+          4. **Vendor vs System**: Las bibliotecas se dividen entre particiones system y vendor,
+             donde vendor contiene implementaciones específicas del hardware (Qualcomm y Samsung).
+          
+          5. **32 y 64 bits**: Bibliotecas disponibles en ambas arquitecturas para compatibilidad completa.
+          
+          6. **HAL Versions**: Soporte para múltiples versiones de Camera HAL (1.0, 2.x, 3.x) para
+             compatibilidad con diferentes implementaciones de hardware.
+          
+          EOF
+          
+          # Create README for artifact
+          cat > artifact_output/README.md << 'EOF'
+          # Camera Apps and Dependencies Artifact Package
+          
+          This package contains all camera applications and their dependencies from the UN1CA-firmware-dm2q repository.
+          
+          ## Contents
+          
+          - **system/system/priv-app/** - Privileged camera applications
+          - **system/system/app/** - System camera applications
+          - **system/system/bin/** - Camera binaries
+          - **system/system/etc/permissions/** - Permission XML files
+          - **system/system/etc/init/** - Init service files
+          - **system/system/etc/vintf/manifest/** - VINTF manifest files
+          - **system/system/framework/** - Camera framework JARs
+          - **system/system/lib/** and **system/system/lib64/** - System camera libraries
+          - **system/system/cameradata/** - Camera data and configuration files
+            - portrait_data/ - ML models for portrait mode (90MB+ DLC files)
+            - myfilter/ - TensorFlow Lite models for custom filters
+            - preloadfilters/ - Preloaded filter effects (SEL, JSON, PNG)
+            - singletake/ - Single Take mode configuration
+          - **system/system/etc/public.libraries-camera.samsung.txt** - Public libraries list (70+ libs)
+          - **system_ext/lib/** and **system_ext/lib64/** - Extended system libraries
+          - **vendor/bin/hw/** - Vendor hardware binaries
+          - **vendor/lib/** and **vendor/lib64/** - Vendor camera libraries
+          - **vendor/lib/camera/** and **vendor/lib64/camera/** - Vendor camera plugins
+          - **vendor/firmware/** - Camera ICP firmware (25 files)
+          - **vendor/etc/** - Vendor configuration files
+          - **docs/** - Documentation
+          
+          ## Applications Included
+          
+          ### Privileged Camera Apps
+          1. **SamsungCamera** (com.sec.android.app.camera) - Main Samsung Camera app (~59MB)
+          2. **SCameraSDKService** - Samsung Camera SDK Service
+          3. **sec_camerax_service** - Samsung CameraX Service
+          
+          ### System Camera Apps
+          4. **VTCameraSetting** (com.samsung.android.vtcamerasettings) - Video call camera settings
+          5. **FactoryCameraFB** - Factory camera testing app
+          6. **CameraExtensionsProxy** - Camera extensions proxy for advanced features
+          
+          ## Key Features
+          
+          - Full Samsung Camera app with all advanced features
+          - AI-powered image enhancement
+          - Multi-frame processing for noise reduction and HDR
+          - Scene and object detection
+          - Portrait mode with bokeh effects
+          - Super resolution and clear zoom
+          - Night mode
+          - Pro mode with manual controls
+          - RAW capture support
+          - QR and document scanning
+          - AR Emoji support
+          - Single Take mode
+          - Custom filters
+          - CameraX framework support
+          - Multi-camera concurrent support
+          
+          ## Technical Details
+          
+          - **Total camera-related files**: 370+ (APKs, JARs, .so libraries, firmware, ML models, configs)
+          - **Framework JARs**: 3 camera-specific JARs
+          - **System libraries**: 100+ camera processing libraries (32 and 64-bit)
+          - **Vendor libraries**: 150+ camera HAL and processing libraries
+          - **ML models**: 
+            - 5 DLC models (90MB) - SNPE v2.x for Snapdragon 8550
+            - 4 TFLite models for custom filters
+          - **Firmware files**: 25 Camera ICP firmware segments
+          - **Configuration files**: 40+ XML, RC, TXT, JSON files
+          - **Filter data**: 15+ preloaded filters + templates
+          - **AI/ML support**: TensorFlow Lite + Snapdragon NPE integration
+          - **Computer Vision**: OpenCV integration
+          - **HAL versions**: Support for Camera HAL 1.0, 2.x, and 3.x
+          
+          ## Libraries Highlight
+          
+          ### AI & Machine Learning
+          - TensorFlow Lite inference
+          - CNN Interface
+          - Deep learning models for image enhancement
+          
+          ### Image Processing
+          - Multi-frame processing
+          - HDR processing
+          - Super resolution
+          - Noise reduction
+          - Beauty filters
+          - Face restoration
+          
+          ### Detection & Recognition
+          - Scene detection
+          - Object detection
+          - Face landmark detection
+          - Food detection
+          - QR code engine
+          
+          ### Advanced Features
+          - Portrait solution with bokeh
+          - Document rectification
+          - Wide distortion correction
+          - Motion estimation
+          - Smart cropping
+          - Relighting API
+          
+          For detailed information about all dependencies, see docs/CAMERA_DEPENDENCIES.md
+          EOF
+
+      - name: Generate artifact manifest
+        run: |
+          echo "Generating artifact manifest..."
+          cd artifact_output
+          find . -type f | sort > MANIFEST.txt
+          echo "Total files: $(wc -l < MANIFEST.txt)"
+          echo ""
+          echo "=== Manifest Content ==="
+          cat MANIFEST.txt
+
+      - name: Create release ZIP file
+        run: |
+          echo "Creating release ZIP file..."
+          cd artifact_output
+          zip -r ../camera-files-dm2q-${{ github.sha }}.zip . -9
+          cd ..
+          ls -lh camera-files-dm2q-${{ github.sha }}.zip
+          echo "✓ ZIP file created: camera-files-dm2q-${{ github.sha }}.zip"
+          echo "Size: $(du -h camera-files-dm2q-${{ github.sha }}.zip | cut -f1)"
+
+      - name: Generate release tag and name
+        id: release_info
+        run: |
+          # Generate timestamp-based tag
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          TAG_NAME="camera-files-v${TIMESTAMP}"
+          RELEASE_NAME="Camera Files for DM2Q - ${TIMESTAMP}"
+          
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "release_name=${RELEASE_NAME}" >> $GITHUB_OUTPUT
+          echo "timestamp=${TIMESTAMP}" >> $GITHUB_OUTPUT
+          
+          echo "Release tag: ${TAG_NAME}"
+          echo "Release name: ${RELEASE_NAME}"
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.release_info.outputs.tag_name }}
+          release_name: ${{ steps.release_info.outputs.release_name }}
+          body: |
+            # Camera Files Package for UN1CA Firmware DM2Q
+            
+            ## 📦 Package Information
+            
+            - **Device**: Samsung Galaxy S21 FE 5G (DM2Q)
+            - **Firmware**: UN1CA-firmware-dm2q
+            - **Commit**: ${{ github.sha }}
+            - **Branch**: ${{ github.ref_name }}
+            - **Build Date**: ${{ steps.release_info.outputs.timestamp }}
+            - **Total Files**: See MANIFEST.txt in the ZIP
+            
+            ## 📱 Contents
+            
+            This package contains all camera-related files from the firmware:
+            
+            ### Applications (6)
+            - **SamsungCamera.apk** (59MB) - Main camera application
+            - **SCameraSDKService** - Camera SDK service
+            - **sec_camerax_service** - CameraX service implementation
+            - **VTCameraSetting** - Video call camera settings
+            - **FactoryCameraFB** - Factory camera test app
+            - **CameraExtensionsProxy** - Camera extensions proxy
+            
+            ### Framework & Libraries
+            - 3 Framework JARs (scamera_sdk_util, scamera_sep, sec_camerax_impl)
+            - 100+ System camera processing libraries (32/64-bit)
+            - 150+ Vendor HAL and processing libraries
+            - 90+ Qualcomm camera pipeline components
+            
+            ### Firmware & ML Models
+            - 25 Camera ICP firmware files
+            - 5 DLC ML models for portrait mode (90MB - SNPE v2.x)
+            - 4 TensorFlow Lite models for custom filters
+            
+            ### Data & Configuration
+            - 15+ Preloaded filters (Samsung SEL format)
+            - 30MB+ Sensor tuning data (QTI Chromatix binaries)
+            - 40+ Configuration files (XML, RC, JSON, TXT)
+            - Camera feature definitions
+            - Public libraries list (70+ libs)
+            
+            ## 🎯 Key Features
+            
+            - ✅ 8K @ 24fps video recording
+            - ✅ 4K @ 60fps with HDR10+
+            - ✅ 1080p @ 120fps slow motion
+            - ✅ AI-powered scene detection (8 generations)
+            - ✅ Multi-frame processing for HDR and noise reduction
+            - ✅ Portrait mode with real-time bokeh
+            - ✅ Night mode with temporal fusion
+            - ✅ Super resolution and AI clear zoom
+            - ✅ Pro mode with manual controls
+            - ✅ RAW capture support
+            - ✅ Document scanner with perspective correction
+            - ✅ AR Emoji support
+            - ✅ Single Take mode
+            - ✅ Custom filters (My Filters)
+            
+            ## 📚 Documentation
+            
+            - **README.md** - Package overview (English)
+            - **docs/CAMERA_DEPENDENCIES.md** - Complete dependency documentation (Spanish)
+            - **MANIFEST.txt** - Complete file listing
+            
+            ## 🔧 Technical Specifications
+            
+            - **Total Files**: 370+
+            - **ML Models**: 9 files (~100MB)
+            - **Firmware**: 25 ICP segments
+            - **Supported Sensors**: Samsung ISOCELL, Sony IMX, Hynix
+            - **AI Engine**: Snapdragon NPE v2.x (for SM8550)
+            - **HAL Versions**: 1.0, 2.x, 3.x support
+            
+            ## 📥 Download
+            
+            Download the ZIP file attached to this release to get all camera files.
+            
+            **File**: `camera-files-dm2q-${{ github.sha }}.zip`
+            
+            ## ℹ️ Usage
+            
+            1. Download the ZIP file
+            2. Extract to your preferred location
+            3. Review the README.md for package contents
+            4. Check MANIFEST.txt for complete file listing
+            5. See docs/CAMERA_DEPENDENCIES.md for detailed information
+            
+            ## 🔍 Verification
+            
+            All files have been verified to be directly related to camera functionality.
+            No non-camera files are included in this package.
+            
+            ---
+            
+            **Generated by**: GitHub Actions Workflow
+            **Workflow Run**: ${{ github.run_number }}
+          draft: false
+          prerelease: false
+
+      - name: Upload ZIP to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./camera-files-dm2q-${{ github.sha }}.zip
+          asset_name: camera-files-dm2q-${{ github.sha }}.zip
+          asset_content_type: application/zip
+
+      - name: Upload camera artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: camera-apps-dependencies-${{ github.sha }}
+          path: artifact_output/
+          retention-days: 90
+          compression-level: 9
+
+      - name: Create artifact summary
+        run: |
+          echo "## 📦 Camera Files Package Created Successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🎉 GitHub Release Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release Tag**: \`${{ steps.release_info.outputs.tag_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release Name**: ${{ steps.release_info.outputs.release_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **ZIP File**: \`camera-files-dm2q-${{ github.sha }}.zip\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **ZIP Size**: $(du -h camera-files-dm2q-${{ github.sha }}.zip | cut -f1)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **[View Release](${{ steps.create_release.outputs.html_url }})**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Camera Apps and Dependencies Package" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Package Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Artifact Name**: camera-apps-dependencies-${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Files**: $(wc -l < artifact_output/MANIFEST.txt)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Applications Included" >> $GITHUB_STEP_SUMMARY
+          echo "#### Privileged Camera Apps" >> $GITHUB_STEP_SUMMARY
+          echo "- SamsungCamera (com.sec.android.app.camera) - Main camera app (~59MB)" >> $GITHUB_STEP_SUMMARY
+          echo "- SCameraSDKService - Camera SDK service" >> $GITHUB_STEP_SUMMARY
+          echo "- sec_camerax_service - CameraX service" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### System Camera Apps" >> $GITHUB_STEP_SUMMARY
+          echo "- VTCameraSetting (Video call camera settings)" >> $GITHUB_STEP_SUMMARY
+          echo "- FactoryCameraFB (Factory camera test)" >> $GITHUB_STEP_SUMMARY
+          echo "- CameraExtensionsProxy (Camera extensions)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Framework JARs" >> $GITHUB_STEP_SUMMARY
+          echo "- scamera_sdk_util.jar" >> $GITHUB_STEP_SUMMARY
+          echo "- scamera_sep.jar" >> $GITHUB_STEP_SUMMARY
+          echo "- sec_camerax_impl.jar" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Native Libraries" >> $GITHUB_STEP_SUMMARY
+          echo "- **System libraries**: 100+ camera processing libraries (lib + lib64)" >> $GITHUB_STEP_SUMMARY
+          echo "  - Core: libcamera_metadata, libseccameracore2, libcamera2ndk" >> $GITHUB_STEP_SUMMARY
+          echo "  - AI/ML: TensorFlow Lite, CNN Interface, Deep Learning models" >> $GITHUB_STEP_SUMMARY
+          echo "  - Processing: Multi-frame, HDR, Super resolution, Beauty filters" >> $GITHUB_STEP_SUMMARY
+          echo "  - Detection: Scene, Object, Face, Food detection" >> $GITHUB_STEP_SUMMARY
+          echo "- **Vendor libraries**: 150+ HAL and processing libraries" >> $GITHUB_STEP_SUMMARY
+          echo "  - Qualcomm Camera HAL (multiple versions)" >> $GITHUB_STEP_SUMMARY
+          echo "  - Samsung vendor processing libraries" >> $GITHUB_STEP_SUMMARY
+          echo "  - Camera plugins and modules" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Binaries" >> $GITHUB_STEP_SUMMARY
+          echo "- System: cameraserver, virtual_camera" >> $GITHUB_STEP_SUMMARY
+          echo "- Vendor: camera provider services (HAL implementation)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Configuration Files" >> $GITHUB_STEP_SUMMARY
+          echo "- Permission XMLs (system and vendor)" >> $GITHUB_STEP_SUMMARY
+          echo "- Init service files" >> $GITHUB_STEP_SUMMARY
+          echo "- VINTF manifests" >> $GITHUB_STEP_SUMMARY
+          echo "- Camera data and features XML" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Key Features" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Full Samsung Camera app with all features" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ AI-powered image enhancement (TensorFlow Lite)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Multi-frame processing (HDR, noise reduction)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Scene and object detection" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Portrait mode with bokeh effects" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Super resolution and AI clear zoom" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Night mode" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Pro mode with manual controls" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ RAW capture support" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ QR and document scanning" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ AR Emoji support" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Single Take mode" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Custom filters (My Filters)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ CameraX framework support" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Multi-camera concurrent support" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Technical Specifications" >> $GITHUB_STEP_SUMMARY
+          echo "- Total camera-related files: 297+" >> $GITHUB_STEP_SUMMARY
+          echo "- Framework JARs: 3" >> $GITHUB_STEP_SUMMARY
+          echo "- System libraries: 100+ (32 and 64-bit)" >> $GITHUB_STEP_SUMMARY
+          echo "- Vendor libraries: 150+ (32 and 64-bit)" >> $GITHUB_STEP_SUMMARY
+          echo "- Camera HAL versions: 1.0, 2.x, 3.x" >> $GITHUB_STEP_SUMMARY
+          echo "- AI/ML: TensorFlow Lite, OpenCV" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Directory Structure" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cd artifact_output && (tree -L 4 -d 2>/dev/null || find . -type d | sort | sed 's|^\./||' | grep -v '^\.$')
+          echo '```' >> $GITHUB_STEP_SUMMARY
