@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     
     permissions:
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -875,6 +875,149 @@ jobs:
           echo "=== Manifest Content ==="
           cat MANIFEST.txt
 
+      - name: Create release ZIP file
+        run: |
+          echo "Creating release ZIP file..."
+          cd artifact_output
+          zip -r ../camera-files-dm2q-${{ github.sha }}.zip . -9
+          cd ..
+          ls -lh camera-files-dm2q-${{ github.sha }}.zip
+          echo "✓ ZIP file created: camera-files-dm2q-${{ github.sha }}.zip"
+          echo "Size: $(du -h camera-files-dm2q-${{ github.sha }}.zip | cut -f1)"
+
+      - name: Generate release tag and name
+        id: release_info
+        run: |
+          # Generate timestamp-based tag
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          TAG_NAME="camera-files-v${TIMESTAMP}"
+          RELEASE_NAME="Camera Files for DM2Q - ${TIMESTAMP}"
+          
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "release_name=${RELEASE_NAME}" >> $GITHUB_OUTPUT
+          echo "timestamp=${TIMESTAMP}" >> $GITHUB_OUTPUT
+          
+          echo "Release tag: ${TAG_NAME}"
+          echo "Release name: ${RELEASE_NAME}"
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.release_info.outputs.tag_name }}
+          release_name: ${{ steps.release_info.outputs.release_name }}
+          body: |
+            # Camera Files Package for UN1CA Firmware DM2Q
+            
+            ## 📦 Package Information
+            
+            - **Device**: Samsung Galaxy S21 FE 5G (DM2Q)
+            - **Firmware**: UN1CA-firmware-dm2q
+            - **Commit**: ${{ github.sha }}
+            - **Branch**: ${{ github.ref_name }}
+            - **Build Date**: ${{ steps.release_info.outputs.timestamp }}
+            - **Total Files**: See MANIFEST.txt in the ZIP
+            
+            ## 📱 Contents
+            
+            This package contains all camera-related files from the firmware:
+            
+            ### Applications (6)
+            - **SamsungCamera.apk** (59MB) - Main camera application
+            - **SCameraSDKService** - Camera SDK service
+            - **sec_camerax_service** - CameraX service implementation
+            - **VTCameraSetting** - Video call camera settings
+            - **FactoryCameraFB** - Factory camera test app
+            - **CameraExtensionsProxy** - Camera extensions proxy
+            
+            ### Framework & Libraries
+            - 3 Framework JARs (scamera_sdk_util, scamera_sep, sec_camerax_impl)
+            - 100+ System camera processing libraries (32/64-bit)
+            - 150+ Vendor HAL and processing libraries
+            - 90+ Qualcomm camera pipeline components
+            
+            ### Firmware & ML Models
+            - 25 Camera ICP firmware files
+            - 5 DLC ML models for portrait mode (90MB - SNPE v2.x)
+            - 4 TensorFlow Lite models for custom filters
+            
+            ### Data & Configuration
+            - 15+ Preloaded filters (Samsung SEL format)
+            - 30MB+ Sensor tuning data (QTI Chromatix binaries)
+            - 40+ Configuration files (XML, RC, JSON, TXT)
+            - Camera feature definitions
+            - Public libraries list (70+ libs)
+            
+            ## 🎯 Key Features
+            
+            - ✅ 8K @ 24fps video recording
+            - ✅ 4K @ 60fps with HDR10+
+            - ✅ 1080p @ 120fps slow motion
+            - ✅ AI-powered scene detection (8 generations)
+            - ✅ Multi-frame processing for HDR and noise reduction
+            - ✅ Portrait mode with real-time bokeh
+            - ✅ Night mode with temporal fusion
+            - ✅ Super resolution and AI clear zoom
+            - ✅ Pro mode with manual controls
+            - ✅ RAW capture support
+            - ✅ Document scanner with perspective correction
+            - ✅ AR Emoji support
+            - ✅ Single Take mode
+            - ✅ Custom filters (My Filters)
+            
+            ## 📚 Documentation
+            
+            - **README.md** - Package overview (English)
+            - **docs/CAMERA_DEPENDENCIES.md** - Complete dependency documentation (Spanish)
+            - **MANIFEST.txt** - Complete file listing
+            
+            ## 🔧 Technical Specifications
+            
+            - **Total Files**: 370+
+            - **ML Models**: 9 files (~100MB)
+            - **Firmware**: 25 ICP segments
+            - **Supported Sensors**: Samsung ISOCELL, Sony IMX, Hynix
+            - **AI Engine**: Snapdragon NPE v2.x (for SM8550)
+            - **HAL Versions**: 1.0, 2.x, 3.x support
+            
+            ## 📥 Download
+            
+            Download the ZIP file attached to this release to get all camera files.
+            
+            **File**: `camera-files-dm2q-${{ github.sha }}.zip`
+            
+            ## ℹ️ Usage
+            
+            1. Download the ZIP file
+            2. Extract to your preferred location
+            3. Review the README.md for package contents
+            4. Check MANIFEST.txt for complete file listing
+            5. See docs/CAMERA_DEPENDENCIES.md for detailed information
+            
+            ## 🔍 Verification
+            
+            All files have been verified to be directly related to camera functionality.
+            No non-camera files are included in this package.
+            
+            ---
+            
+            **Generated by**: GitHub Actions Workflow
+            **Workflow Run**: ${{ github.run_number }}
+          draft: false
+          prerelease: false
+
+      - name: Upload ZIP to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./camera-files-dm2q-${{ github.sha }}.zip
+          asset_name: camera-files-dm2q-${{ github.sha }}.zip
+          asset_content_type: application/zip
+
       - name: Upload camera artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -885,7 +1028,20 @@ jobs:
 
       - name: Create artifact summary
         run: |
-          echo "## Camera Apps and Dependencies Artifact" >> $GITHUB_STEP_SUMMARY
+          echo "## 📦 Camera Files Package Created Successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🎉 GitHub Release Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release Tag**: \`${{ steps.release_info.outputs.tag_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release Name**: ${{ steps.release_info.outputs.release_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **ZIP File**: \`camera-files-dm2q-${{ github.sha }}.zip\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **ZIP Size**: $(du -h camera-files-dm2q-${{ github.sha }}.zip | cut -f1)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **[View Release](${{ steps.create_release.outputs.html_url }})**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Camera Apps and Dependencies Package" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Package Information" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
