@@ -1,0 +1,706 @@
+name: Upload Engineering Files Artifacts
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'system/system/framework/sprengine.jar'
+      - 'system/system/lib/lib.eng*.so'
+      - 'system/system/lib/vendor.samsung.hardware.security.engmode*.so'
+      - 'system/system/lib64/lib.eng*.so'
+      - 'system/system/lib64/vendor.samsung.hardware.security.engmode*.so'
+      - 'vendor/lib/libeng*.so'
+      - 'vendor/lib64/libeng*.so'
+      - 'system_ext/lib/libvr_*_engine.so'
+      - 'system_ext/lib64/libvr_*_engine.so'
+  pull_request:
+    paths:
+      - 'system/system/framework/sprengine.jar'
+      - 'system/system/lib/lib.eng*.so'
+      - 'system/system/lib/vendor.samsung.hardware.security.engmode*.so'
+      - 'system/system/lib64/lib.eng*.so'
+      - 'system/system/lib64/vendor.samsung.hardware.security.engmode*.so'
+      - 'vendor/lib/libeng*.so'
+      - 'vendor/lib64/libeng*.so'
+      - 'system_ext/lib/libvr_*_engine.so'
+      - 'system_ext/lib64/libvr_*_engine.so'
+
+jobs:
+  collect-and-upload-engineering-artifacts:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create artifact directory structure
+        run: |
+          mkdir -p artifact_output/system/system/framework
+          mkdir -p artifact_output/system/system/lib
+          mkdir -p artifact_output/system/system/lib64
+          mkdir -p artifact_output/system/system/lib/drm
+          mkdir -p artifact_output/system/system/lib64/drm
+          mkdir -p artifact_output/vendor/lib
+          mkdir -p artifact_output/vendor/lib64
+          mkdir -p artifact_output/vendor/lib/rfsa/adsp
+          mkdir -p artifact_output/system_ext/lib
+          mkdir -p artifact_output/system_ext/lib64
+          mkdir -p artifact_output/docs
+
+      - name: Copy engineering-related framework JARs
+        run: |
+          echo "Copying engineering-related framework JARs..."
+          if [ -f "system/system/framework/sprengine.jar" ]; then
+            cp system/system/framework/sprengine.jar artifact_output/system/system/framework/
+            echo "✓ sprengine.jar copied"
+          else
+            echo "⚠ sprengine.jar not found"
+          fi
+
+      - name: Copy engineering libraries from system/lib
+        run: |
+          echo "Copying engineering libraries from system/lib..."
+          # Engineering mode libraries
+          for lib in \
+            lib.engmode.samsung.so \
+            lib.engmodejni.samsung.so \
+            vendor.samsung.hardware.security.engmode@1.0.so; do
+            if [ -f "system/system/lib/$lib" ]; then
+              cp "system/system/lib/$lib" artifact_output/system/system/lib/
+              echo "✓ $lib copied"
+            fi
+          done
+
+          # Engine libraries
+          for lib in \
+            libMotionEngine.so \
+            libaudiopolicyenginedefault.so; do
+            if [ -f "system/system/lib/$lib" ]; then
+              cp "system/system/lib/$lib" artifact_output/system/system/lib/
+              echo "✓ $lib copied"
+            fi
+          done
+
+          # DRM engine
+          if [ -f "system/system/lib/drm/libfwdlockengine.so" ]; then
+            cp "system/system/lib/drm/libfwdlockengine.so" artifact_output/system/system/lib/drm/
+            echo "✓ libfwdlockengine.so (drm) copied"
+          fi
+
+      - name: Copy engineering libraries from system/lib64
+        run: |
+          echo "Copying engineering libraries from system/lib64..."
+          # Engineering mode libraries
+          for lib in \
+            lib.engmode.samsung.so \
+            lib.engmodejni.samsung.so \
+            vendor.samsung.hardware.security.engmode@1.0.so; do
+            if [ -f "system/system/lib64/$lib" ]; then
+              cp "system/system/lib64/$lib" artifact_output/system/system/lib64/
+              echo "✓ $lib (64-bit) copied"
+            fi
+          done
+
+          # Engine libraries
+          for lib in \
+            libLttEngine.camera.samsung.so \
+            libsamsung_videoengine_9_0.so \
+            libkeystore-engine.so \
+            libmediarelayengine.so \
+            libRemasterEngine.camera.samsung.so \
+            libSamsungAPVoiceEngine.so \
+            libMotionEngine.so \
+            libQREngine.camera.samsung.so \
+            libveengine.arcsoft.so \
+            libfrtracking_engine.arcsoft.so \
+            libucsengine.system.so \
+            libaudiopolicyenginedefault.so \
+            libFace_Landmark_Engine.camera.samsung.so \
+            libportrait_controller_engine.camera.samsung.so \
+            libVoiceCommandEngine.so \
+            libFacialStickerEngine.arcsoft.so \
+            libsrib_humanaware_engine.camera.samsung.so; do
+            if [ -f "system/system/lib64/$lib" ]; then
+              cp "system/system/lib64/$lib" artifact_output/system/system/lib64/
+              echo "✓ $lib (64-bit) copied"
+            fi
+          done
+
+          # DRM engine
+          if [ -f "system/system/lib64/drm/libfwdlockengine.so" ]; then
+            cp "system/system/lib64/drm/libfwdlockengine.so" artifact_output/system/system/lib64/drm/
+            echo "✓ libfwdlockengine.so (drm, 64-bit) copied"
+          fi
+
+      - name: Copy engineering libraries from vendor/lib
+        run: |
+          echo "Copying engineering libraries from vendor/lib..."
+          for lib in \
+            libbitmlenginev2.so \
+            libcamxfdengine.so \
+            libsecfr_engine.so \
+            libshotsuggestion_engines.so \
+            liblivefocus_preview_engine.so \
+            liblivefocus_capture_engine.so \
+            libengine_did.so \
+            libqnnengine.so \
+            libqllengine.so \
+            libbitmlengine.so \
+            libmctfengine_stub.so; do
+            if [ -f "vendor/lib/$lib" ]; then
+              cp "vendor/lib/$lib" artifact_output/vendor/lib/
+              echo "✓ $lib copied"
+            fi
+          done
+
+          # ADSP engine
+          if [ -f "vendor/lib/rfsa/adsp/libmctfengine_skel.so" ]; then
+            cp "vendor/lib/rfsa/adsp/libmctfengine_skel.so" artifact_output/vendor/lib/rfsa/adsp/
+            echo "✓ libmctfengine_skel.so (ADSP) copied"
+          fi
+
+      - name: Copy engineering libraries from vendor/lib64
+        run: |
+          echo "Copying engineering libraries from vendor/lib64..."
+          for lib in \
+            libbitmlenginev2.so \
+            libcamxfdengine.so \
+            vendor.samsung.hardware.security.engmode@1.0.so \
+            libpetcamera_engine.so \
+            libsecfr_engine.so \
+            librmengine_plus.uniplugin@1.0.so \
+            libkeystore-engine-wifi-hidl.so \
+            libengmode_server.so \
+            libshotsuggestion_engines.so \
+            liblivefocus_preview_engine.so \
+            libengmode15.so \
+            liblivefocus_capture_engine.so \
+            libengine_did.so \
+            libengmode_tlc.so \
+            libssengine.uniplugin@1.0.so \
+            libqnnengine.so \
+            libqllengine.so \
+            libengmode2lite.so \
+            libsrib_humanaware_engine.camera.samsung.so \
+            libbitmlengine.so \
+            libmctfengine_stub.so \
+            libengmode_client.so; do
+            if [ -f "vendor/lib64/$lib" ]; then
+              cp "vendor/lib64/$lib" artifact_output/vendor/lib64/
+              echo "✓ $lib (64-bit) copied"
+            fi
+          done
+
+      - name: Copy engineering libraries from system_ext
+        run: |
+          echo "Copying engineering libraries from system_ext..."
+          # VR engine libraries
+          for lib in \
+            libvr_amb_engine.so \
+            libvr_object_engine.so; do
+            if [ -f "system_ext/lib/$lib" ]; then
+              cp "system_ext/lib/$lib" artifact_output/system_ext/lib/
+              echo "✓ $lib copied"
+            fi
+            if [ -f "system_ext/lib64/$lib" ]; then
+              cp "system_ext/lib64/$lib" artifact_output/system_ext/lib64/
+              echo "✓ $lib (64-bit) copied"
+            fi
+          done
+
+      - name: Create documentation
+        run: |
+          echo "Creating documentation..."
+          cat > artifact_output/docs/ENGINEERING_FILES.md << 'EOF'
+          # Engineering Files Artifact Package
+
+          Este documento lista todos los archivos relacionados con ingeniería (engineering) del firmware UN1CA-firmware-dm2q.
+
+          ## Información General
+
+          Este paquete contiene todos los archivos APK, .so (bibliotecas nativas) y .jar relacionados con:
+          - Modo de ingeniería (Engineering Mode)
+          - Motores de procesamiento (Engines)
+          - Bibliotecas de seguridad en modo de ingeniería
+
+          ## Archivos Incluidos
+
+          ### Framework JARs (/system/framework/)
+
+          #### sprengine.jar
+          - **Ubicación**: `/system/framework/sprengine.jar`
+          - **Descripción**: Motor SPR (Samsung Processing Runtime)
+          - **Función**: Biblioteca framework para procesamiento en tiempo de ejecución
+
+          ### Bibliotecas de Modo de Ingeniería
+
+          #### System Libraries (/system/lib y /system/lib64)
+
+          **lib.engmode.samsung.so**
+          - **Función**: Biblioteca principal del modo de ingeniería Samsung
+          - **Uso**: Proporciona funcionalidad de pruebas y diagnósticos en modo ingeniería
+
+          **lib.engmodejni.samsung.so**
+          - **Función**: Interfaz JNI (Java Native Interface) para el modo de ingeniería
+          - **Uso**: Permite que las aplicaciones Java accedan al modo de ingeniería nativo
+
+          **vendor.samsung.hardware.security.engmode@1.0.so**
+          - **Función**: HAL de seguridad para modo de ingeniería
+          - **Uso**: Interface de hardware para funciones de seguridad en modo ingeniería
+          - **Versión**: HIDL 1.0
+
+          #### Vendor Engineering Libraries (/vendor/lib64)
+
+          **libengmode15.so**
+          - **Función**: Biblioteca de modo de ingeniería versión 15
+          - **Uso**: Funciones específicas de ingeniería para el dispositivo
+
+          **libengmode2lite.so**
+          - **Función**: Versión ligera del modo de ingeniería 2
+          - **Uso**: Funcionalidad reducida de modo de ingeniería
+
+          **libengmode_client.so**
+          - **Función**: Cliente del servicio de modo de ingeniería
+          - **Uso**: Permite a aplicaciones acceder al servicio de ingeniería
+
+          **libengmode_server.so**
+          - **Función**: Servidor del servicio de modo de ingeniería
+          - **Uso**: Proporciona servicios de ingeniería al sistema
+
+          **libengmode_tlc.so**
+          - **Función**: TLC (Trusted Application Client) de modo de ingeniería
+          - **Uso**: Comunicación con aplicaciones de confianza en modo ingeniería
+
+          ### Motores de Procesamiento (Processing Engines)
+
+          #### Motores de Audio
+
+          **libaudiopolicyenginedefault.so**
+          - **Ubicación**: `/system/lib/` y `/system/lib64/`
+          - **Función**: Motor de políticas de audio predeterminado
+          - **Uso**: Gestión de políticas de enrutamiento y volumen de audio
+
+          **libSamsungAPVoiceEngine.so**
+          - **Ubicación**: `/system/lib64/`
+          - **Función**: Motor de voz Samsung Audio Processing
+          - **Uso**: Procesamiento de voz para asistente de voz
+
+          **libVoiceCommandEngine.so**
+          - **Ubicación**: `/system/lib64/`
+          - **Función**: Motor de comandos de voz
+          - **Uso**: Reconocimiento y procesamiento de comandos de voz
+
+          #### Motores de Cámara
+
+          **libLttEngine.camera.samsung.so**
+          - **Función**: Motor LTT (Low Light Tracking) para cámara Samsung
+          - **Uso**: Procesamiento de imágenes en condiciones de poca luz
+
+          **libRemasterEngine.camera.samsung.so**
+          - **Función**: Motor de remasterización de imágenes
+          - **Uso**: Mejora y procesamiento de imágenes capturadas
+
+          **libQREngine.camera.samsung.so**
+          - **Función**: Motor de detección y lectura de códigos QR
+          - **Uso**: Escaneo de códigos QR en la cámara
+
+          **libFace_Landmark_Engine.camera.samsung.so**
+          - **Función**: Motor de detección de puntos faciales
+          - **Uso**: Detección de características faciales para efectos y reconocimiento
+
+          **libportrait_controller_engine.camera.samsung.so**
+          - **Función**: Motor de control de modo retrato
+          - **Uso**: Procesamiento de profundidad de campo para retratos
+
+          **libsrib_humanaware_engine.camera.samsung.so**
+          - **Función**: Motor de detección de humanos SRIB
+          - **Uso**: Reconocimiento y seguimiento de personas en fotos
+
+          **libcamxfdengine.so**
+          - **Ubicación**: `/vendor/lib/` y `/vendor/lib64/`
+          - **Función**: Motor de detección facial de cámara Qualcomm
+          - **Uso**: Detección de rostros en tiempo real
+
+          **libpetcamera_engine.so**
+          - **Ubicación**: `/vendor/lib64/`
+          - **Función**: Motor de detección de mascotas
+          - **Uso**: Detección y seguimiento de animales en fotos
+
+          #### Motores de Video
+
+          **libsamsung_videoengine_9_0.so**
+          - **Función**: Motor de procesamiento de video Samsung v9.0
+          - **Uso**: Codificación, decodificación y procesamiento de video
+
+          **libmediarelayengine.so**
+          - **Función**: Motor de retransmisión de medios
+          - **Uso**: Transmisión y compartición de contenido multimedia
+
+          #### Motores de Efectos y AR
+
+          **libveengine.arcsoft.so**
+          - **Función**: Motor de efectos visuales ArcSoft
+          - **Uso**: Aplicación de efectos en tiempo real
+
+          **libfrtracking_engine.arcsoft.so**
+          - **Función**: Motor de seguimiento facial ArcSoft
+          - **Uso**: Seguimiento de rostros para AR y efectos
+
+          **libFacialStickerEngine.arcsoft.so**
+          - **Función**: Motor de stickers faciales ArcSoft
+          - **Uso**: Aplicación de stickers y máscaras en rostros
+
+          #### Motores de VR (Realidad Virtual)
+
+          **libvr_amb_engine.so**
+          - **Ubicación**: `/system_ext/lib/` y `/system_ext/lib64/`
+          - **Función**: Motor de ambiente VR
+          - **Uso**: Procesamiento de ambiente y escenas en VR
+
+          **libvr_object_engine.so**
+          - **Ubicación**: `/system_ext/lib/` y `/system_ext/lib64/`
+          - **Función**: Motor de objetos VR
+          - **Uso**: Renderizado y manipulación de objetos en VR
+
+          #### Motores de Seguridad y Encriptación
+
+          **libkeystore-engine.so**
+          - **Ubicación**: `/system/lib64/`
+          - **Función**: Motor de almacén de claves
+          - **Uso**: Gestión de claves criptográficas
+
+          **libkeystore-engine-wifi-hidl.so**
+          - **Ubicación**: `/vendor/lib64/`
+          - **Función**: Motor de almacén de claves WiFi HIDL
+          - **Uso**: Gestión de credenciales WiFi
+
+          **libfwdlockengine.so**
+          - **Ubicación**: `/system/lib/drm/` y `/system/lib64/drm/`
+          - **Función**: Motor DRM Forward Lock
+          - **Uso**: Protección de contenido digital
+
+          **libsecfr_engine.so**
+          - **Ubicación**: `/vendor/lib/` y `/vendor/lib64/`
+          - **Función**: Motor de reconocimiento facial seguro
+          - **Uso**: Autenticación biométrica facial segura
+
+          #### Motores de IA y Machine Learning
+
+          **libbitmlenginev2.so**
+          - **Ubicación**: `/vendor/lib/` y `/vendor/lib64/`
+          - **Función**: Motor BitML (Bit Machine Learning) v2
+          - **Uso**: Procesamiento de machine learning
+
+          **libbitmlengine.so**
+          - **Ubicación**: `/vendor/lib/` y `/vendor/lib64/`
+          - **Función**: Motor BitML básico
+          - **Uso**: Inferencia de modelos de ML
+
+          **libqnnengine.so**
+          - **Ubicación**: `/vendor/lib/` y `/vendor/lib64/`
+          - **Función**: Motor Qualcomm Neural Network
+          - **Uso**: Aceleración de redes neuronales
+
+          **libqllengine.so**
+          - **Ubicación**: `/vendor/lib/` y `/vendor/lib64/`
+          - **Función**: Motor Qualcomm Low-Level
+          - **Uso**: Operaciones de bajo nivel para ML
+
+          **libengine_did.so**
+          - **Ubicación**: `/vendor/lib/` y `/vendor/lib64/`
+          - **Función**: Motor DID (Device Identification)
+          - **Uso**: Identificación y autenticación del dispositivo
+
+          #### Motores de Movimiento y Sensores
+
+          **libMotionEngine.so**
+          - **Ubicación**: `/system/lib/` y `/system/lib64/`
+          - **Función**: Motor de detección de movimiento
+          - **Uso**: Procesamiento de datos de sensores de movimiento
+
+          #### Motores de Captura Inteligente
+
+          **libshotsuggestion_engines.so**
+          - **Ubicación**: `/vendor/lib/` y `/vendor/lib64/`
+          - **Función**: Motor de sugerencias de toma
+          - **Uso**: IA para sugerir mejor momento de captura
+
+          **liblivefocus_preview_engine.so**
+          - **Ubicación**: `/vendor/lib/` y `/vendor/lib64/`
+          - **Función**: Motor de vista previa Live Focus
+          - **Uso**: Vista previa de efecto bokeh en tiempo real
+
+          **liblivefocus_capture_engine.so**
+          - **Ubicación**: `/vendor/lib/` y `/vendor/lib64/`
+          - **Función**: Motor de captura Live Focus
+          - **Uso**: Procesamiento de captura con efecto bokeh
+
+          **libmctfengine_stub.so** y **libmctfengine_skel.so**
+          - **Ubicación**: `/vendor/lib/`, `/vendor/lib64/` y `/vendor/lib/rfsa/adsp/`
+          - **Función**: Motor MCTF (Motion Compensated Temporal Filter)
+          - **Uso**: Filtrado temporal con compensación de movimiento
+
+          #### Motores de Plugin
+
+          **librmengine_plus.uniplugin@1.0.so**
+          - **Función**: Motor RM (Resource Manager) Plus UniPlugin
+          - **Uso**: Gestión de recursos con sistema de plugins
+
+          **libssengine.uniplugin@1.0.so**
+          - **Función**: Motor SS (Smart Suggest) UniPlugin
+          - **Uso**: Sistema de sugerencias inteligentes
+
+          **libucsengine.system.so**
+          - **Función**: Motor UCS (Universal Content Service) del sistema
+          - **Uso**: Servicio de contenido universal
+
+          ## Estructura del Paquete
+
+          ```
+          artifact_output/
+          ├── system/
+          │   └── system/
+          │       ├── framework/
+          │       │   └── sprengine.jar
+          │       ├── lib/
+          │       │   ├── lib.engmode.samsung.so
+          │       │   ├── lib.engmodejni.samsung.so
+          │       │   ├── vendor.samsung.hardware.security.engmode@1.0.so
+          │       │   ├── libMotionEngine.so
+          │       │   ├── libaudiopolicyenginedefault.so
+          │       │   └── drm/
+          │       │       └── libfwdlockengine.so
+          │       └── lib64/
+          │           ├── lib.engmode.samsung.so
+          │           ├── lib.engmodejni.samsung.so
+          │           ├── vendor.samsung.hardware.security.engmode@1.0.so
+          │           ├── [+20 engine libraries]
+          │           └── drm/
+          │               └── libfwdlockengine.so
+          ├── vendor/
+          │   ├── lib/
+          │   │   ├── [+11 engine libraries]
+          │   │   └── rfsa/adsp/
+          │   │       └── libmctfengine_skel.so
+          │   └── lib64/
+          │       └── [+23 engineering and engine libraries]
+          ├── system_ext/
+          │   ├── lib/
+          │   │   ├── libvr_amb_engine.so
+          │   │   └── libvr_object_engine.so
+          │   └── lib64/
+          │       ├── libvr_amb_engine.so
+          │       └── libvr_object_engine.so
+          └── docs/
+              ├── ENGINEERING_FILES.md
+              └── README.md
+          ```
+
+          ## Categorías de Archivos
+
+          ### Por Tipo
+          - **1 JAR**: sprengine.jar
+          - **57 archivos .so**: Bibliotecas nativas compartidas
+            - 32-bit: ~15 archivos
+            - 64-bit: ~42 archivos
+
+          ### Por Ubicación
+          - **System**: Framework JAR + bibliotecas de modo ingeniería + motores de audio/video/cámara
+          - **Vendor**: Bibliotecas de ingeniería específicas del dispositivo + motores de IA/ML/cámara
+          - **System_ext**: Motores de VR
+
+          ### Por Función
+          1. **Modo de Ingeniería** (6 archivos): Funciones de diagnóstico y pruebas
+          2. **Motores de Cámara** (12 archivos): Procesamiento de imágenes y video
+          3. **Motores de IA/ML** (6 archivos): Machine learning e inferencia
+          4. **Motores de Audio** (3 archivos): Procesamiento de audio y voz
+          5. **Motores de Seguridad** (4 archivos): Encriptación y autenticación
+          6. **Motores de VR** (4 archivos): Realidad virtual
+          7. **Otros Motores** (22 archivos): Diversos procesadores especializados
+
+          ## Notas de Uso
+
+          ### Modo de Ingeniería
+          El modo de ingeniería permite acceder a funciones avanzadas de pruebas y diagnósticos:
+          - Información detallada del hardware
+          - Pruebas de sensores y componentes
+          - Configuraciones de red y conectividad
+          - Logs y diagnósticos del sistema
+
+          ### Seguridad
+          Las bibliotecas de modo de ingeniería requieren:
+          - Permisos elevados del sistema
+          - Contextos SELinux específicos
+          - Verificación de firma del firmware
+
+          ### Compatibilidad
+          Todos los archivos son específicos para:
+          - **Dispositivo**: Samsung Galaxy S21 FE 5G (dm2q)
+          - **Arquitectura**: ARM64 (aarch64)
+          - **Android**: Versión específica del firmware UN1CA
+
+          ## Contextos SELinux
+
+          - System files: `u:object_r:system_file:s0`
+          - Vendor files: `u:object_r:vendor_file:s0`
+          - System_ext files: `u:object_r:system_file:s0`
+
+          EOF
+
+          # Create README
+          cat > artifact_output/README.md << 'EOF'
+          # Engineering Files Artifact Package
+
+          This package contains all engineering-related APK, .so (native libraries), and .jar files from the UN1CA-firmware-dm2q repository.
+
+          ## Contents
+
+          - **system/system/framework/** - Engineering framework JARs (1 file)
+          - **system/system/lib/** and **system/system/lib64/** - Engineering mode and engine libraries
+          - **vendor/lib/** and **vendor/lib64/** - Vendor-specific engineering and engine libraries
+          - **system_ext/lib/** and **system_ext/lib64/** - VR engine libraries
+          - **docs/** - Documentation
+
+          ## File Categories
+
+          ### Engineering Mode Libraries (6 files)
+          - `lib.engmode.samsung.so` - Samsung engineering mode core library
+          - `lib.engmodejni.samsung.so` - JNI interface for engineering mode
+          - `vendor.samsung.hardware.security.engmode@1.0.so` - Engineering mode security HAL
+          - `libengmode15.so` - Engineering mode v15
+          - `libengmode2lite.so` - Engineering mode 2 lite version
+          - `libengmode_client.so` - Engineering mode client
+          - `libengmode_server.so` - Engineering mode server
+          - `libengmode_tlc.so` - Engineering mode TLC
+
+          ### Processing Engines (~50 files)
+
+          #### Camera Engines
+          - Face detection and tracking
+          - QR code scanning
+          - Low-light processing
+          - Portrait mode and bokeh effects
+          - Live Focus capture
+          - Pet detection
+
+          #### AI/ML Engines
+          - Neural network acceleration (Qualcomm QNN)
+          - BitML processing
+          - Device identification
+
+          #### Audio Engines
+          - Voice command processing
+          - Audio policy management
+          - Voice recognition
+
+          #### Video Engines
+          - Video encoding/decoding
+          - Media relay
+          - Motion compensation
+
+          #### VR Engines
+          - VR environment processing
+          - VR object rendering
+
+          #### Security Engines
+          - Keystore management
+          - DRM forward lock
+          - Secure face recognition
+
+          ## Framework JARs
+
+          - **sprengine.jar** - Samsung Processing Runtime engine
+
+          ## Total Files
+
+          - 1 JAR file
+          - 57 .so (shared library) files
+            - ~15 files in 32-bit (/lib)
+            - ~42 files in 64-bit (/lib64)
+
+          ## Device Information
+
+          - **Device**: Samsung Galaxy S21 FE 5G (dm2q)
+          - **Architecture**: ARM64 (aarch64)
+          - **Firmware**: UN1CA-firmware-dm2q
+
+          ## Use Cases
+
+          ### Engineering Mode
+          - Hardware diagnostics and testing
+          - Sensor calibration
+          - Network configuration
+          - System debugging
+
+          ### Processing Engines
+          - Camera image and video processing
+          - AI and machine learning inference
+          - Audio and voice processing
+          - VR content rendering
+          - Security and encryption
+
+          For detailed information about each file, see docs/ENGINEERING_FILES.md
+          EOF
+
+      - name: Generate artifact manifest
+        run: |
+          echo "Generating artifact manifest..."
+          cd artifact_output
+          find . -type f | sort > MANIFEST.txt
+          echo "Total files: $(wc -l < MANIFEST.txt)"
+          echo ""
+          echo "=== Manifest Content ==="
+          cat MANIFEST.txt
+
+      - name: Upload engineering files artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: engineering-files-${{ github.sha }}
+          path: artifact_output/
+          retention-days: 90
+          compression-level: 9
+
+      - name: Create artifact summary
+        run: |
+          echo "## Engineering Files Artifact" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Package Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Artifact Name**: engineering-files-${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Files**: $(wc -l < artifact_output/MANIFEST.txt)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### File Categories" >> $GITHUB_STEP_SUMMARY
+          echo "#### Engineering Mode Libraries" >> $GITHUB_STEP_SUMMARY
+          echo "- lib.engmode.samsung.so (32/64-bit)" >> $GITHUB_STEP_SUMMARY
+          echo "- lib.engmodejni.samsung.so (32/64-bit)" >> $GITHUB_STEP_SUMMARY
+          echo "- vendor.samsung.hardware.security.engmode@1.0.so (32/64-bit)" >> $GITHUB_STEP_SUMMARY
+          echo "- libengmode15.so, libengmode2lite.so" >> $GITHUB_STEP_SUMMARY
+          echo "- libengmode_client.so, libengmode_server.so, libengmode_tlc.so" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Processing Engines (~50 files)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Camera**: Face detection, QR, low-light, portrait, pet detection" >> $GITHUB_STEP_SUMMARY
+          echo "- **AI/ML**: Neural networks (QNN), BitML, device identification" >> $GITHUB_STEP_SUMMARY
+          echo "- **Audio**: Voice command, audio policy, voice recognition" >> $GITHUB_STEP_SUMMARY
+          echo "- **Video**: Encoding/decoding, media relay, motion compensation" >> $GITHUB_STEP_SUMMARY
+          echo "- **VR**: Environment and object processing" >> $GITHUB_STEP_SUMMARY
+          echo "- **Security**: Keystore, DRM, secure face recognition" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Framework JARs" >> $GITHUB_STEP_SUMMARY
+          echo "- sprengine.jar - Samsung Processing Runtime" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### File Count by Type" >> $GITHUB_STEP_SUMMARY
+          echo "- JAR files: 1" >> $GITHUB_STEP_SUMMARY
+          echo "- .so files: ~57" >> $GITHUB_STEP_SUMMARY
+          echo "  - 32-bit: ~15" >> $GITHUB_STEP_SUMMARY
+          echo "  - 64-bit: ~42" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Directory Structure" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cd artifact_output && tree -L 4 -d || find . -type d | sort | sed 's|^\./||' | grep -v '^\.$'
+          echo '```' >> $GITHUB_STEP_SUMMARY
