@@ -505,9 +505,9 @@ jobs:
 
           ### Por Tipo
           - **1 JAR**: sprengine.jar
-          - **57 archivos .so**: Bibliotecas nativas compartidas
-            - 32-bit: ~15 archivos
-            - 64-bit: ~42 archivos
+          - **65 archivos .so**: Bibliotecas nativas compartidas
+            - 32-bit: ~20 archivos
+            - 64-bit: ~45 archivos
 
           ### Por Ubicación
           - **System**: Framework JAR + bibliotecas de modo ingeniería + motores de audio/video/cámara
@@ -619,9 +619,9 @@ jobs:
           ## Total Files
 
           - 1 JAR file
-          - 57 .so (shared library) files
-            - ~15 files in 32-bit (/lib)
-            - ~42 files in 64-bit (/lib64)
+          - 65 .so (shared library) files
+            - ~20 files in 32-bit (/lib)
+            - ~45 files in 64-bit (/lib64)
 
           ## Device Information
 
@@ -683,7 +683,7 @@ jobs:
           echo "- libengmode15.so, libengmode2lite.so" >> $GITHUB_STEP_SUMMARY
           echo "- libengmode_client.so, libengmode_server.so, libengmode_tlc.so" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "#### Processing Engines (~50 files)" >> $GITHUB_STEP_SUMMARY
+          echo "#### Processing Engines (~57 files)" >> $GITHUB_STEP_SUMMARY
           echo "- **Camera**: Face detection, QR, low-light, portrait, pet detection" >> $GITHUB_STEP_SUMMARY
           echo "- **AI/ML**: Neural networks (QNN), BitML, device identification" >> $GITHUB_STEP_SUMMARY
           echo "- **Audio**: Voice command, audio policy, voice recognition" >> $GITHUB_STEP_SUMMARY
@@ -696,11 +696,11 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### File Count by Type" >> $GITHUB_STEP_SUMMARY
           echo "- JAR files: 1" >> $GITHUB_STEP_SUMMARY
-          echo "- .so files: ~57" >> $GITHUB_STEP_SUMMARY
-          echo "  - 32-bit: ~15" >> $GITHUB_STEP_SUMMARY
-          echo "  - 64-bit: ~42" >> $GITHUB_STEP_SUMMARY
+          echo "- .so files: ~65" >> $GITHUB_STEP_SUMMARY
+          echo "  - 32-bit: ~20" >> $GITHUB_STEP_SUMMARY
+          echo "  - 64-bit: ~45" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Directory Structure" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          cd artifact_output && tree -L 4 -d || find . -type d | sort | sed 's|^\./||' | grep -v '^\.$'
+          (cd artifact_output && tree -L 4 -d 2>/dev/null || find . -type d | sort | sed 's|^\./||' | grep -v '^\.$') >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
