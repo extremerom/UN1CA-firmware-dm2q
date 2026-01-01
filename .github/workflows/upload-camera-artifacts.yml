@@ -22,6 +22,8 @@ on:
       - 'vendor/lib64/*camera*.so'
       - 'vendor/lib/camera/**'
       - 'vendor/lib64/camera/**'
+      - 'vendor/firmware/CAMERA*'
+      - 'system/system/etc/*camera*'
       - 'CAMERA_DEPENDENCIES.md'
   pull_request:
     paths:
@@ -40,6 +42,8 @@ on:
       - 'vendor/lib64/*camera*.so'
       - 'vendor/lib/camera/**'
       - 'vendor/lib64/camera/**'
+      - 'vendor/firmware/CAMERA*'
+      - 'system/system/etc/*camera*'
       - 'CAMERA_DEPENDENCIES.md'
 
 jobs:
@@ -76,6 +80,7 @@ jobs:
           mkdir -p artifact_output/vendor/etc/init
           mkdir -p artifact_output/vendor/etc/permissions
           mkdir -p artifact_output/vendor/etc/vintf/manifest
+          mkdir -p artifact_output/vendor/firmware
           mkdir -p artifact_output/docs
 
       - name: Copy camera applications (priv-app)
@@ -295,6 +300,71 @@ jobs:
               cp "$lib" artifact_output/system_ext/lib64/ 2>/dev/null || true
             done
           fi
+
+      - name: Copy camera firmware files
+        run: |
+          echo "Copying camera firmware files..."
+          if [ -d "vendor/firmware" ]; then
+            find vendor/firmware -type f -name "CAMERA*" | while read fw; do
+              echo "Copying $(basename $fw)..."
+              cp "$fw" artifact_output/vendor/firmware/ 2>/dev/null || true
+            done
+            echo "✓ Camera firmware files copied"
+          else
+            echo "⚠ Vendor firmware directory not found"
+          fi
+
+      - name: Copy public libraries list
+        run: |
+          echo "Copying public camera libraries list..."
+          if [ -f "system/system/etc/public.libraries-camera.samsung.txt" ]; then
+            cp "system/system/etc/public.libraries-camera.samsung.txt" artifact_output/system/system/etc/
+            echo "✓ public.libraries-camera.samsung.txt copied"
+          else
+            echo "⚠ public.libraries-camera.samsung.txt not found"
+          fi
+
+      - name: Copy additional camera data files
+        run: |
+          echo "Copying additional camera data files..."
+          # Copy portrait data (DLC models, JSON configs)
+          if [ -d "system/system/cameradata/portrait_data" ]; then
+            mkdir -p artifact_output/system/system/cameradata/portrait_data
+            cp -r system/system/cameradata/portrait_data/* artifact_output/system/system/cameradata/portrait_data/
+            echo "✓ Portrait data copied (DLC models, configs)"
+          fi
+          
+          # Copy myfilter data (TFLite models, templates)
+          if [ -d "system/system/cameradata/myfilter" ]; then
+            mkdir -p artifact_output/system/system/cameradata/myfilter
+            cp -r system/system/cameradata/myfilter/* artifact_output/system/system/cameradata/myfilter/
+            echo "✓ MyFilter data copied (TFLite models, templates)"
+          fi
+          
+          # Copy preloaded filters
+          if [ -d "system/system/cameradata/preloadfilters" ]; then
+            mkdir -p artifact_output/system/system/cameradata/preloadfilters
+            cp -r system/system/cameradata/preloadfilters/* artifact_output/system/system/cameradata/preloadfilters/
+            echo "✓ Preloaded filters copied (SEL, JSON, PNG)"
+          fi
+          
+          # Copy singletake data
+          if [ -d "system/system/cameradata/singletake" ]; then
+            mkdir -p artifact_output/system/system/cameradata/singletake
+            cp -r system/system/cameradata/singletake/* artifact_output/system/system/cameradata/singletake/
+            echo "✓ Single Take data copied"
+          fi
+          
+          # Copy aremoji feature file
+          if [ -f "system/system/cameradata/aremoji-feature.xml" ]; then
+            cp "system/system/cameradata/aremoji-feature.xml" artifact_output/system/system/cameradata/
+            echo "✓ AR Emoji feature file copied"
+          fi
+          
+          # Copy masking shapes
+          find system/system/cameradata -maxdepth 1 -type f \( -name "*.png" -o -name "*.jpg" \) | while read img; do
+            cp "$img" artifact_output/system/system/cameradata/
+          done
 
       - name: Create documentation
         run: |
@@ -704,10 +774,16 @@ jobs:
           - **system/system/framework/** - Camera framework JARs
           - **system/system/lib/** and **system/system/lib64/** - System camera libraries
           - **system/system/cameradata/** - Camera data and configuration files
+            - portrait_data/ - ML models for portrait mode (90MB+ DLC files)
+            - myfilter/ - TensorFlow Lite models for custom filters
+            - preloadfilters/ - Preloaded filter effects (SEL, JSON, PNG)
+            - singletake/ - Single Take mode configuration
+          - **system/system/etc/public.libraries-camera.samsung.txt** - Public libraries list (70+ libs)
           - **system_ext/lib/** and **system_ext/lib64/** - Extended system libraries
           - **vendor/bin/hw/** - Vendor hardware binaries
           - **vendor/lib/** and **vendor/lib64/** - Vendor camera libraries
           - **vendor/lib/camera/** and **vendor/lib64/camera/** - Vendor camera plugins
+          - **vendor/firmware/** - Camera ICP firmware (25 files)
           - **vendor/etc/** - Vendor configuration files
           - **docs/** - Documentation
           
@@ -743,11 +819,17 @@ jobs:
           
           ## Technical Details
           
-          - **Total camera-related files**: 297+ (APKs, JARs, and .so libraries)
+          - **Total camera-related files**: 370+ (APKs, JARs, .so libraries, firmware, ML models, configs)
           - **Framework JARs**: 3 camera-specific JARs
           - **System libraries**: 100+ camera processing libraries (32 and 64-bit)
           - **Vendor libraries**: 150+ camera HAL and processing libraries
-          - **AI/ML support**: TensorFlow Lite integration
+          - **ML models**: 
+            - 5 DLC models (90MB) - SNPE v2.x for Snapdragon 8550
+            - 4 TFLite models for custom filters
+          - **Firmware files**: 25 Camera ICP firmware segments
+          - **Configuration files**: 40+ XML, RC, TXT, JSON files
+          - **Filter data**: 15+ preloaded filters + templates
+          - **AI/ML support**: TensorFlow Lite + Snapdragon NPE integration
           - **Computer Vision**: OpenCV integration
           - **HAL versions**: Support for Camera HAL 1.0, 2.x, and 3.x
           
