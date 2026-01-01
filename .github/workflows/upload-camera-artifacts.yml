@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - copilot/analyze-camera-files-workflow
     paths:
       - 'system/system/priv-app/SamsungCamera/**'
       - 'system/system/priv-app/SCameraSDKService/**'
@@ -107,7 +106,7 @@ jobs:
         run: |
           echo "Copying camera data..."
           if [ -d "system/system/cameradata" ]; then
-            cp -r system/system/cameradata/* artifact_output/system/system/cameradata/
+            cp -r system/system/cameradata/. artifact_output/system/system/cameradata/ 2>/dev/null || true
             echo "✓ Camera data copied"
           else
             echo "⚠ Camera data directory not found"
@@ -330,28 +329,28 @@ jobs:
           # Copy portrait data (DLC models, JSON configs)
           if [ -d "system/system/cameradata/portrait_data" ]; then
             mkdir -p artifact_output/system/system/cameradata/portrait_data
-            cp -r system/system/cameradata/portrait_data/* artifact_output/system/system/cameradata/portrait_data/
+            cp -r system/system/cameradata/portrait_data/. artifact_output/system/system/cameradata/portrait_data/ 2>/dev/null || true
             echo "✓ Portrait data copied (DLC models, configs)"
           fi
           
           # Copy myfilter data (TFLite models, templates)
           if [ -d "system/system/cameradata/myfilter" ]; then
             mkdir -p artifact_output/system/system/cameradata/myfilter
-            cp -r system/system/cameradata/myfilter/* artifact_output/system/system/cameradata/myfilter/
+            cp -r system/system/cameradata/myfilter/. artifact_output/system/system/cameradata/myfilter/ 2>/dev/null || true
             echo "✓ MyFilter data copied (TFLite models, templates)"
           fi
           
           # Copy preloaded filters
           if [ -d "system/system/cameradata/preloadfilters" ]; then
             mkdir -p artifact_output/system/system/cameradata/preloadfilters
-            cp -r system/system/cameradata/preloadfilters/* artifact_output/system/system/cameradata/preloadfilters/
+            cp -r system/system/cameradata/preloadfilters/. artifact_output/system/system/cameradata/preloadfilters/ 2>/dev/null || true
             echo "✓ Preloaded filters copied (SEL, JSON, PNG)"
           fi
           
           # Copy singletake data
           if [ -d "system/system/cameradata/singletake" ]; then
             mkdir -p artifact_output/system/system/cameradata/singletake
-            cp -r system/system/cameradata/singletake/* artifact_output/system/system/cameradata/singletake/
+            cp -r system/system/cameradata/singletake/. artifact_output/system/system/cameradata/singletake/ 2>/dev/null || true
             echo "✓ Single Take data copied"
           fi
           
@@ -362,8 +361,8 @@ jobs:
           fi
           
           # Copy masking shapes
-          find system/system/cameradata -maxdepth 1 -type f \( -name "*.png" -o -name "*.jpg" \) | while read img; do
-            cp "$img" artifact_output/system/system/cameradata/
+          find system/system/cameradata -maxdepth 1 -type f \( -name "*.png" -o -name "*.jpg" \) 2>/dev/null | while read img; do
+            cp "$img" artifact_output/system/system/cameradata/ 2>/dev/null || true
           done
 
       - name: Create documentation
@@ -958,5 +957,5 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Directory Structure" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          cd artifact_output && tree -L 4 -d || find . -type d | sort | sed 's|^\./||' | grep -v '^\.$'
+          cd artifact_output && (tree -L 4 -d 2>/dev/null || find . -type d | sort | sed 's|^\./||' | grep -v '^\.$')
           echo '```' >> $GITHUB_STEP_SUMMARY

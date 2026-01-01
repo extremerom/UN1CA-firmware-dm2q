@@ -1067,7 +1067,7 @@ El sistema de cámara del DM2Q es **extremadamente complejo y sofisticado**:
 
 ---
 
-**Documento generado:** 2026-01-01  
+**Documento generado:** 2025-01-01  
 **Autor:** Sistema de análisis automatizado  
 **Versión:** 1.0  
 **Firmware:** UN1CA-firmware-dm2q
