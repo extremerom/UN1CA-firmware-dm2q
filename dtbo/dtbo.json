@@ -1,0 +1,107 @@
+{
+  "info" : {
+    "output" : "/home/runner/work/UN1CA-firmware-dm2q/UN1CA-firmware-dm2q/images_extracted/aik_temp/dtbo.img",
+    "json" : "/home/runner/work/UN1CA-firmware-dm2q/UN1CA-firmware-dm2q/images_extracted/aik_temp/dtbo.json",
+    "imageSize" : 16777216
+  },
+  "header" : {
+    "totalSize" : 9555022,
+    "headerSize" : 32,
+    "entrySize" : 32,
+    "entryCount" : 9,
+    "entryOffset" : 32,
+    "pageSize" : 4096,
+    "version" : 0
+  },
+  "dtEntries" : [ {
+    "sequenceNo" : 0,
+    "entrySize" : 1058313,
+    "entryOffset" : 320,
+    "id" : 0,
+    "rev" : 0,
+    "flags" : 0,
+    "reserved1" : 0,
+    "reserved2" : 0,
+    "reserved3" : 0
+  }, {
+    "sequenceNo" : 1,
+    "entrySize" : 1061016,
+    "entryOffset" : 1058633,
+    "id" : 0,
+    "rev" : 0,
+    "flags" : 0,
+    "reserved1" : 0,
+    "reserved2" : 0,
+    "reserved3" : 0
+  }, {
+    "sequenceNo" : 2,
+    "entrySize" : 1061096,
+    "entryOffset" : 2119649,
+    "id" : 0,
+    "rev" : 0,
+    "flags" : 0,
+    "reserved1" : 0,
+    "reserved2" : 0,
+    "reserved3" : 0
+  }, {
+    "sequenceNo" : 3,
+    "entrySize" : 1062123,
+    "entryOffset" : 3180745,
+    "id" : 0,
+    "rev" : 0,
+    "flags" : 0,
+    "reserved1" : 0,
+    "reserved2" : 0,
+    "reserved3" : 0
+  }, {
+    "sequenceNo" : 4,
+    "entrySize" : 1062203,
+    "entryOffset" : 4242868,
+    "id" : 0,
+    "rev" : 0,
+    "flags" : 0,
+    "reserved1" : 0,
+    "reserved2" : 0,
+    "reserved3" : 0
+  }, {
+    "sequenceNo" : 5,
+    "entrySize" : 1062287,
+    "entryOffset" : 5305071,
+    "id" : 0,
+    "rev" : 0,
+    "flags" : 0,
+    "reserved1" : 0,
+    "reserved2" : 0,
+    "reserved3" : 0
+  }, {
+    "sequenceNo" : 6,
+    "entrySize" : 1062416,
+    "entryOffset" : 6367358,
+    "id" : 0,
+    "rev" : 0,
+    "flags" : 0,
+    "reserved1" : 0,
+    "reserved2" : 0,
+    "reserved3" : 0
+  }, {
+    "sequenceNo" : 7,
+    "entrySize" : 1062500,
+    "entryOffset" : 7429774,
+    "id" : 0,
+    "rev" : 0,
+    "flags" : 0,
+    "reserved1" : 0,
+    "reserved2" : 0,
+    "reserved3" : 0
+  }, {
+    "sequenceNo" : 8,
+    "entrySize" : 1062748,
+    "entryOffset" : 8492274,
+    "id" : 0,
+    "rev" : 0,
+    "flags" : 0,
+    "reserved1" : 0,
+    "reserved2" : 0,
+    "reserved3" : 0
+  } ]
+}
