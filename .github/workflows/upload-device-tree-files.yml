@@ -22,7 +22,10 @@ jobs:
       - name: Download file list
         run: |
           echo "Downloading file list from pa1q device tree..."
-          curl -s https://raw.githubusercontent.com/Eduardob3677/android_device_samsung_pa1q/refs/heads/copilot/add-tree-command-output/tree_output.txt -o tree_output.txt
+          # Use curl with SSL verification and fail on errors
+          curl -sSfL --max-time 30 \
+            https://raw.githubusercontent.com/Eduardob3677/android_device_samsung_pa1q/refs/heads/copilot/add-tree-command-output/tree_output.txt \
+            -o tree_output.txt
           
           # Verify the file is not empty and looks valid
           if [ ! -s tree_output.txt ]; then
@@ -36,9 +39,17 @@ jobs:
             exit 1
           fi
           
+          # Additional size sanity check (should be reasonable size)
+          file_size=$(wc -c < tree_output.txt)
+          if [ "$file_size" -lt 100 ] || [ "$file_size" -gt 1000000 ]; then
+            echo "Error: File size $file_size bytes is outside expected range"
+            exit 1
+          fi
+          
           echo "✓ File list downloaded and validated"
           echo ""
           echo "Total lines in tree output: $(wc -l < tree_output.txt)"
+          echo "File size: $file_size bytes"
 
       - name: Parse tree and search for files
         id: check_files
@@ -87,9 +98,16 @@ jobs:
           missing_files = []
           
           for filename in file_names:
-              # Sanitize filename - only allow safe characters
-              if not re.match(r'^[a-zA-Z0-9._@+-]+$', filename):
+              # Sanitize filename - only allow very safe characters
+              # Exclude + and - to prevent potential issues in shell contexts
+              if not re.match(r'^[a-zA-Z0-9._@-]+$', filename):
                   print(f"Warning: Skipping unsafe filename: {filename}")
+                  missing_files.append(filename)
+                  continue
+              
+              # Additional check: filename should not start with - (option injection)
+              if filename.startswith('-'):
+                  print(f"Warning: Skipping filename starting with dash: {filename}")
                   missing_files.append(filename)
                   continue
               
@@ -184,18 +202,33 @@ jobs:
           echo "Copying found files..."
           total=0
           while IFS= read -r file; do
-            # Validate the file path doesn't contain directory traversal
+            # Multiple layers of path validation
+            # 1. Block directory traversal sequences
             if [[ "$file" == *".."* ]]; then
-              echo "⚠ Skipping potentially unsafe path: $file"
+              echo "⚠ Skipping path with ..: $file"
               continue
             fi
             
-            if [ -f "$file" ]; then
+            # 2. Block absolute paths
+            if [[ "$file" == /* ]]; then
+              echo "⚠ Skipping absolute path: $file"
+              continue
+            fi
+            
+            # 3. Ensure file is within repository
+            realpath_file=$(realpath -m "$file" 2>/dev/null || echo "")
+            realpath_repo=$(realpath -m "." 2>/dev/null || echo "")
+            if [[ ! "$realpath_file" == "$realpath_repo"/* ]]; then
+              echo "⚠ Skipping file outside repository: $file"
+              continue
+            fi
+            
+            if [ -f "$file" ] && [ ! -L "$file" ]; then
               # Create parent directory in artifact_output
               parent_dir=$(dirname "$file")
               
               # Additional validation of parent_dir
-              if [[ "$parent_dir" == *".."* ]]; then
+              if [[ "$parent_dir" == *".."* ]] || [[ "$parent_dir" == /* ]]; then
                 echo "⚠ Skipping unsafe parent dir: $parent_dir"
                 continue
               fi
