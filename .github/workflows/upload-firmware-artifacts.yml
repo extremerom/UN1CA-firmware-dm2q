@@ -528,5 +528,5 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### Directory Structure" >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
-          cd artifact_output && (tree -L 3 -d 2>/dev/null || find . -type d | sort | sed 's|^\./||' | grep -v '^\.$' | head -50)
+          cd artifact_output && (tree -L 3 -d 2>/dev/null || find . -type d | sort | sed 's|^\./||' | grep -v '^\.$' | head -50) >> $GITHUB_STEP_SUMMARY
           echo '```' >> $GITHUB_STEP_SUMMARY
