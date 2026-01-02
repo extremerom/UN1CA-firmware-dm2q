@@ -1,0 +1,31 @@
+{
+  "info" : {
+    "input" : "/home/runner/work/UN1CA-firmware-dm2q/UN1CA-firmware-dm2q/images_extracted/aik_temp/boot.img",
+    "role" : "boot.img",
+    "json" : "boot.json",
+    "headerVersion" : 4,
+    "headerSize" : 1584,
+    "pageSize" : 4096,
+    "cmdline" : "",
+    "osVersion" : "13.0.0",
+    "osPatchLevel" : "2025-12-00",
+    "imageSize" : 100663296,
+    "signatureSize" : 0
+  },
+  "kernel" : {
+    "file" : "/home/runner/work/UN1CA-firmware-dm2q/UN1CA-firmware-dm2q/images_extracted/aik_temp/build/unzip_boot/kernel",
+    "position" : 4096,
+    "size" : 45750784
+  },
+  "ramdisk" : {
+    "file" : "/home/runner/work/UN1CA-firmware-dm2q/UN1CA-firmware-dm2q/images_extracted/aik_temp/build/unzip_boot/ramdisk.img",
+    "position" : 45756416,
+    "size" : 0,
+    "xzFlags" : null
+  },
+  "bootSignature" : {
+    "file" : "",
+    "position" : 0,
+    "size" : 0
+  }
+}

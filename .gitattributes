@@ -16,3 +16,5 @@ system/system/priv-app/SamsungSmartSuggestions/SamsungSmartSuggestions.apk filte
 system/system/priv-app/OneDrive_Samsung_v3/OneDrive_Samsung_v3.apk filter=lfs diff=lfs merge=lfs -text
 system/system/priv-app/wallpaper-res/wallpaper-res.apk filter=lfs diff=lfs merge=lfs -text
 system/system/priv-app/SecSettings/SecSettings.apk filter=lfs diff=lfs merge=lfs -text
+boot/kernel filter=lfs diff=lfs merge=lfs -text
+recovery/kernel filter=lfs diff=lfs merge=lfs -text

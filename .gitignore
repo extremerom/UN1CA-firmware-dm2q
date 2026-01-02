@@ -1,0 +1,4 @@
+# Ignore downloaded IMG files
+images_extracted/*.img
+# Ignore temporary extraction tool
+images_extracted/aik_temp/
