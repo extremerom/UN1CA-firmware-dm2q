@@ -1,0 +1,845 @@
+name: Upload Device Tree Files from Expected List
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'recovery/**'
+      - 'system/**'
+      - 'vendor/**'
+      - 'prebuilt/**'
+  pull_request:
+    paths:
+      - 'recovery/**'
+      - 'system/**'
+      - 'vendor/**'
+      - 'prebuilt/**'
+
+jobs:
+  collect-and-upload-device-tree:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download expected files list
+        run: |
+          echo "Downloading expected files list from tree_output.txt..."
+          curl -s https://raw.githubusercontent.com/Eduardob3677/android_device_samsung_pa1q/refs/heads/copilot/add-tree-command-output/tree_output.txt -o /tmp/tree_output.txt
+          echo "✓ Downloaded tree_output.txt"
+
+      - name: Parse expected files from tree_output.txt
+        run: |
+          echo "Parsing expected files from tree_output.txt..."
+          
+          cat > /tmp/parse_tree.py << 'PYTHON_EOF'
+          import re
+          
+          # Read the tree output
+          with open('/tmp/tree_output.txt', 'r') as f:
+              lines = f.readlines()
+          
+          files = []
+          
+          for line in lines:
+              # Remove newline
+              line = line.rstrip('\n')
+              
+              # Remove all tree drawing characters
+              clean_line = re.sub(r'^[│├└\s─]+', '', line).strip()
+              
+              # Skip empty lines and summary lines
+              if not clean_line or 'directories' in clean_line or 'files' in clean_line or clean_line == '.':
+                  continue
+              
+              # If line has an extension, it's likely a file
+              if '.' in clean_line and not clean_line.endswith('/'):
+                  # Remove any remaining special characters
+                  clean_line = clean_line.replace('│', '').strip()
+                  if clean_line:
+                      files.append(clean_line)
+          
+          # Get unique files
+          unique_files = sorted(set(files))
+          
+          # Save all files
+          with open('/tmp/expected_files.txt', 'w') as f:
+              for file in unique_files:
+                  f.write(file + '\n')
+          
+          # Save by type
+          ko_files = [f for f in unique_files if f.endswith('.ko')]
+          so_files = [f for f in unique_files if f.endswith('.so')]
+          sh_files = [f for f in unique_files if f.endswith('.sh')]
+          xml_files = [f for f in unique_files if f.endswith('.xml')]
+          rc_files = [f for f in unique_files if f.endswith('.rc')]
+          txt_files = [f for f in unique_files if f.endswith('.txt')]
+          mk_files = [f for f in unique_files if f.endswith('.mk') or f.endswith('.bp')]
+          
+          with open('/tmp/expected_ko.txt', 'w') as f:
+              f.write('\n'.join(ko_files))
+          
+          with open('/tmp/expected_so.txt', 'w') as f:
+              f.write('\n'.join(so_files))
+          
+          with open('/tmp/expected_sh.txt', 'w') as f:
+              f.write('\n'.join(sh_files))
+          
+          with open('/tmp/expected_xml.txt', 'w') as f:
+              f.write('\n'.join(xml_files))
+          
+          with open('/tmp/expected_rc.txt', 'w') as f:
+              f.write('\n'.join(rc_files))
+          
+          with open('/tmp/expected_txt.txt', 'w') as f:
+              f.write('\n'.join(txt_files))
+          
+          with open('/tmp/expected_build.txt', 'w') as f:
+              f.write('\n'.join(mk_files))
+          
+          print(f"Total expected files: {len(unique_files)}")
+          print(f"  - Kernel modules (.ko): {len(ko_files)}")
+          print(f"  - Shared libraries (.so): {len(so_files)}")
+          print(f"  - Shell scripts (.sh): {len(sh_files)}")
+          print(f"  - XML files (.xml): {len(xml_files)}")
+          print(f"  - RC files (.rc): {len(rc_files)}")
+          print(f"  - Text files (.txt): {len(txt_files)}")
+          print(f"  - Build files (.mk/.bp): {len(mk_files)}")
+          PYTHON_EOF
+          
+          python3 /tmp/parse_tree.py
+
+      - name: Create artifact directory structure
+        run: |
+          mkdir -p artifact_output/found_files/modules
+          mkdir -p artifact_output/found_files/libraries
+          mkdir -p artifact_output/found_files/binaries
+          mkdir -p artifact_output/found_files/scripts
+          mkdir -p artifact_output/found_files/configs
+          mkdir -p artifact_output/found_files/build_files
+          mkdir -p artifact_output/docs
+
+      - name: Search and copy kernel modules from expected list
+        run: |
+          echo "Searching for expected kernel modules throughout repository..."
+          
+          cat > /tmp/search_ko.sh << 'BASH_EOF'
+          #!/bin/bash
+          
+          found_count=0
+          missing_count=0
+          multi_location_count=0
+          
+          > /tmp/found_ko_report.txt
+          > /tmp/missing_ko_report.txt
+          > /tmp/multi_location_ko_report.txt
+          
+          while IFS= read -r module; do
+              if [ -z "$module" ]; then
+                  continue
+              fi
+              
+              # Search for this specific module in entire repo
+              found_paths=$(find . -name "$module" -type f 2>/dev/null)
+              
+              if [ -z "$found_paths" ]; then
+                  # Not found
+                  echo "$module" >> /tmp/missing_ko_report.txt
+                  ((missing_count++))
+              else
+                  # Found - count locations
+                  location_count=$(echo "$found_paths" | wc -l)
+                  
+                  if [ $location_count -gt 1 ]; then
+                      # Multiple locations
+                      echo "=== $module (found in $location_count locations) ===" >> /tmp/multi_location_ko_report.txt
+                      echo "$found_paths" >> /tmp/multi_location_ko_report.txt
+                      echo "" >> /tmp/multi_location_ko_report.txt
+                      ((multi_location_count++))
+                  fi
+                  
+                  # Copy first found instance
+                  first_path=$(echo "$found_paths" | head -n 1)
+                  rel_path="${first_path#./}"
+                  target_dir="artifact_output/found_files/modules/$(dirname "$rel_path")"
+                  mkdir -p "$target_dir"
+                  cp "$first_path" "$target_dir/"
+                  
+                  echo "$module -> $rel_path" >> /tmp/found_ko_report.txt
+                  ((found_count++))
+              fi
+          done < /tmp/expected_ko.txt
+          
+          echo "✓ Kernel modules search complete"
+          echo "  Found: $found_count"
+          echo "  Missing: $missing_count"
+          echo "  In multiple locations: $multi_location_count"
+          BASH_EOF
+          
+          chmod +x /tmp/search_ko.sh
+          bash /tmp/search_ko.sh
+
+      - name: Search and copy shared libraries from expected list
+        run: |
+          echo "Searching for expected shared libraries throughout repository..."
+          
+          cat > /tmp/search_so.sh << 'BASH_EOF'
+          #!/bin/bash
+          
+          found_count=0
+          missing_count=0
+          multi_location_count=0
+          
+          > /tmp/found_so_report.txt
+          > /tmp/missing_so_report.txt
+          > /tmp/multi_location_so_report.txt
+          
+          while IFS= read -r lib; do
+              if [ -z "$lib" ]; then
+                  continue
+              fi
+              
+              # Search for this specific library
+              found_paths=$(find . -name "$lib" -type f 2>/dev/null)
+              
+              if [ -z "$found_paths" ]; then
+                  echo "$lib" >> /tmp/missing_so_report.txt
+                  ((missing_count++))
+              else
+                  location_count=$(echo "$found_paths" | wc -l)
+                  
+                  if [ $location_count -gt 1 ]; then
+                      echo "=== $lib (found in $location_count locations) ===" >> /tmp/multi_location_so_report.txt
+                      echo "$found_paths" >> /tmp/multi_location_so_report.txt
+                      echo "" >> /tmp/multi_location_so_report.txt
+                      ((multi_location_count++))
+                  fi
+                  
+                  first_path=$(echo "$found_paths" | head -n 1)
+                  rel_path="${first_path#./}"
+                  target_dir="artifact_output/found_files/libraries/$(dirname "$rel_path")"
+                  mkdir -p "$target_dir"
+                  cp "$first_path" "$target_dir/"
+                  
+                  echo "$lib -> $rel_path" >> /tmp/found_so_report.txt
+                  ((found_count++))
+              fi
+          done < /tmp/expected_so.txt
+          
+          echo "✓ Shared libraries search complete"
+          echo "  Found: $found_count"
+          echo "  Missing: $missing_count"
+          echo "  In multiple locations: $multi_location_count"
+          BASH_EOF
+          
+          chmod +x /tmp/search_so.sh
+          bash /tmp/search_so.sh
+
+      - name: Search and copy shell scripts from expected list
+        run: |
+          echo "Searching for expected shell scripts throughout repository..."
+          
+          found_count=0
+          missing_count=0
+          
+          > /tmp/found_sh_report.txt
+          > /tmp/missing_sh_report.txt
+          
+          while IFS= read -r script; do
+              if [ -z "$script" ]; then
+                  continue
+              fi
+              
+              found_paths=$(find . -name "$script" -type f 2>/dev/null | head -n 1)
+              
+              if [ -z "$found_paths" ]; then
+                  echo "$script" >> /tmp/missing_sh_report.txt
+                  ((missing_count++))
+              else
+                  rel_path="${found_paths#./}"
+                  target_dir="artifact_output/found_files/scripts/$(dirname "$rel_path")"
+                  mkdir -p "$target_dir"
+                  cp "$found_paths" "$target_dir/"
+                  echo "$script -> $rel_path" >> /tmp/found_sh_report.txt
+                  ((found_count++))
+              fi
+          done < /tmp/expected_sh.txt
+          
+          echo "✓ Shell scripts search complete"
+          echo "  Found: $found_count"
+          echo "  Missing: $missing_count"
+
+      - name: Search and copy XML config files from expected list
+        run: |
+          echo "Searching for expected XML files throughout repository..."
+          
+          found_count=0
+          missing_count=0
+          
+          > /tmp/found_xml_report.txt
+          > /tmp/missing_xml_report.txt
+          
+          while IFS= read -r xml; do
+              if [ -z "$xml" ]; then
+                  continue
+              fi
+              
+              found_paths=$(find . -name "$xml" -type f 2>/dev/null | head -n 1)
+              
+              if [ -z "$found_paths" ]; then
+                  echo "$xml" >> /tmp/missing_xml_report.txt
+                  ((missing_count++))
+              else
+                  rel_path="${found_paths#./}"
+                  target_dir="artifact_output/found_files/configs/$(dirname "$rel_path")"
+                  mkdir -p "$target_dir"
+                  cp "$found_paths" "$target_dir/"
+                  echo "$xml -> $rel_path" >> /tmp/found_xml_report.txt
+                  ((found_count++))
+              fi
+          done < /tmp/expected_xml.txt
+          
+          echo "✓ XML files search complete"
+          echo "  Found: $found_count"
+          echo "  Missing: $missing_count"
+
+      - name: Search and copy RC init files from expected list
+        run: |
+          echo "Searching for expected RC files throughout repository..."
+          
+          found_count=0
+          missing_count=0
+          
+          > /tmp/found_rc_report.txt
+          > /tmp/missing_rc_report.txt
+          
+          while IFS= read -r rc; do
+              if [ -z "$rc" ]; then
+                  continue
+              fi
+              
+              found_paths=$(find . -name "$rc" -type f 2>/dev/null | head -n 1)
+              
+              if [ -z "$found_paths" ]; then
+                  echo "$rc" >> /tmp/missing_rc_report.txt
+                  ((missing_count++))
+              else
+                  rel_path="${found_paths#./}"
+                  target_dir="artifact_output/found_files/configs/$(dirname "$rel_path")"
+                  mkdir -p "$target_dir"
+                  cp "$found_paths" "$target_dir/"
+                  echo "$rc -> $rel_path" >> /tmp/found_rc_report.txt
+                  ((found_count++))
+              fi
+          done < /tmp/expected_rc.txt
+          
+          echo "✓ RC files search complete"
+          echo "  Found: $found_count"
+          echo "  Missing: $missing_count"
+
+      - name: Search and copy build files from expected list
+        run: |
+          echo "Searching for expected build files throughout repository..."
+          
+          found_count=0
+          missing_count=0
+          
+          > /tmp/found_build_report.txt
+          > /tmp/missing_build_report.txt
+          
+          while IFS= read -r build_file; do
+              if [ -z "$build_file" ]; then
+                  continue
+              fi
+              
+              found_paths=$(find . -name "$build_file" -type f 2>/dev/null | head -n 1)
+              
+              if [ -z "$found_paths" ]; then
+                  echo "$build_file" >> /tmp/missing_build_report.txt
+                  ((missing_count++))
+              else
+                  rel_path="${found_paths#./}"
+                  target_dir="artifact_output/found_files/build_files/$(dirname "$rel_path")"
+                  mkdir -p "$target_dir"
+                  cp "$found_paths" "$target_dir/"
+                  echo "$build_file -> $rel_path" >> /tmp/found_build_report.txt
+                  ((found_count++))
+              fi
+          done < /tmp/expected_build.txt
+          
+          echo "✓ Build files search complete"
+          echo "  Found: $found_count"
+          echo "  Missing: $missing_count"
+
+      - name: Search for binaries mentioned in tree_output.txt
+        run: |
+          echo "Searching for binaries from expected list..."
+          
+          # Expected binaries from tree structure
+          expected_bins=(
+              "android.hardware.health-service.qti_recovery"
+              "runatboot.sh"
+              "vendor_check.sh"
+              "vendor_health.sh"
+              "android.hardware.health@2.1-service-samsung"
+              "vendor.samsung.hardware.health-service"
+              "vendor.samsung.hardware.thermal-service"
+          )
+          
+          found_count=0
+          missing_count=0
+          
+          > /tmp/found_bin_report.txt
+          > /tmp/missing_bin_report.txt
+          
+          for bin in "${expected_bins[@]}"; do
+              found_paths=$(find . -name "$bin" -type f 2>/dev/null | head -n 1)
+              
+              if [ -z "$found_paths" ]; then
+                  echo "$bin" >> /tmp/missing_bin_report.txt
+                  ((missing_count++))
+              else
+                  rel_path="${found_paths#./}"
+                  target_dir="artifact_output/found_files/binaries/$(dirname "$rel_path")"
+                  mkdir -p "$target_dir"
+                  cp "$found_paths" "$target_dir/"
+                  echo "$bin -> $rel_path" >> /tmp/found_bin_report.txt
+                  ((found_count++))
+              fi
+          done
+          
+          echo "✓ Binaries search complete"
+          echo "  Found: $found_count"
+          echo "  Missing: $missing_count"
+
+      - name: Generate comprehensive documentation
+        run: |
+          echo "Generating comprehensive documentation..."
+          
+          # Main README
+          cat > artifact_output/README.md << 'EOF'
+          # Archivos del Device Tree - UN1CA Firmware DM2Q
+          
+          ## 📋 Descripción
+          
+          Este paquete contiene los archivos del device tree buscados específicamente desde
+          la lista de `tree_output.txt` del repositorio de referencia:
+          https://github.com/Eduardob3677/android_device_samsung_pa1q
+          
+          ## 🔍 Metodología de Búsqueda
+          
+          1. Se descargó la lista de archivos esperados desde tree_output.txt
+          2. Se buscó cada archivo específico en TODO el repositorio
+          3. Si un archivo se encontró en múltiples ubicaciones, se tomó la primera instancia
+          4. Se documentaron todas las versiones alternativas encontradas
+          
+          ## 📊 Estadísticas de Archivos
+          
+          Ver `docs/ESTADISTICAS.md` para estadísticas completas.
+          
+          ## 📁 Estructura del Paquete
+          
+          ```
+          artifact_output/
+          ├── found_files/
+          │   ├── modules/          # Módulos del kernel (.ko)
+          │   ├── libraries/        # Bibliotecas compartidas (.so)
+          │   ├── binaries/         # Archivos binarios
+          │   ├── scripts/          # Scripts shell (.sh)
+          │   ├── configs/          # Archivos de configuración (.xml, .rc)
+          │   └── build_files/      # Archivos de compilación (.mk, .bp)
+          ├── docs/
+          │   ├── ESTADISTICAS.md           # Estadísticas completas
+          │   ├── ARCHIVOS_FALTANTES.md     # Lista de archivos faltantes
+          │   ├── VERSIONES_ALTERNATIVAS.md # Archivos en múltiples ubicaciones
+          │   └── ARCHIVOS_ENCONTRADOS.md   # Lista completa de encontrados
+          └── README.md                      # Este archivo
+          ```
+          
+          ## ⚠️ Notas Importantes
+          
+          ### Versiones Alternativas
+          
+          Algunos archivos se encontraron en múltiples ubicaciones. En estos casos:
+          - Se copió la primera instancia encontrada
+          - Todas las ubicaciones se documentan en `docs/VERSIONES_ALTERNATIVAS.md`
+          
+          ### Archivos Faltantes
+          
+          Los archivos que NO se encontraron están listados en:
+          - `docs/ARCHIVOS_FALTANTES.md`
+          
+          ## 📚 Documentación Adicional
+          
+          - **ESTADISTICAS.md** - Resumen de archivos encontrados vs faltantes
+          - **ARCHIVOS_FALTANTES.md** - Detalles de archivos no encontrados
+          - **VERSIONES_ALTERNATIVAS.md** - Archivos con múltiples versiones/ubicaciones
+          - **ARCHIVOS_ENCONTRADOS.md** - Lista completa con rutas
+          
+          ## 🔧 Uso
+          
+          Los archivos están organizados manteniendo su estructura de directorios original
+          para facilitar su uso en la construcción de ROMs o device trees.
+          
+          EOF
+          
+          # Statistics
+          cat > artifact_output/docs/ESTADISTICAS.md << 'EOF'
+          # Estadísticas de Búsqueda de Archivos
+          
+          ## Resumen General
+          
+          EOF
+          
+          # Count totals
+          total_expected=$(wc -l < /tmp/expected_files.txt)
+          total_found=0
+          total_missing=0
+          
+          # Add kernel modules stats
+          ko_found=$(wc -l < /tmp/found_ko_report.txt 2>/dev/null || echo "0")
+          ko_missing=$(wc -l < /tmp/missing_ko_report.txt 2>/dev/null || echo "0")
+          ko_multi=$(grep -c "^===" /tmp/multi_location_ko_report.txt 2>/dev/null || echo "0")
+          
+          cat >> artifact_output/docs/ESTADISTICAS.md << EOF
+          ### Módulos del Kernel (.ko)
+          
+          - **Esperados**: $(wc -l < /tmp/expected_ko.txt)
+          - **Encontrados**: $ko_found
+          - **Faltantes**: $ko_missing
+          - **En múltiples ubicaciones**: $ko_multi
+          
+          EOF
+          
+          # Add shared libraries stats
+          so_found=$(wc -l < /tmp/found_so_report.txt 2>/dev/null || echo "0")
+          so_missing=$(wc -l < /tmp/missing_so_report.txt 2>/dev/null || echo "0")
+          so_multi=$(grep -c "^===" /tmp/multi_location_so_report.txt 2>/dev/null || echo "0")
+          
+          cat >> artifact_output/docs/ESTADISTICAS.md << EOF
+          ### Bibliotecas Compartidas (.so)
+          
+          - **Esperadas**: $(wc -l < /tmp/expected_so.txt)
+          - **Encontradas**: $so_found
+          - **Faltantes**: $so_missing
+          - **En múltiples ubicaciones**: $so_multi
+          
+          EOF
+          
+          # Add other file stats
+          sh_found=$(wc -l < /tmp/found_sh_report.txt 2>/dev/null || echo "0")
+          sh_missing=$(wc -l < /tmp/missing_sh_report.txt 2>/dev/null || echo "0")
+          
+          xml_found=$(wc -l < /tmp/found_xml_report.txt 2>/dev/null || echo "0")
+          xml_missing=$(wc -l < /tmp/missing_xml_report.txt 2>/dev/null || echo "0")
+          
+          rc_found=$(wc -l < /tmp/found_rc_report.txt 2>/dev/null || echo "0")
+          rc_missing=$(wc -l < /tmp/missing_rc_report.txt 2>/dev/null || echo "0")
+          
+          build_found=$(wc -l < /tmp/found_build_report.txt 2>/dev/null || echo "0")
+          build_missing=$(wc -l < /tmp/missing_build_report.txt 2>/dev/null || echo "0")
+          
+          bin_found=$(wc -l < /tmp/found_bin_report.txt 2>/dev/null || echo "0")
+          bin_missing=$(wc -l < /tmp/missing_bin_report.txt 2>/dev/null || echo "0")
+          
+          cat >> artifact_output/docs/ESTADISTICAS.md << EOF
+          ### Scripts Shell (.sh)
+          
+          - **Esperados**: $(wc -l < /tmp/expected_sh.txt)
+          - **Encontrados**: $sh_found
+          - **Faltantes**: $sh_missing
+          
+          ### Archivos XML (.xml)
+          
+          - **Esperados**: $(wc -l < /tmp/expected_xml.txt)
+          - **Encontrados**: $xml_found
+          - **Faltantes**: $xml_missing
+          
+          ### Archivos RC (.rc)
+          
+          - **Esperados**: $(wc -l < /tmp/expected_rc.txt)
+          - **Encontrados**: $rc_found
+          - **Faltantes**: $rc_missing
+          
+          ### Archivos de Compilación (.mk, .bp)
+          
+          - **Esperados**: $(wc -l < /tmp/expected_build.txt)
+          - **Encontrados**: $build_found
+          - **Faltantes**: $build_missing
+          
+          ### Binarios
+          
+          - **Esperados**: 7
+          - **Encontrados**: $bin_found
+          - **Faltantes**: $bin_missing
+          
+          ## Resumen Total
+          
+          | Tipo | Esperados | Encontrados | Faltantes | % Éxito |
+          |------|-----------|-------------|-----------|---------|
+          | Módulos kernel (.ko) | $(wc -l < /tmp/expected_ko.txt) | $ko_found | $ko_missing | $(awk "BEGIN {if ($(wc -l < /tmp/expected_ko.txt) > 0) printf \"%.1f\", ($ko_found/$(wc -l < /tmp/expected_ko.txt))*100; else print \"0\"}") |
+          | Bibliotecas (.so) | $(wc -l < /tmp/expected_so.txt) | $so_found | $so_missing | $(awk "BEGIN {if ($(wc -l < /tmp/expected_so.txt) > 0) printf \"%.1f\", ($so_found/$(wc -l < /tmp/expected_so.txt))*100; else print \"0\"}") |
+          | Scripts (.sh) | $(wc -l < /tmp/expected_sh.txt) | $sh_found | $sh_missing | $(awk "BEGIN {if ($(wc -l < /tmp/expected_sh.txt) > 0) printf \"%.1f\", ($sh_found/$(wc -l < /tmp/expected_sh.txt))*100; else print \"0\"}") |
+          | XML (.xml) | $(wc -l < /tmp/expected_xml.txt) | $xml_found | $xml_missing | $(awk "BEGIN {if ($(wc -l < /tmp/expected_xml.txt) > 0) printf \"%.1f\", ($xml_found/$(wc -l < /tmp/expected_xml.txt))*100; else print \"0\"}") |
+          | RC (.rc) | $(wc -l < /tmp/expected_rc.txt) | $rc_found | $rc_missing | $(awk "BEGIN {if ($(wc -l < /tmp/expected_rc.txt) > 0) printf \"%.1f\", ($rc_found/$(wc -l < /tmp/expected_rc.txt))*100; else print \"0\"}") |
+          | Build files | $(wc -l < /tmp/expected_build.txt) | $build_found | $build_missing | $(awk "BEGIN {if ($(wc -l < /tmp/expected_build.txt) > 0) printf \"%.1f\", ($build_found/$(wc -l < /tmp/expected_build.txt))*100; else print \"0\"}") |
+          | Binarios | 7 | $bin_found | $bin_missing | $(awk "BEGIN {if (7 > 0) printf \"%.1f\", ($bin_found/7)*100; else print \"0\"}") |
+          
+          EOF
+          
+          # Missing files report
+          cat > artifact_output/docs/ARCHIVOS_FALTANTES.md << 'EOF'
+          # Archivos Faltantes
+          
+          Esta es la lista de archivos que se esperaban según tree_output.txt pero
+          NO se encontraron en el repositorio.
+          
+          EOF
+          
+          if [ -s /tmp/missing_ko_report.txt ]; then
+              echo "## Módulos del Kernel (.ko) Faltantes" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              echo "" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              while read line; do
+                  echo "- ❌ $line" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              done < /tmp/missing_ko_report.txt
+              echo "" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+          fi
+          
+          if [ -s /tmp/missing_so_report.txt ]; then
+              echo "## Bibliotecas Compartidas (.so) Faltantes" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              echo "" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              while read line; do
+                  echo "- ❌ $line" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              done < /tmp/missing_so_report.txt
+              echo "" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+          fi
+          
+          if [ -s /tmp/missing_sh_report.txt ]; then
+              echo "## Scripts Shell (.sh) Faltantes" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              echo "" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              while read line; do
+                  echo "- ❌ $line" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              done < /tmp/missing_sh_report.txt
+              echo "" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+          fi
+          
+          if [ -s /tmp/missing_xml_report.txt ]; then
+              echo "## Archivos XML Faltantes" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              echo "" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              while read line; do
+                  echo "- ❌ $line" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              done < /tmp/missing_xml_report.txt
+              echo "" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+          fi
+          
+          if [ -s /tmp/missing_rc_report.txt ]; then
+              echo "## Archivos RC Faltantes" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              echo "" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              while read line; do
+                  echo "- ❌ $line" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              done < /tmp/missing_rc_report.txt
+              echo "" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+          fi
+          
+          if [ -s /tmp/missing_build_report.txt ]; then
+              echo "## Archivos de Compilación Faltantes" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              echo "" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              while read line; do
+                  echo "- ❌ $line" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              done < /tmp/missing_build_report.txt
+              echo "" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+          fi
+          
+          if [ -s /tmp/missing_bin_report.txt ]; then
+              echo "## Binarios Faltantes" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              echo "" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              while read line; do
+                  echo "- ❌ $line" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+              done < /tmp/missing_bin_report.txt
+              echo "" >> artifact_output/docs/ARCHIVOS_FALTANTES.md
+          fi
+          
+          # Alternative versions report
+          cat > artifact_output/docs/VERSIONES_ALTERNATIVAS.md << 'EOF'
+          # Archivos con Versiones Alternativas o Múltiples Ubicaciones
+          
+          Los siguientes archivos se encontraron en múltiples ubicaciones en el repositorio.
+          Se utilizó la primera ubicación encontrada, pero aquí se documentan todas.
+          
+          **Nota:** Cuando un archivo faltante tiene una versión más nueva en otra ubicación,
+          se sube la versión encontrada y se documenta aquí.
+          
+          EOF
+          
+          if [ -s /tmp/multi_location_ko_report.txt ]; then
+              echo "## Módulos del Kernel (.ko) en Múltiples Ubicaciones" >> artifact_output/docs/VERSIONES_ALTERNATIVAS.md
+              echo "" >> artifact_output/docs/VERSIONES_ALTERNATIVAS.md
+              echo '```' >> artifact_output/docs/VERSIONES_ALTERNATIVAS.md
+              cat /tmp/multi_location_ko_report.txt >> artifact_output/docs/VERSIONES_ALTERNATIVAS.md
+              echo '```' >> artifact_output/docs/VERSIONES_ALTERNATIVAS.md
+              echo "" >> artifact_output/docs/VERSIONES_ALTERNATIVAS.md
+          fi
+          
+          if [ -s /tmp/multi_location_so_report.txt ]; then
+              echo "## Bibliotecas Compartidas (.so) en Múltiples Ubicaciones" >> artifact_output/docs/VERSIONES_ALTERNATIVAS.md
+              echo "" >> artifact_output/docs/VERSIONES_ALTERNATIVAS.md
+              echo '```' >> artifact_output/docs/VERSIONES_ALTERNATIVAS.md
+              cat /tmp/multi_location_so_report.txt >> artifact_output/docs/VERSIONES_ALTERNATIVAS.md
+              echo '```' >> artifact_output/docs/VERSIONES_ALTERNATIVAS.md
+              echo "" >> artifact_output/docs/VERSIONES_ALTERNATIVAS.md
+          fi
+          
+          # Found files report
+          cat > artifact_output/docs/ARCHIVOS_ENCONTRADOS.md << 'EOF'
+          # Archivos Encontrados con sus Ubicaciones
+          
+          Lista completa de todos los archivos encontrados y sus ubicaciones en el repositorio.
+          
+          EOF
+          
+          if [ -s /tmp/found_ko_report.txt ]; then
+              echo "## Módulos del Kernel (.ko)" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              echo "" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              while read line; do
+                  echo "- ✅ $line" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              done < /tmp/found_ko_report.txt
+              echo "" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+          fi
+          
+          if [ -s /tmp/found_so_report.txt ]; then
+              echo "## Bibliotecas Compartidas (.so)" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              echo "" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              while read line; do
+                  echo "- ✅ $line" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              done < /tmp/found_so_report.txt
+              echo "" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+          fi
+          
+          if [ -s /tmp/found_sh_report.txt ]; then
+              echo "## Scripts Shell (.sh)" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              echo "" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              while read line; do
+                  echo "- ✅ $line" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              done < /tmp/found_sh_report.txt
+              echo "" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+          fi
+          
+          if [ -s /tmp/found_xml_report.txt ]; then
+              echo "## Archivos XML" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              echo "" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              while read line; do
+                  echo "- ✅ $line" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              done < /tmp/found_xml_report.txt
+              echo "" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+          fi
+          
+          if [ -s /tmp/found_rc_report.txt ]; then
+              echo "## Archivos RC" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              echo "" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              while read line; do
+                  echo "- ✅ $line" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              done < /tmp/found_rc_report.txt
+              echo "" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+          fi
+          
+          if [ -s /tmp/found_build_report.txt ]; then
+              echo "## Archivos de Compilación" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              echo "" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              while read line; do
+                  echo "- ✅ $line" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              done < /tmp/found_build_report.txt
+              echo "" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+          fi
+          
+          if [ -s /tmp/found_bin_report.txt ]; then
+              echo "## Binarios" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              echo "" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              while read line; do
+                  echo "- ✅ $line" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+              done < /tmp/found_bin_report.txt
+              echo "" >> artifact_output/docs/ARCHIVOS_ENCONTRADOS.md
+          fi
+          
+          echo "✓ Documentation generated"
+
+      - name: Create file manifest
+        run: |
+          echo "Generating file manifest..."
+          cd artifact_output
+          find found_files -type f | sort > MANIFEST.txt
+          echo "Total files in artifact: $(wc -l < MANIFEST.txt)"
+
+      - name: Upload device tree artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: device-tree-files-from-list-${{ github.sha }}
+          path: artifact_output/
+          retention-days: 90
+          compression-level: 9
+
+      - name: Create artifact summary
+        run: |
+          ko_found=$(wc -l < /tmp/found_ko_report.txt 2>/dev/null || echo "0")
+          ko_missing=$(wc -l < /tmp/missing_ko_report.txt 2>/dev/null || echo "0")
+          ko_multi=$(grep -c "^===" /tmp/multi_location_ko_report.txt 2>/dev/null || echo "0")
+          
+          so_found=$(wc -l < /tmp/found_so_report.txt 2>/dev/null || echo "0")
+          so_missing=$(wc -l < /tmp/missing_so_report.txt 2>/dev/null || echo "0")
+          so_multi=$(grep -c "^===" /tmp/multi_location_so_report.txt 2>/dev/null || echo "0")
+          
+          ko_expected=$(wc -l < /tmp/expected_ko.txt 2>/dev/null || echo "1")
+          so_expected=$(wc -l < /tmp/expected_so.txt 2>/dev/null || echo "1")
+          sh_expected=$(wc -l < /tmp/expected_sh.txt 2>/dev/null || echo "1")
+          xml_expected=$(wc -l < /tmp/expected_xml.txt 2>/dev/null || echo "1")
+          rc_expected=$(wc -l < /tmp/expected_rc.txt 2>/dev/null || echo "1")
+          build_expected=$(wc -l < /tmp/expected_build.txt 2>/dev/null || echo "1")
+          
+          sh_found=$(wc -l < /tmp/found_sh_report.txt 2>/dev/null || echo "0")
+          xml_found=$(wc -l < /tmp/found_xml_report.txt 2>/dev/null || echo "0")
+          rc_found=$(wc -l < /tmp/found_rc_report.txt 2>/dev/null || echo "0")
+          build_found=$(wc -l < /tmp/found_build_report.txt 2>/dev/null || echo "0")
+          
+          echo "## 📦 Archivos del Device Tree Buscados desde Lista" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📋 Fuente de la Lista" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Archivos buscados desde: \`tree_output.txt\`" >> $GITHUB_STEP_SUMMARY
+          echo "Repositorio de referencia: https://github.com/Eduardob3677/android_device_samsung_pa1q" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Resultados de Búsqueda" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Tipo de Archivo | Esperados | Encontrados | Faltantes | En Múltiples Ubicaciones | % Éxito |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------------|-----------|-------------|-----------|---------------------------|---------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Módulos kernel (.ko) | $ko_expected | $ko_found | $ko_missing | $ko_multi | $(awk "BEGIN {if ($ko_expected > 0) printf \"%.1f%%\", ($ko_found/$ko_expected)*100; else print \"0%\"}") |" >> $GITHUB_STEP_SUMMARY
+          echo "| Bibliotecas (.so) | $so_expected | $so_found | $so_missing | $so_multi | $(awk "BEGIN {if ($so_expected > 0) printf \"%.1f%%\", ($so_found/$so_expected)*100; else print \"0%\"}") |" >> $GITHUB_STEP_SUMMARY
+          echo "| Scripts (.sh) | $sh_expected | $sh_found | $(wc -l < /tmp/missing_sh_report.txt 2>/dev/null || echo "0") | N/A | $(awk "BEGIN {if ($sh_expected > 0) printf \"%.1f%%\", ($sh_found/$sh_expected)*100; else print \"0%\"}") |" >> $GITHUB_STEP_SUMMARY
+          echo "| XML (.xml) | $xml_expected | $xml_found | $(wc -l < /tmp/missing_xml_report.txt 2>/dev/null || echo "0") | N/A | $(awk "BEGIN {if ($xml_expected > 0) printf \"%.1f%%\", ($xml_found/$xml_expected)*100; else print \"0%\"}") |" >> $GITHUB_STEP_SUMMARY
+          echo "| RC (.rc) | $rc_expected | $rc_found | $(wc -l < /tmp/missing_rc_report.txt 2>/dev/null || echo "0") | N/A | $(awk "BEGIN {if ($rc_expected > 0) printf \"%.1f%%\", ($rc_found/$rc_expected)*100; else print \"0%\"}") |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build files | $build_expected | $build_found | $(wc -l < /tmp/missing_build_report.txt 2>/dev/null || echo "0") | N/A | $(awk "BEGIN {if ($build_expected > 0) printf \"%.1f%%\", ($build_found/$build_expected)*100; else print \"0%\"}") |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Archivos Encontrados" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **$ko_found módulos del kernel** (.ko) de $ko_expected esperados" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **$so_found bibliotecas compartidas** (.so) de $so_expected esperadas" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ **Múltiples versiones**: $ko_multi módulos y $so_multi bibliotecas encontrados en varias ubicaciones" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📚 Documentación Incluida" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **README.md** - Descripción general del paquete" >> $GITHUB_STEP_SUMMARY
+          echo "- **docs/ESTADISTICAS.md** - Estadísticas completas de búsqueda" >> $GITHUB_STEP_SUMMARY
+          echo "- **docs/ARCHIVOS_FALTANTES.md** - Lista de archivos que no se encontraron" >> $GITHUB_STEP_SUMMARY
+          echo "- **docs/VERSIONES_ALTERNATIVAS.md** - Archivos encontrados en múltiples ubicaciones" >> $GITHUB_STEP_SUMMARY
+          echo "- **docs/ARCHIVOS_ENCONTRADOS.md** - Lista completa de archivos encontrados con rutas" >> $GITHUB_STEP_SUMMARY
+          echo "- **MANIFEST.txt** - Manifiesto completo de archivos en el paquete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Artifact" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Nombre**: device-tree-files-from-list-${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Archivos totales**: $(wc -l < artifact_output/MANIFEST.txt)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Retención**: 90 días" >> $GITHUB_STEP_SUMMARY
