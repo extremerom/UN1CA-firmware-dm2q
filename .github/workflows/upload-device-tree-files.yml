@@ -23,7 +23,20 @@ jobs:
         run: |
           echo "Downloading file list from pa1q device tree..."
           curl -s https://raw.githubusercontent.com/Eduardob3677/android_device_samsung_pa1q/refs/heads/copilot/add-tree-command-output/tree_output.txt -o tree_output.txt
-          echo "✓ File list downloaded"
+          
+          # Verify the file is not empty and looks valid
+          if [ ! -s tree_output.txt ]; then
+            echo "Error: Downloaded file is empty"
+            exit 1
+          fi
+          
+          # Check it looks like a tree output (contains tree characters)
+          if ! grep -q "├──\|└──" tree_output.txt; then
+            echo "Error: File doesn't look like tree output"
+            exit 1
+          fi
+          
+          echo "✓ File list downloaded and validated"
           echo ""
           echo "Total lines in tree output: $(wc -l < tree_output.txt)"
 
@@ -74,6 +87,12 @@ jobs:
           missing_files = []
           
           for filename in file_names:
+              # Sanitize filename - only allow safe characters
+              if not re.match(r'^[a-zA-Z0-9._@+-]+$', filename):
+                  print(f"Warning: Skipping unsafe filename: {filename}")
+                  missing_files.append(filename)
+                  continue
+              
               # Use find to search for this filename
               result = subprocess.run(
                   ['find', '.', '-type', 'f', '-name', filename],
@@ -140,8 +159,17 @@ jobs:
           
           EOFPYTHON
           
-          # Read counts for GitHub Actions output
-          source counts.txt
+          # Read counts safely
+          total=$(grep '^total=' counts.txt | cut -d= -f2)
+          found=$(grep '^found=' counts.txt | cut -d= -f2)
+          missing=$(grep '^missing=' counts.txt | cut -d= -f2)
+          
+          # Validate the values are numbers
+          if ! [[ "$total" =~ ^[0-9]+$ ]] || ! [[ "$found" =~ ^[0-9]+$ ]] || ! [[ "$missing" =~ ^[0-9]+$ ]]; then
+            echo "Error: Invalid counts in counts.txt"
+            exit 1
+          fi
+          
           echo "total_files=$total" >> $GITHUB_OUTPUT
           echo "found_files=$found" >> $GITHUB_OUTPUT
           echo "missing_files=$missing" >> $GITHUB_OUTPUT
@@ -156,9 +184,22 @@ jobs:
           echo "Copying found files..."
           total=0
           while IFS= read -r file; do
+            # Validate the file path doesn't contain directory traversal
+            if [[ "$file" == *".."* ]]; then
+              echo "⚠ Skipping potentially unsafe path: $file"
+              continue
+            fi
+            
             if [ -f "$file" ]; then
               # Create parent directory in artifact_output
               parent_dir=$(dirname "$file")
+              
+              # Additional validation of parent_dir
+              if [[ "$parent_dir" == *".."* ]]; then
+                echo "⚠ Skipping unsafe parent dir: $parent_dir"
+                continue
+              fi
+              
               mkdir -p "artifact_output/$parent_dir"
               
               # Copy the file
@@ -182,7 +223,7 @@ jobs:
           cat > FILE_REPORT.md << 'EOFREPORT'
           # Device Tree Files Report
           
-          Este reporte muestra qué archivos de la [lista del device tree pa1q](https://github.com/Eduardob3677/android_device_samsung_pa1q/tree/copilot/add-tree-command-output) fueron encontrados en este repositorio de firmware.
+          Este reporte muestra que archivos de la [lista del device tree pa1q](https://github.com/Eduardob3677/android_device_samsung_pa1q/tree/copilot/add-tree-command-output) fueron encontrados en este repositorio de firmware.
           
           ## Resumen
           
