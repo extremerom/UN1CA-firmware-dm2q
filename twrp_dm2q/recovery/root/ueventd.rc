@@ -1,0 +1,59 @@
+# Device-specific ueventd rules for Samsung Galaxy S23+ (dm2q)
+
+# Block devices
+/dev/block/platform/soc/1d84000.ufshc/by-name/boot       0660   root       system
+/dev/block/platform/soc/1d84000.ufshc/by-name/recovery   0660   root       system
+/dev/block/platform/soc/1d84000.ufshc/by-name/misc       0660   root       system
+/dev/block/platform/soc/1d84000.ufshc/by-name/metadata   0660   root       system
+/dev/block/platform/soc/1d84000.ufshc/by-name/userdata   0660   root       system
+/dev/block/platform/soc/1d84000.ufshc/by-name/cache      0660   root       system
+
+# Samsung EFS
+/dev/block/platform/soc/1d84000.ufshc/by-name/sec_efs    0660   radio      system
+/dev/block/platform/soc/1d84000.ufshc/by-name/efs        0660   radio      system
+/dev/block/platform/soc/1d84000.ufshc/by-name/carrier    0660   radio      system
+
+# Samsung ODE
+/dev/block/platform/soc/1d84000.ufshc/by-name/keydata    0660   root       system
+/dev/block/platform/soc/1d84000.ufshc/by-name/keyrefuge  0660   root       system
+
+# Samsung partitions
+/dev/block/platform/soc/1d84000.ufshc/by-name/prism      0660   root       system
+/dev/block/platform/soc/1d84000.ufshc/by-name/optics     0660   root       system
+
+# Firmware loading
+/dev/block/platform/soc/1d84000.ufshc/by-name/modem      0660   root       system
+/dev/block/platform/soc/1d84000.ufshc/by-name/dsp        0660   root       system
+/dev/block/platform/soc/1d84000.ufshc/by-name/bluetooth  0660   root       system
+
+# UFS
+/dev/sda*                                                 0660   root       system
+/dev/sdb*                                                 0660   root       system
+/dev/sdc*                                                 0660   root       system
+/dev/sdd*                                                 0660   root       system
+/dev/sde*                                                 0660   root       system
+
+# Graphics
+/dev/graphics/*                                           0660   root       graphics
+/dev/dri/*                                                0666   root       graphics
+
+# Input devices
+/dev/input/*                                              0660   root       input
+
+# Touch screen
+/dev/sec_touchscreen                                      0660   system     system
+
+# USB
+/dev/usb_accessory                                        0660   root       usb
+/dev/android_adb                                          0660   root       adb
+/dev/android_fastboot                                     0660   root       system
+
+# Backlight
+/sys/class/backlight/panel0-backlight/brightness          0664   system     system
+/sys/class/backlight/panel0-backlight/max_brightness      0664   system     system
+
+# Battery
+/sys/class/power_supply/battery/*                         0664   system     system
+
+# SEC devices
+/dev/sec-nfc                                              0660   nfc        nfc
