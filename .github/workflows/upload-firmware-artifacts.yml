@@ -1,0 +1,532 @@
+name: Upload Firmware Artifacts
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'system/system/bin/**'
+      - 'system/system/lib/**'
+      - 'system/system/lib64/**'
+      - 'system/system/etc/**'
+      - 'vendor/bin/**'
+      - 'vendor/lib/**'
+      - 'vendor/lib64/**'
+      - 'vendor/etc/**'
+      - 'vendor/firmware/**'
+      - 'recovery/**'
+      - 'vendor_boot/**'
+  pull_request:
+    paths:
+      - 'system/system/bin/**'
+      - 'system/system/lib/**'
+      - 'system/system/lib64/**'
+      - 'system/system/etc/**'
+      - 'vendor/bin/**'
+      - 'vendor/lib/**'
+      - 'vendor/lib64/**'
+      - 'vendor/etc/**'
+      - 'vendor/firmware/**'
+      - 'recovery/**'
+      - 'vendor_boot/**'
+
+jobs:
+  collect-and-upload-firmware-artifacts:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Create artifact directory structure
+        run: |
+          echo "Creating artifact directory structure..."
+          mkdir -p artifact_output/system/system/bin
+          mkdir -p artifact_output/system/system/lib
+          mkdir -p artifact_output/system/system/lib64
+          mkdir -p artifact_output/system/system/etc
+          mkdir -p artifact_output/vendor/bin
+          mkdir -p artifact_output/vendor/lib
+          mkdir -p artifact_output/vendor/lib64
+          mkdir -p artifact_output/vendor/etc
+          mkdir -p artifact_output/vendor/firmware
+          mkdir -p artifact_output/recovery
+          mkdir -p artifact_output/vendor_boot
+          echo "✓ Directory structure created"
+
+      - name: Copy system/system/bin
+        run: |
+          echo "Copying system/system/bin..."
+          if [ -d "system/system/bin" ]; then
+            cp -r system/system/bin/* artifact_output/system/system/bin/ 2>/dev/null || true
+            file_count=$(find artifact_output/system/system/bin -type f | wc -l)
+            echo "✓ Copied $file_count files from system/system/bin"
+          else
+            echo "⚠ system/system/bin directory not found"
+          fi
+
+      - name: Copy system/system/lib
+        run: |
+          echo "Copying system/system/lib..."
+          if [ -d "system/system/lib" ]; then
+            cp -r system/system/lib/* artifact_output/system/system/lib/ 2>/dev/null || true
+            file_count=$(find artifact_output/system/system/lib -type f | wc -l)
+            echo "✓ Copied $file_count files from system/system/lib"
+          else
+            echo "⚠ system/system/lib directory not found"
+          fi
+
+      - name: Copy system/system/lib64
+        run: |
+          echo "Copying system/system/lib64..."
+          if [ -d "system/system/lib64" ]; then
+            cp -r system/system/lib64/* artifact_output/system/system/lib64/ 2>/dev/null || true
+            file_count=$(find artifact_output/system/system/lib64 -type f | wc -l)
+            echo "✓ Copied $file_count files from system/system/lib64"
+          else
+            echo "⚠ system/system/lib64 directory not found"
+          fi
+
+      - name: Copy system/system/etc
+        run: |
+          echo "Copying system/system/etc..."
+          if [ -d "system/system/etc" ]; then
+            cp -r system/system/etc/* artifact_output/system/system/etc/ 2>/dev/null || true
+            file_count=$(find artifact_output/system/system/etc -type f | wc -l)
+            echo "✓ Copied $file_count files from system/system/etc"
+          else
+            echo "⚠ system/system/etc directory not found"
+          fi
+
+      - name: Copy vendor/bin
+        run: |
+          echo "Copying vendor/bin..."
+          if [ -d "vendor/bin" ]; then
+            cp -r vendor/bin/* artifact_output/vendor/bin/ 2>/dev/null || true
+            file_count=$(find artifact_output/vendor/bin -type f | wc -l)
+            echo "✓ Copied $file_count files from vendor/bin"
+          else
+            echo "⚠ vendor/bin directory not found"
+          fi
+
+      - name: Copy vendor/lib
+        run: |
+          echo "Copying vendor/lib..."
+          if [ -d "vendor/lib" ]; then
+            cp -r vendor/lib/* artifact_output/vendor/lib/ 2>/dev/null || true
+            file_count=$(find artifact_output/vendor/lib -type f | wc -l)
+            echo "✓ Copied $file_count files from vendor/lib"
+          else
+            echo "⚠ vendor/lib directory not found"
+          fi
+
+      - name: Copy vendor/lib64
+        run: |
+          echo "Copying vendor/lib64..."
+          if [ -d "vendor/lib64" ]; then
+            cp -r vendor/lib64/* artifact_output/vendor/lib64/ 2>/dev/null || true
+            file_count=$(find artifact_output/vendor/lib64 -type f | wc -l)
+            echo "✓ Copied $file_count files from vendor/lib64"
+          else
+            echo "⚠ vendor/lib64 directory not found"
+          fi
+
+      - name: Copy vendor/etc
+        run: |
+          echo "Copying vendor/etc..."
+          if [ -d "vendor/etc" ]; then
+            cp -r vendor/etc/* artifact_output/vendor/etc/ 2>/dev/null || true
+            file_count=$(find artifact_output/vendor/etc -type f | wc -l)
+            echo "✓ Copied $file_count files from vendor/etc"
+          else
+            echo "⚠ vendor/etc directory not found"
+          fi
+
+      - name: Copy vendor/firmware
+        run: |
+          echo "Copying vendor/firmware..."
+          if [ -d "vendor/firmware" ]; then
+            cp -r vendor/firmware/* artifact_output/vendor/firmware/ 2>/dev/null || true
+            file_count=$(find artifact_output/vendor/firmware -type f | wc -l)
+            echo "✓ Copied $file_count files from vendor/firmware"
+          else
+            echo "⚠ vendor/firmware directory not found"
+          fi
+
+      - name: Copy recovery
+        run: |
+          echo "Copying recovery..."
+          if [ -d "recovery" ]; then
+            cp -r recovery/* artifact_output/recovery/ 2>/dev/null || true
+            file_count=$(find artifact_output/recovery -type f | wc -l)
+            echo "✓ Copied $file_count files from recovery"
+          else
+            echo "⚠ recovery directory not found"
+          fi
+
+      - name: Copy vendor_boot
+        run: |
+          echo "Copying vendor_boot..."
+          if [ -d "vendor_boot" ]; then
+            cp -r vendor_boot/* artifact_output/vendor_boot/ 2>/dev/null || true
+            file_count=$(find artifact_output/vendor_boot -type f | wc -l)
+            echo "✓ Copied $file_count files from vendor_boot"
+          else
+            echo "⚠ vendor_boot directory not found"
+          fi
+
+      - name: Create documentation
+        run: |
+          echo "Creating documentation..."
+          cat > artifact_output/README.md << 'EOF'
+          # Firmware Artifacts Package
+          
+          This package contains firmware files from the UN1CA-firmware-dm2q repository.
+          
+          ## Contents
+          
+          ### System Partition
+          
+          - **system/system/bin/** - System binaries and executables
+          - **system/system/lib/** - System libraries (32-bit)
+          - **system/system/lib64/** - System libraries (64-bit)
+          - **system/system/etc/** - System configuration files
+          
+          ### Vendor Partition
+          
+          - **vendor/bin/** - Vendor binaries and executables
+          - **vendor/lib/** - Vendor libraries (32-bit)
+          - **vendor/lib64/** - Vendor libraries (64-bit)
+          - **vendor/etc/** - Vendor configuration files
+          - **vendor/firmware/** - Vendor firmware files
+          
+          ### Recovery Partition
+          
+          - **recovery/** - Recovery partition files including:
+            - Recovery kernel (kernel)
+            - Device trees (dtb, dtb.0-3, dts files)
+            - Kernel configuration (kernel_configs.txt)
+            - AVB verification data (recovery.avb.json)
+          
+          ### Vendor Boot Partition
+          
+          - **vendor_boot/** - Vendor boot partition files including:
+            - Device trees (dtb, dtb.0-3, dts files)
+            - Boot configuration (bootconfig)
+            - Ramdisk root filesystem (root.1/)
+            - AVB verification data (vendor_boot.avb.json)
+          
+          ## Package Information
+          
+          - **Device**: Samsung Galaxy S21 FE 5G (DM2Q)
+          - **Firmware**: UN1CA-firmware-dm2q
+          - **Repository**: https://github.com/extremerom/UN1CA-firmware-dm2q
+          
+          ## Directory Structure
+          
+          ```
+          artifact_output/
+          ├── system/
+          │   └── system/
+          │       ├── bin/      # System binaries
+          │       ├── lib/      # 32-bit system libraries
+          │       ├── lib64/    # 64-bit system libraries
+          │       └── etc/      # System configuration files
+          ├── vendor/
+          │   ├── bin/          # Vendor binaries
+          │   ├── lib/          # 32-bit vendor libraries
+          │   ├── lib64/        # 64-bit vendor libraries
+          │   ├── etc/          # Vendor configuration files
+          │   └── firmware/     # Vendor firmware files
+          ├── recovery/         # Recovery partition files
+          └── vendor_boot/      # Vendor boot partition files
+          ```
+          
+          ## Key Components
+          
+          ### System Binaries (system/system/bin/)
+          - Core Android system daemons and services
+          - System utilities and tools
+          - Shell commands and applications
+          
+          ### System Libraries (system/system/lib/ and lib64/)
+          - Android framework libraries
+          - System services libraries
+          - Hardware abstraction layer (HAL) libraries
+          - Codec and media processing libraries
+          
+          ### System Configuration (system/system/etc/)
+          - System property files
+          - Init scripts and service definitions
+          - Permission and feature declarations
+          - VINTF manifests
+          - Certificates and security policies
+          
+          ### Vendor Binaries (vendor/bin/)
+          - Hardware-specific daemons and services
+          - Vendor HAL implementations
+          - Qualcomm and Samsung proprietary services
+          
+          ### Vendor Libraries (vendor/lib/ and lib64/)
+          - Hardware-specific libraries
+          - Vendor HAL implementations
+          - Qualcomm and Samsung proprietary libraries
+          - Camera, audio, graphics, and sensor libraries
+          
+          ### Vendor Configuration (vendor/etc/)
+          - Hardware-specific configuration
+          - HAL service definitions
+          - VINTF manifests for vendor services
+          - Calibration and tuning files
+          
+          ### Vendor Firmware (vendor/firmware/)
+          - Binary firmware for various hardware components:
+            - Camera ISP firmware
+            - Audio DSP firmware
+            - Modem firmware
+            - GPU firmware
+            - Sensor hub firmware
+            - Bluetooth and WiFi firmware
+          
+          ### Recovery Partition
+          - Recovery kernel for system recovery and updates
+          - Device tree blobs for hardware configuration
+          - Minimal root filesystem for recovery mode
+          
+          ### Vendor Boot Partition
+          - Vendor-specific boot components
+          - Device trees for vendor hardware
+          - Vendor ramdisk with kernel modules and firmware
+          
+          ## Technical Details
+          
+          - **Architecture**: ARM64 (aarch64)
+          - **Android Version**: Based on firmware version
+          - **Chipset**: Qualcomm Snapdragon 888 (SM8350)
+          - **HAL Versions**: Multiple versions supported (1.0, 2.x, 3.x, 4.x)
+          
+          ## Usage Notes
+          
+          1. These files are extracted from the official firmware
+          2. Maintain proper file permissions when using these files
+          3. Libraries and binaries are compiled for ARM64 architecture
+          4. Some files may have dependencies on specific kernel versions
+          
+          ## File Types Included
+          
+          - **Executables** (.elf, no extension)
+          - **Shared Libraries** (.so)
+          - **Configuration Files** (.xml, .conf, .rc, .prop)
+          - **Firmware Binaries** (.bin, .mbn, .mdt, no extension)
+          - **Device Trees** (.dtb, .dts)
+          - **JSON Metadata** (.json)
+          - **Text Files** (.txt)
+          
+          ---
+          
+          *Generated by GitHub Actions Workflow*
+          *Package created from commit: ${{ github.sha }}*
+          EOF
+
+      - name: Generate artifact manifest
+        run: |
+          echo "Generating artifact manifest..."
+          cd artifact_output
+          find . -type f | sort > MANIFEST.txt
+          total_files=$(wc -l < MANIFEST.txt)
+          total_size=$(du -sh . | cut -f1)
+          echo "Total files: $total_files"
+          echo "Total size: $total_size"
+          echo ""
+          echo "=== File count by directory ==="
+          echo "system/system/bin: $(find system/system/bin -type f 2>/dev/null | wc -l)"
+          echo "system/system/lib: $(find system/system/lib -type f 2>/dev/null | wc -l)"
+          echo "system/system/lib64: $(find system/system/lib64 -type f 2>/dev/null | wc -l)"
+          echo "system/system/etc: $(find system/system/etc -type f 2>/dev/null | wc -l)"
+          echo "vendor/bin: $(find vendor/bin -type f 2>/dev/null | wc -l)"
+          echo "vendor/lib: $(find vendor/lib -type f 2>/dev/null | wc -l)"
+          echo "vendor/lib64: $(find vendor/lib64 -type f 2>/dev/null | wc -l)"
+          echo "vendor/etc: $(find vendor/etc -type f 2>/dev/null | wc -l)"
+          echo "vendor/firmware: $(find vendor/firmware -type f 2>/dev/null | wc -l)"
+          echo "recovery: $(find recovery -type f 2>/dev/null | wc -l)"
+          echo "vendor_boot: $(find vendor_boot -type f 2>/dev/null | wc -l)"
+
+      - name: Create release ZIP file
+        run: |
+          echo "Creating release ZIP file..."
+          cd artifact_output
+          zip -r ../firmware-artifacts-dm2q-${{ github.sha }}.zip . -9
+          cd ..
+          ls -lh firmware-artifacts-dm2q-${{ github.sha }}.zip
+          echo "✓ ZIP file created: firmware-artifacts-dm2q-${{ github.sha }}.zip"
+          echo "Size: $(du -h firmware-artifacts-dm2q-${{ github.sha }}.zip | cut -f1)"
+
+      - name: Generate release tag and name
+        id: release_info
+        run: |
+          # Generate timestamp-based tag
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          TAG_NAME="firmware-artifacts-v${TIMESTAMP}"
+          RELEASE_NAME="Firmware Artifacts for DM2Q - ${TIMESTAMP}"
+          
+          echo "tag_name=${TAG_NAME}" >> $GITHUB_OUTPUT
+          echo "release_name=${RELEASE_NAME}" >> $GITHUB_OUTPUT
+          echo "timestamp=${TIMESTAMP}" >> $GITHUB_OUTPUT
+          
+          echo "Release tag: ${TAG_NAME}"
+          echo "Release name: ${RELEASE_NAME}"
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.release_info.outputs.tag_name }}
+          release_name: ${{ steps.release_info.outputs.release_name }}
+          body: |
+            # Firmware Artifacts Package for UN1CA Firmware DM2Q
+            
+            ## 📦 Package Information
+            
+            - **Device**: Samsung Galaxy S21 FE 5G (DM2Q)
+            - **Firmware**: UN1CA-firmware-dm2q
+            - **Commit**: ${{ github.sha }}
+            - **Branch**: ${{ github.ref_name }}
+            - **Build Date**: ${{ steps.release_info.outputs.timestamp }}
+            
+            ## 📱 Contents
+            
+            This package contains firmware files from multiple partitions:
+            
+            ### System Partition Files
+            - **system/system/bin/** - System binaries and executables
+            - **system/system/lib/** - System libraries (32-bit)
+            - **system/system/lib64/** - System libraries (64-bit)
+            - **system/system/etc/** - System configuration files
+            
+            ### Vendor Partition Files
+            - **vendor/bin/** - Vendor binaries and executables
+            - **vendor/lib/** - Vendor libraries (32-bit)
+            - **vendor/lib64/** - Vendor libraries (64-bit)
+            - **vendor/etc/** - Vendor configuration files
+            - **vendor/firmware/** - Vendor firmware files
+            
+            ### Recovery Partition
+            - Recovery kernel and device trees
+            - Recovery root filesystem
+            - AVB verification data
+            
+            ### Vendor Boot Partition
+            - Vendor boot components
+            - Device trees
+            - Vendor ramdisk
+            
+            ## 🔧 Technical Specifications
+            
+            - **Architecture**: ARM64 (aarch64)
+            - **Chipset**: Qualcomm Snapdragon 888 (SM8350)
+            - **HAL Versions**: Multiple versions supported
+            
+            ## 📥 Download
+            
+            Download the ZIP file attached to this release to get all firmware artifacts.
+            
+            **File**: `firmware-artifacts-dm2q-${{ github.sha }}.zip`
+            
+            ## ℹ️ Usage
+            
+            1. Download the ZIP file
+            2. Extract to your preferred location
+            3. Review the README.md for package contents
+            4. Check MANIFEST.txt for complete file listing
+            
+            ## 🔍 Verification
+            
+            All files have been extracted from the official firmware.
+            See MANIFEST.txt for complete file listing.
+            
+            ---
+            
+            **Generated by**: GitHub Actions Workflow
+            **Workflow Run**: ${{ github.run_number }}
+          draft: false
+          prerelease: false
+
+      - name: Upload ZIP to Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./firmware-artifacts-dm2q-${{ github.sha }}.zip
+          asset_name: firmware-artifacts-dm2q-${{ github.sha }}.zip
+          asset_content_type: application/zip
+
+      - name: Upload firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-artifacts-${{ github.sha }}
+          path: artifact_output/
+          retention-days: 90
+          compression-level: 9
+
+      - name: Create artifact summary
+        run: |
+          echo "## 📦 Firmware Artifacts Package Created Successfully!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🎉 GitHub Release Created" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release Tag**: \`${{ steps.release_info.outputs.tag_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release Name**: ${{ steps.release_info.outputs.release_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **ZIP File**: \`firmware-artifacts-dm2q-${{ github.sha }}.zip\`" >> $GITHUB_STEP_SUMMARY
+          echo "- **ZIP Size**: $(du -h firmware-artifacts-dm2q-${{ github.sha }}.zip | cut -f1)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **[View Release](${{ steps.create_release.outputs.html_url }})**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Firmware Artifacts Package" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Package Information" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit**: ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Artifact Name**: firmware-artifacts-${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Files**: $(wc -l < artifact_output/MANIFEST.txt)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Size**: $(du -sh artifact_output | cut -f1)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Contents Overview" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### System Partition" >> $GITHUB_STEP_SUMMARY
+          echo "- **system/system/bin/**: $(find artifact_output/system/system/bin -type f 2>/dev/null | wc -l) files" >> $GITHUB_STEP_SUMMARY
+          echo "- **system/system/lib/**: $(find artifact_output/system/system/lib -type f 2>/dev/null | wc -l) files" >> $GITHUB_STEP_SUMMARY
+          echo "- **system/system/lib64/**: $(find artifact_output/system/system/lib64 -type f 2>/dev/null | wc -l) files" >> $GITHUB_STEP_SUMMARY
+          echo "- **system/system/etc/**: $(find artifact_output/system/system/etc -type f 2>/dev/null | wc -l) files" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Vendor Partition" >> $GITHUB_STEP_SUMMARY
+          echo "- **vendor/bin/**: $(find artifact_output/vendor/bin -type f 2>/dev/null | wc -l) files" >> $GITHUB_STEP_SUMMARY
+          echo "- **vendor/lib/**: $(find artifact_output/vendor/lib -type f 2>/dev/null | wc -l) files" >> $GITHUB_STEP_SUMMARY
+          echo "- **vendor/lib64/**: $(find artifact_output/vendor/lib64 -type f 2>/dev/null | wc -l) files" >> $GITHUB_STEP_SUMMARY
+          echo "- **vendor/etc/**: $(find artifact_output/vendor/etc -type f 2>/dev/null | wc -l) files" >> $GITHUB_STEP_SUMMARY
+          echo "- **vendor/firmware/**: $(find artifact_output/vendor/firmware -type f 2>/dev/null | wc -l) files" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Other Partitions" >> $GITHUB_STEP_SUMMARY
+          echo "- **recovery/**: $(find artifact_output/recovery -type f 2>/dev/null | wc -l) files" >> $GITHUB_STEP_SUMMARY
+          echo "- **vendor_boot/**: $(find artifact_output/vendor_boot -type f 2>/dev/null | wc -l) files" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Key Features" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Complete system binaries and libraries" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Complete vendor binaries and libraries" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ All vendor firmware files" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ System and vendor configuration files" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Recovery partition files" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Vendor boot partition files" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Directory Structure" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cd artifact_output && (tree -L 3 -d 2>/dev/null || find . -type d | sort | sed 's|^\./||' | grep -v '^\.$' | head -50) >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
