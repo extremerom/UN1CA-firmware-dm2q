@@ -1,0 +1,112 @@
+# Proprietary blobs for Samsung Galaxy S23+ (dm2q) - TWRP Recovery
+# Source: UN1CA firmware dump
+#
+# ONLY device-specific proprietary files needed for TWRP recovery.
+# Standard AOSP libraries (libbase, libc++, liblog, libutils, libcutils, libbinder*, libc, libm, libdl)
+# are built from TWRP source and NOT included here.
+#
+# All blobs analyzed with readelf. Only recovery HAL services (health, power, thermal, vibrator,
+# boot, fastboot) included. NO camera/media/graphics blobs.
+
+# ============================================================================
+# BOOT HAL - Boot Control (HIDL)
+# ============================================================================
+system/lib64/android.hardware.boot@1.0.so           # HIDL 1.0
+system/lib64/android.hardware.boot@1.1.so           # HIDL 1.1
+
+# ============================================================================  
+# FASTBOOT HAL - Fastboot Mode (HIDL)
+# ============================================================================
+system/lib64/android.hardware.fastboot@1.0.so       # HIDL 1.0
+system/lib64/android.hardware.fastboot@1.1.so       # HIDL 1.1
+system/lib64/hw/android.hardware.fastboot@1.1-impl-mock.so  # Mock implementation
+
+# ============================================================================
+# HEALTH HAL - Battery/Health Monitoring (AIDL + HIDL)
+# ============================================================================
+system/bin/hw/android.hardware.health-service.qti_recovery    # Qualcomm AIDL service
+system/lib64/android.hardware.health-V1-ndk.so     # AIDL V1
+system/lib64/android.hardware.health@1.0.so         # HIDL 1.0
+system/lib64/android.hardware.health@2.0.so         # HIDL 2.0
+vendor/lib64/android.hardware.health@2.1.so         # HIDL 2.1
+system/lib64/hw/android.hardware.health@2.0-impl-default.so  # HAL impl
+
+# Health service configuration
+system/etc/init/android.hardware.health-service.qti_recovery.rc
+system/etc/vintf/manifest/android.hardware.health-service.qti.xml
+
+# ============================================================================
+# POWER HAL - Power Management (AIDL + HIDL)
+# ============================================================================
+vendor/lib64/android.hardware.power-V2-ndk.so       # AIDL V2
+vendor/lib64/android.hardware.power@1.0.so          # HIDL 1.0
+vendor/lib64/android.hardware.power@1.1.so          # HIDL 1.1
+vendor/lib64/android.hardware.power@1.2.so          # HIDL 1.2
+
+# Power service configuration
+vendor/etc/vintf/manifest/power-samsung.xml
+
+# ============================================================================
+# THERMAL HAL - Temperature Monitoring (HIDL)
+# ============================================================================
+vendor/lib64/android.hardware.thermal@1.0.so        # HIDL 1.0
+vendor/lib64/android.hardware.thermal@2.0.so        # HIDL 2.0
+
+# Thermal service configuration
+vendor/etc/init/vendor.samsung.hardware.thermal@1.0-service.rc
+vendor/etc/vintf/manifest/vendor.samsung.hardware.thermal@1.0-manifest.xml
+
+# ============================================================================
+# VIBRATOR HAL - Haptic Feedback (AIDL)
+# ============================================================================
+vendor/bin/hw/vendor.samsung.hardware.vibrator-service      # Samsung AIDL service
+vendor/lib64/vendor.samsung.hardware.vibrator-V5-ndk.so     # Samsung AIDL V5
+vendor/lib64/libvibrator.so                         # Samsung vibrator lib
+vendor/lib64/hw/vibrator.default.so                 # HAL implementation
+
+# Vibrator service configuration
+vendor/etc/init/vendor.samsung.hardware.vibrator-default.rc
+vendor/etc/vintf/manifest/vendor.samsung.hardware.vibrator-default.xml
+
+# ============================================================================
+# BATTERY - Battery Management
+# ============================================================================
+vendor/lib64/libbatterylistener.so                  # Battery monitoring
+
+# ============================================================================
+# RECOVERY LIBRARIES - TWRP Specific
+# ============================================================================
+system/lib64/libbootloader_message.so               # Bootloader message (misc partition)
+system/lib64/librecovery_ui.so                      # Recovery UI framework
+system/lib64/librecovery_ui_ext.so                  # Recovery UI extensions
+
+# ============================================================================
+# HIDL BASE - Required for all HIDL HALs
+# ============================================================================
+system/lib64/libhidlbase.so                         # HIDL transport layer
+
+# ============================================================================
+# SAMSUNG SPECIFIC - Device Management
+# ============================================================================
+system/lib64/libdsms.so                             # Samsung security
+system/lib64/libengmode2lite_recovery.so            # Samsung engineering mode
+
+# ============================================================================
+# KERNEL MODULES - 425 Device-Specific Drivers
+# ============================================================================
+# All .ko files from recovery/root/lib/modules/
+# Located in: proprietary/recovery/root/lib/modules/*.ko
+#
+# Categories (analyzed, recovery-related only):
+# - Health/Battery: sec-battery.ko, sec-direct-charger.ko, qti_battery_*.ko
+# - Vibrator: sec_vibrator_inputff_module.ko, vibrator_vib_info.ko, leds-qpnp-vibrator-ldo.ko
+# - Thermal: thermal_*.ko, bcl_*.ko, qcom_tsens.ko
+# - Power: sec_pm_*.ko, qcom_cpufreq*.ko, cpu_*.ko
+# - Display: msm_drm.ko, panel_*.ko, dispcc-*.ko
+# - Storage: ufs_qcom.ko, sdhci-msm.ko, blk-sec-*.ko
+# - USB: usb_*.ko, dwc3-msm.ko, typec*.ko
+# - Security: sec_*.ko, hdcp_*.ko, secure_buffer.ko
+# - Platform: qcom_*.ko, msm_*.ko, qualcomm core drivers
+# - Samsung debug: sec_debug*.ko, sec_qc_*.ko
+#
+# Total: 425 kernel modules (.ko files)

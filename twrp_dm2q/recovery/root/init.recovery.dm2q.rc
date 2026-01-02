@@ -1,0 +1,68 @@
+# Device-specific recovery init for Samsung Galaxy S23+ (dm2q)
+
+on early-init
+    # Set up dm2q-specific early boot requirements
+    setprop ro.board.platform kalama
+    setprop ro.hardware.keystore mdfpp
+    setprop ro.hardware.gatekeeper mdfpp
+
+on init
+    # Samsung EFS partitions
+    mkdir /efs
+    mkdir /sec_efs
+    mkdir /carrier
+    
+    # Samsung ODE partitions
+    mkdir /keydata
+    mkdir /keyrefuge
+    
+    # Samsung specific partitions
+    mkdir /prism
+    mkdir /optics
+    
+    # Set USB configuration for recovery
+    write /sys/class/android_usb/android0/iSerial ${ro.serialno}
+    
+    # Battery charging in recovery
+    write /sys/class/power_supply/battery/siop_level 0
+    
+    # Backlight control
+    chown system system /sys/class/backlight/panel0-backlight/brightness
+    chmod 0664 /sys/class/backlight/panel0-backlight/brightness
+    write /sys/class/backlight/panel0-backlight/brightness 200
+
+on fs
+    # Wait for bootdevice
+    wait /dev/block/platform/soc/${ro.boot.bootdevice}
+    symlink /dev/block/platform/soc/${ro.boot.bootdevice} /dev/block/bootdevice
+    
+    # Mount Samsung partitions
+    mount ext4 /dev/block/bootdevice/by-name/sec_efs /efs noatime nosuid nodev noauto_da_alloc
+    mount ext4 /dev/block/bootdevice/by-name/carrier /carrier noatime nosuid nodev noauto_da_alloc
+    
+    # Set permissions for EFS
+    chown radio system /efs
+    chmod 0771 /efs
+
+on post-fs
+    # Load persist properties
+    start logd
+    
+on boot
+    # Permissions for Samsung factory
+    chmod 0660 /sys/class/sec/tsp/cmd
+    chown system system /sys/class/sec/tsp/cmd
+
+on property:ro.boot.usbcontroller=*
+    setprop sys.usb.controller ${ro.boot.usbcontroller}
+    setprop sys.usb.configfs 1
+
+on property:sys.usb.config=fastboot
+    start fastbootd
+
+# Fastboot daemon
+service fastbootd /system/bin/fastbootd
+    user root
+    group system
+    disabled
+    seclabel u:r:fastbootd:s0
