@@ -27,128 +27,134 @@ jobs:
           echo ""
           echo "Total lines in tree output: $(wc -l < tree_output.txt)"
 
-      - name: Parse tree and check for files
+      - name: Parse tree and search for files
         id: check_files
         run: |
-          echo "Parsing tree structure and checking which files exist..."
+          echo "Parsing tree structure and searching for files by name across repository..."
           
           python3 << 'EOFPYTHON'
           import os
           import re
+          import subprocess
           
           def parse_tree_output(filename):
-              """Parse tree output properly handling UTF-8 box drawing characters."""
+              """Parse tree output to extract file names."""
               with open(filename, 'r', encoding='utf-8') as f:
                   lines = f.readlines()
               
-              file_paths = []
-              dir_stack = []
+              file_names = set()
               
               for line in lines:
-                  # Remove newline
                   line = line.rstrip('\n\r')
-                  
-                  # Skip empty lines and summary
                   if not line or 'directories,' in line or 'files' in line:
                       continue
-                  
-                  # Skip root
                   if line.strip() == '.':
                       continue
                   
-                  # Calculate depth and extract name
-                  # Box drawing chars: ├── └── │
-                  depth = line.count('│')
-                  
-                  # Remove all box drawing and extract name
+                  # Extract the name by removing tree characters
                   name = re.sub(r'[├└│─\s]+', ' ', line).strip()
                   
                   if not name:
                       continue
                   
-                  # Adjust directory stack
-                  while len(dir_stack) > depth:
-                      dir_stack.pop()
-                  
                   # Check if it's a file (has extension)
-                  is_file = '.' in name and name not in ['.', '..']
-                  
-                  if is_file:
-                      # Build full path
-                      if dir_stack:
-                          full_path = os.path.join(*dir_stack, name)
-                      else:
-                          full_path = name
-                      file_paths.append(full_path)
-                  else:
-                      # It's a directory
-                      dir_stack.append(name)
+                  if '.' in name and name not in ['.', '..']:
+                      file_names.add(name)
               
-              return file_paths
+              return sorted(file_names)
           
-          # Parse the tree
-          print("Parsing tree output...")
-          all_files = parse_tree_output('tree_output.txt')
-          print(f"Total files in list: {len(all_files)}")
+          # Parse the tree to get all file names
+          print("Parsing tree output to extract file names...")
+          file_names = parse_tree_output('tree_output.txt')
+          print(f"Total unique file names to search: {len(file_names)}")
           
-          # Check which files exist
-          existing = []
-          missing = []
+          # Search for these files in the repository
+          print("\nSearching for files by name across the entire repository...")
+          found_files = {}  # filename -> list of paths where found
+          missing_files = []
           
-          for filepath in all_files:
-              if os.path.exists(filepath):
-                  existing.append(filepath)
+          for filename in file_names:
+              # Use find to search for this filename
+              result = subprocess.run(
+                  ['find', '.', '-type', 'f', '-name', filename],
+                  capture_output=True,
+                  text=True
+              )
+              
+              if result.returncode == 0 and result.stdout.strip():
+                  paths = [p.lstrip('./') for p in result.stdout.strip().split('\n') if p.strip()]
+                  # Filter out hidden directories like .git
+                  paths = [p for p in paths if not p.startswith('.git/')]
+                  if paths:
+                      found_files[filename] = paths
+                  else:
+                      missing_files.append(filename)
               else:
-                  missing.append(filepath)
+                  missing_files.append(filename)
           
-          print(f"\nFiles that EXIST in this repository: {len(existing)}")
-          print(f"Files that are MISSING: {len(missing)}")
+          print(f"\nFiles FOUND: {len(found_files)}")
+          print(f"Files NOT FOUND: {len(missing_files)}")
           
-          # Save lists
-          with open('existing_files.txt', 'w') as f:
-              for file in sorted(existing):
-                  f.write(f"{file}\n")
+          # Save detailed results
+          with open('found_files_detail.txt', 'w') as f:
+              for filename in sorted(found_files.keys()):
+                  f.write(f"\n{filename}:\n")
+                  for path in found_files[filename]:
+                      f.write(f"  {path}\n")
           
           with open('missing_files.txt', 'w') as f:
-              for file in sorted(missing):
-                  f.write(f"{file}\n")
+              for filename in sorted(missing_files):
+                  f.write(f"{filename}\n")
+          
+          # Create a flat list of all found file paths for artifact collection
+          with open('found_files_paths.txt', 'w') as f:
+              for filename, paths in sorted(found_files.items()):
+                  for path in paths:
+                      f.write(f"{path}\n")
           
           # Save counts for GitHub output
           with open('counts.txt', 'w') as f:
-              f.write(f"total={len(all_files)}\n")
-              f.write(f"existing={len(existing)}\n")
-              f.write(f"missing={len(missing)}\n")
+              f.write(f"total={len(file_names)}\n")
+              f.write(f"found={len(found_files)}\n")
+              f.write(f"missing={len(missing_files)}\n")
           
           # Print samples
-          if existing:
-              print("\n=== EXISTING files (first 20) ===")
-              for i, f in enumerate(sorted(existing)[:20], 1):
-                  print(f"{i}. {f}")
+          if found_files:
+              print("\n=== FOUND files (first 30) ===")
+              for i, (filename, paths) in enumerate(sorted(found_files.items())[:30], 1):
+                  print(f"{i}. {filename} ({len(paths)} location(s))")
+                  for path in paths[:2]:
+                      print(f"   → {path}")
+                  if len(paths) > 2:
+                      print(f"   ... and {len(paths) - 2} more")
           else:
-              print("\n⚠️  No files from the list exist in this repository")
+              print("\n⚠️  No files from the list were found in this repository")
           
-          print("\n=== MISSING files (first 30) ===")
-          for i, f in enumerate(sorted(missing)[:30], 1):
-              print(f"{i}. {f}")
-          
-          if len(missing) > 30:
-              print(f"... and {len(missing) - 30} more missing files")
+          if missing_files:
+              print(f"\n=== MISSING files (first 20) ===")
+              for i, f in enumerate(sorted(missing_files)[:20], 1):
+                  print(f"{i}. {f}")
+              
+              if len(missing_files) > 20:
+                  print(f"... and {len(missing_files) - 20} more")
           
           EOFPYTHON
           
           # Read counts for GitHub Actions output
           source counts.txt
           echo "total_files=$total" >> $GITHUB_OUTPUT
-          echo "existing_files=$existing" >> $GITHUB_OUTPUT
+          echo "found_files=$found" >> $GITHUB_OUTPUT
           echo "missing_files=$missing" >> $GITHUB_OUTPUT
 
-      - name: Create artifact directory
-        if: steps.check_files.outputs.existing_files > 0
+      - name: Create artifact directory and copy found files
+        if: steps.check_files.outputs.found_files > 0
         run: |
           echo "Creating artifact directory structure..."
           mkdir -p artifact_output
           
-          # Copy existing files preserving directory structure
+          # Copy found files preserving directory structure
+          echo "Copying found files..."
+          total=0
           while IFS= read -r file; do
             if [ -f "$file" ]; then
               # Create parent directory in artifact_output
@@ -157,9 +163,17 @@ jobs:
               
               # Copy the file
               cp "$file" "artifact_output/$file"
-              echo "✓ Copied: $file"
+              total=$((total + 1))
+              
+              # Show progress for first 10 files
+              if [ $total -le 10 ]; then
+                echo "✓ Copied: $file"
+              fi
             fi
-          done < existing_files.txt
+          done < found_files_paths.txt
+          
+          echo ""
+          echo "Total files copied: $total"
 
       - name: Create file report
         run: |
@@ -168,78 +182,78 @@ jobs:
           cat > FILE_REPORT.md << 'EOFREPORT'
           # Device Tree Files Report
           
-          This report shows which files from the [pa1q device tree](https://github.com/Eduardob3677/android_device_samsung_pa1q/tree/copilot/add-tree-command-output) exist in this firmware repository.
+          Este reporte muestra qué archivos de la [lista del device tree pa1q](https://github.com/Eduardob3677/android_device_samsung_pa1q/tree/copilot/add-tree-command-output) fueron encontrados en este repositorio de firmware.
           
-          ## Summary
+          ## Resumen
           
-          - **Total files in list**: ${{ steps.check_files.outputs.total_files }}
-          - **Files found in this repo**: ${{ steps.check_files.outputs.existing_files }}
-          - **Files missing**: ${{ steps.check_files.outputs.missing_files }}
+          - **Total de archivos en la lista**: ${{ steps.check_files.outputs.total_files }}
+          - **Archivos encontrados**: ${{ steps.check_files.outputs.found_files }}
+          - **Archivos faltantes**: ${{ steps.check_files.outputs.missing_files }}
           
-          ## Files Found (EXISTING)
+          ## Archivos Encontrados
           
           EOFREPORT
           
-          if [ -s existing_files.txt ]; then
-            echo "The following files from the device tree list were found in this repository:" >> FILE_REPORT.md
+          if [ -s found_files_detail.txt ]; then
+            echo "Los siguientes archivos de la lista del device tree fueron encontrados en este repositorio:" >> FILE_REPORT.md
+            echo "" >> FILE_REPORT.md
+            echo "<details>" >> FILE_REPORT.md
+            echo "<summary>Click para expandir la lista de archivos encontrados (${{ steps.check_files.outputs.found_files }} archivos)</summary>" >> FILE_REPORT.md
             echo "" >> FILE_REPORT.md
             echo '```' >> FILE_REPORT.md
-            cat existing_files.txt >> FILE_REPORT.md
+            cat found_files_detail.txt >> FILE_REPORT.md
             echo '```' >> FILE_REPORT.md
+            echo "</details>" >> FILE_REPORT.md
           else
-            echo "⚠️ **No files from the device tree list were found in this repository.**" >> FILE_REPORT.md
-            echo "" >> FILE_REPORT.md
-            echo "This is expected because:" >> FILE_REPORT.md
-            echo "- The file list is from the **android_device_samsung_pa1q** device tree repository" >> FILE_REPORT.md
-            echo "- This repository (**UN1CA-firmware-dm2q**) is a firmware repository" >> FILE_REPORT.md
-            echo "- Device trees contain build configuration files (Android.mk, BoardConfig.mk, prebuilt modules)" >> FILE_REPORT.md
-            echo "- Firmware repositories contain extracted system/vendor partitions" >> FILE_REPORT.md
+            echo "⚠️ **No se encontraron archivos de la lista del device tree en este repositorio.**" >> FILE_REPORT.md
           fi
           
           echo "" >> FILE_REPORT.md
-          echo "## Files Missing (NOT FOUND)" >> FILE_REPORT.md
+          echo "## Archivos Faltantes" >> FILE_REPORT.md
           echo "" >> FILE_REPORT.md
-          echo "The following files from the device tree list were NOT found in this repository:" >> FILE_REPORT.md
-          echo "" >> FILE_REPORT.md
-          echo "<details>" >> FILE_REPORT.md
-          echo "<summary>Click to expand missing files list (${{ steps.check_files.outputs.missing_files }} files)</summary>" >> FILE_REPORT.md
-          echo "" >> FILE_REPORT.md
-          echo '```' >> FILE_REPORT.md
-          cat missing_files.txt >> FILE_REPORT.md
-          echo '```' >> FILE_REPORT.md
-          echo "</details>" >> FILE_REPORT.md
+          
+          if [ -s missing_files.txt ]; then
+            echo "Los siguientes archivos de la lista del device tree NO fueron encontrados:" >> FILE_REPORT.md
+            echo "" >> FILE_REPORT.md
+            echo "<details>" >> FILE_REPORT.md
+            echo "<summary>Click para expandir lista de archivos faltantes (${{ steps.check_files.outputs.missing_files }} archivos)</summary>" >> FILE_REPORT.md
+            echo "" >> FILE_REPORT.md
+            echo '```' >> FILE_REPORT.md
+            cat missing_files.txt >> FILE_REPORT.md
+            echo '```' >> FILE_REPORT.md
+            echo "</details>" >> FILE_REPORT.md
+          fi
           
           echo "" >> FILE_REPORT.md
-          echo "## File Categories" >> FILE_REPORT.md
+          echo "## Categorías de Archivos Encontrados" >> FILE_REPORT.md
           echo "" >> FILE_REPORT.md
-          echo "The device tree list contains:" >> FILE_REPORT.md
+          echo "### Módulos del Kernel (.ko)" >> FILE_REPORT.md
+          echo "Drivers y módulos del kernel encontrados en:" >> FILE_REPORT.md
+          echo "- \`recovery/root/lib/modules/\`" >> FILE_REPORT.md
+          echo "- \`vendor_dlkm/lib/modules/\`" >> FILE_REPORT.md
+          echo "- \`vendor_boot/root.1/lib/modules/\`" >> FILE_REPORT.md
           echo "" >> FILE_REPORT.md
-          echo "### Build Configuration Files" >> FILE_REPORT.md
-          echo "- Android.bp, Android.mk - Android build system files" >> FILE_REPORT.md
-          echo "- AndroidProducts.mk - Product configuration" >> FILE_REPORT.md
-          echo "- BoardConfig.mk - Board-specific configuration" >> FILE_REPORT.md
-          echo "- device.mk - Device-specific makefiles" >> FILE_REPORT.md
-          echo "- vendorsetup.sh - Vendor setup script" >> FILE_REPORT.md
+          echo "### Bibliotecas Compartidas (.so)" >> FILE_REPORT.md
+          echo "Bibliotecas del sistema y vendor encontradas en:" >> FILE_REPORT.md
+          echo "- \`system/system/lib/\` y \`system/system/lib64/\`" >> FILE_REPORT.md
+          echo "- \`vendor/lib/\` y \`vendor/lib64/\`" >> FILE_REPORT.md
+          echo "- \`recovery/root/system/lib64/\`" >> FILE_REPORT.md
           echo "" >> FILE_REPORT.md
-          echo "### Prebuilt Components" >> FILE_REPORT.md
-          echo "- dtb.img - Device Tree Blob" >> FILE_REPORT.md
-          echo "- fstab.qcom - Filesystem table for Qualcomm devices" >> FILE_REPORT.md
-          echo "- *.ko files - Kernel modules (drivers)" >> FILE_REPORT.md
+          echo "### Archivos de Configuración" >> FILE_REPORT.md
+          echo "- Archivos XML (manifiestos, permisos, configuraciones)" >> FILE_REPORT.md
+          echo "- Archivos RC (scripts de init)" >> FILE_REPORT.md
+          echo "- Archivos PROP (propiedades del sistema)" >> FILE_REPORT.md
           echo "" >> FILE_REPORT.md
-          echo "### Configuration Files" >> FILE_REPORT.md
-          echo "- *.prop - System/vendor properties" >> FILE_REPORT.md
-          echo "- *.rc - Init scripts" >> FILE_REPORT.md
-          echo "- *.xml - VINTF manifests and other configs" >> FILE_REPORT.md
+          echo "## Notas" >> FILE_REPORT.md
           echo "" >> FILE_REPORT.md
-          echo "### Recovery Components" >> FILE_REPORT.md
-          echo "- recovery.fstab - Recovery filesystem table" >> FILE_REPORT.md
-          echo "- twrp.dependencies - TWRP dependencies" >> FILE_REPORT.md
-          echo "- twrp_pa1q.mk - TWRP build configuration" >> FILE_REPORT.md
+          echo "- La búsqueda se realizó por **nombre de archivo** en todo el repositorio" >> FILE_REPORT.md
+          echo "- Los archivos pueden estar en diferentes rutas que las especificadas en la lista original" >> FILE_REPORT.md
+          echo "- Algunos archivos pueden aparecer en múltiples ubicaciones (recovery, vendor, system)" >> FILE_REPORT.md
           echo "" >> FILE_REPORT.md
           echo "---" >> FILE_REPORT.md
           echo "" >> FILE_REPORT.md
-          echo "*Generated by GitHub Actions workflow*" >> FILE_REPORT.md
-          echo "*Source: [tree_output.txt](https://raw.githubusercontent.com/Eduardob3677/android_device_samsung_pa1q/refs/heads/copilot/add-tree-command-output/tree_output.txt)*" >> FILE_REPORT.md
+          echo "*Generado por GitHub Actions workflow*" >> FILE_REPORT.md
+          echo "*Fuente: [tree_output.txt](https://raw.githubusercontent.com/Eduardob3677/android_device_samsung_pa1q/refs/heads/copilot/add-tree-command-output/tree_output.txt)*" >> FILE_REPORT.md
           
           # Display the report
           echo ""
@@ -248,7 +262,7 @@ jobs:
           echo "========================================"
 
       - name: Upload found files as artifact
-        if: steps.check_files.outputs.existing_files > 0
+        if: steps.check_files.outputs.found_files > 0
         uses: actions/upload-artifact@v4
         with:
           name: device-tree-files-${{ github.sha }}
@@ -262,7 +276,7 @@ jobs:
           name: device-tree-file-report-${{ github.sha }}
           path: |
             tree_output.txt
-            existing_files.txt
+            found_files_detail.txt
             missing_files.txt
             FILE_REPORT.md
           retention-days: 90
@@ -270,43 +284,44 @@ jobs:
 
       - name: Create summary
         run: |
-          echo "## 📋 Device Tree Files Check Complete" >> $GITHUB_STEP_SUMMARY
+          echo "## 📋 Búsqueda de Archivos del Device Tree Completada" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Total files in list**: ${{ steps.check_files.outputs.total_files }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Files found**: ${{ steps.check_files.outputs.existing_files }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Files missing**: ${{ steps.check_files.outputs.missing_files }}" >> $GITHUB_STEP_SUMMARY
+          echo "### Resumen" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total de archivos en la lista**: ${{ steps.check_files.outputs.total_files }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Archivos encontrados**: ${{ steps.check_files.outputs.found_files }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Archivos faltantes**: ${{ steps.check_files.outputs.missing_files }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          if [ "${{ steps.check_files.outputs.existing_files }}" -gt "0" ]; then
-            echo "### ✅ Found Files" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.check_files.outputs.found_files }}" -gt "0" ]; then
+            echo "### ✅ Archivos Encontrados" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Files have been uploaded to artifacts: \`device-tree-files-${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "Se encontraron **${{ steps.check_files.outputs.found_files }}** archivos de la lista del device tree." >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Los archivos han sido subidos al artifact: \`device-tree-files-${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Nota**: La búsqueda se realizó por nombre de archivo en todo el repositorio." >> $GITHUB_STEP_SUMMARY
+            echo "Los archivos pueden estar en rutas diferentes a las especificadas en la lista original." >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "#### Ejemplos de archivos encontrados:" >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
-            cat existing_files.txt >> $GITHUB_STEP_SUMMARY
+            head -30 found_files_detail.txt >> $GITHUB_STEP_SUMMARY
             echo '```' >> $GITHUB_STEP_SUMMARY
           else
-            echo "### ⚠️ No Files Found" >> $GITHUB_STEP_SUMMARY
+            echo "### ⚠️ No se Encontraron Archivos" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "None of the files from the device tree list exist in this firmware repository." >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Reason**: The file list is from a device tree repository (android_device_samsung_pa1q)," >> $GITHUB_STEP_SUMMARY
-            echo "while this is a firmware repository (UN1CA-firmware-dm2q). They serve different purposes:" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "- **Device Tree**: Build configuration, kernel modules, recovery configs" >> $GITHUB_STEP_SUMMARY
-            echo "- **Firmware**: Extracted system/vendor partitions with apps, libs, etc." >> $GITHUB_STEP_SUMMARY
+            echo "No se encontraron archivos de la lista del device tree en este repositorio de firmware." >> $GITHUB_STEP_SUMMARY
           fi
+          
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📄 Reports Available" >> $GITHUB_STEP_SUMMARY
+          echo "### 📄 Reportes Disponibles" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "A detailed report has been uploaded to artifacts: \`device-tree-file-report-${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Un reporte detallado ha sido subido al artifact: \`device-tree-file-report-${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "The report includes:" >> $GITHUB_STEP_SUMMARY
-          echo "- Complete list of existing files" >> $GITHUB_STEP_SUMMARY
-          echo "- Complete list of missing files" >> $GITHUB_STEP_SUMMARY
-          echo "- File category breakdown" >> $GITHUB_STEP_SUMMARY
-          echo "- Original tree output" >> $GITHUB_STEP_SUMMARY
+          echo "El reporte incluye:" >> $GITHUB_STEP_SUMMARY
+          echo "- Lista completa de archivos encontrados con sus ubicaciones" >> $GITHUB_STEP_SUMMARY
+          echo "- Lista completa de archivos faltantes" >> $GITHUB_STEP_SUMMARY
+          echo "- Categorización de archivos" >> $GITHUB_STEP_SUMMARY
+          echo "- Salida original del árbol de directorios" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "---" >> $GITHUB_STEP_SUMMARY
-          echo "*Workflow completed at $(date -u '+%Y-%m-%d %H:%M:%S UTC')*" >> $GITHUB_STEP_SUMMARY
+          echo "*Workflow completado en $(date -u '+%Y-%m-%d %H:%M:%S UTC')*" >> $GITHUB_STEP_SUMMARY
